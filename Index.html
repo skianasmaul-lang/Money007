@@ -1,79 +1,75 @@
-<!DOCTYPE html>
-<html lang="bn">
+;<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Tasks Earning App</title>
+    <title>Premium Modern Rewards</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #0f0f0f; color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
-        /* Mobile Screen Layout Constraints */
-        .mobile-container { max-width: 480px; min-height: 100vh; background: #0f0f0f; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
-        .youtube-red { background-color: #ff0000; }
-        .youtube-red-hover:hover { background-color: #cc0000; }
-        .premium-card { background: #1f1f1f; border: 1px solid rgba(255,255,255,0.05); }
-        /* Hide scrollbars but keep functionality */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        body { background-color: #ffffff; color: #000000; font-family: 'Segoe UI', Roboto, sans-serif; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="pb-32 bg-white text-black min-h-screen flex flex-col">
 
-    <div class="mobile-container flex flex-col justify-between min-h-screen">
+    <nav class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-7 bg-green-500 rounded-full"></div>
+            <span class="text-2xl font-black tracking-tight text-black">CASH<span class="text-green-600">NODE</span></span>
+        </div>
         
-        <div id="authScreen" class="w-full flex-1 flex flex-col justify-center px-6 py-12 space-y-8">
-            <div class="text-center space-y-3">
-                <div class="w-20 h-20 youtube-red text-white rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-lg shadow-red-600/20">
-                    <i class="fab fa-youtube"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-black tracking-wide text-white">প্রিমিয়াম টাস্ক হাব</h2>
-                    <p class="text-neutral-400 text-xs mt-1">আপনার ৪ ডিজিটের ইউনিক আইডি পিন দিয়ে প্রবেশ করুন</p>
-                </div>
-            </div>
+        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-5 py-2.5 rounded-full shadow-inner">
+            <i class="fa-solid fa-circle-dollar-to-slot text-green-600 text-lg"></i>
+            <span id="userBalance" class="font-mono font-black text-xl text-black">$0.00</span>
+        </div>
+    </nav>
 
-            <div class="space-y-4">
-                <input type="text" id="loginPin" maxlength="4" placeholder="0001" class="w-full bg-[#121212] border border-neutral-800 text-center text-3xl font-bold tracking-widest py-4 rounded-2xl text-red-500 focus:outline-none focus:border-red-600 transition">
-                <button onclick="handleAuth()" class="w-full youtube-red youtube-red-hover text-white font-extrabold py-4 rounded-2xl transition shadow-lg shadow-red-600/10 text-base">অ্যাকাউন্টে প্রবেশ করুন</button>
-            </div>
+    <main class="max-w-3xl w-full mx-auto p-4 md:p-6 flex-1 flex flex-col justify-between">
+        
+        <div id="timerOverlay" class="hidden bg-red-50 border border-red-200 p-4 rounded-2xl items-center justify-between shadow-sm mb-6 animate-pulse">
+            <span class="text-sm font-semibold text-red-700 flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin text-red-500"></i> Job Link Active! Do not close the window...
+            </span>
+            <span id="countdownDisplay" class="font-mono font-black text-xl text-white bg-red-600 px-4 py-1.5 rounded-xl shadow-sm">60s</span>
         </div>
 
-        <div id="appScreen" class="w-full flex-1 flex flex-col hidden">
-            <div class="sticky top-0 z-50 bg-[#0f0f0f]/90 backdrop-blur-md px-4 py-4 border-b border-neutral-800 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 youtube-red text-white rounded-lg flex items-center justify-center text-sm">
-                        <i class="fas fa-play"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-neutral-400">আইডি: <span id="displayId" class="text-white font-bold"></span></p>
-                        <button onclick="logout()" class="text-[10px] text-red-500 font-semibold uppercase tracking-wider">লগআউট</button>
-                    </div>
-                </div>
-                <div class="bg-[#1f1f1f] border border-neutral-800 px-4 py-1.5 rounded-full text-right flex items-center gap-2">
-                    <span class="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">Wallet</span>
-                    <p class="text-lg font-black text-emerald-400">৳<span id="userBalance">0.00</span></p>
-                </div>
+        <div class="flex-1">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span> Live Earning Stream
+                </h3>
+                <span id="liveStatusDot" class="text-xs font-semibold text-red-500 bg-red-50 px-2.5 py-0.5 rounded-full hidden">Disconnected</span>
             </div>
-
-            <div class="p-4 space-y-4 flex-1 overflow-y-auto">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span> উপলব্ধ কাজ সমূহ
-                    </h3>
-                    <span class="text-[11px] text-neutral-500" id="taskCount">০টি একটিভ</span>
-                </div>
-                
-                <div id="userTaskList" class="space-y-4 pb-20">
-                    </div>
+            
+            <div id="userTaskBox" class="space-y-4 custom-scroll overflow-y-auto max-h-[60vh] pr-1">
+                <p class="text-center text-gray-400 text-sm py-16 font-medium">Please authenticating your access terminal at the bottom to view premium tasks.</p>
             </div>
         </div>
+    </main>
 
+    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 md:p-5 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+        <div class="max-w-xl mx-auto flex items-center justify-between gap-4">
+            
+            <div class="flex items-center justify-center bg-gray-100 text-gray-700 w-12 h-12 rounded-xl border border-gray-200/60 shadow-sm transition-all" id="fingerprintBlock">
+                <i class="fa-solid fa-fingerprint text-xl"></i>
+            </div>
+
+            <div class="flex-1 relative">
+                <input id="pinInput" type="text" maxlength="6" placeholder="Enter 6-Digit PIN" class="w-full bg-gray-50 border border-gray-200 text-center text-lg font-mono font-bold tracking-[0.2em] rounded-xl py-3 px-4 text-black placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder:text-gray-400 focus:outline-none focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-500/10 transition-all shadow-inner">
+            </div>
+
+            <button id="authBtn" onclick="handleAuth()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-green-600/10 transition-all whitespace-nowrap active:scale-95">
+                Login / Join
+            </button>
+        </div>
+        <div id="statusReport" class="text-center text-[10px] font-mono mt-2 text-gray-400 uppercase tracking-wider">Access Locked</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCvGMzJIZpW3S2gsXgAwFwqnjOA1Haiw5o",
@@ -88,195 +84,161 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        let currentUserId = null;
-        let userBalance = 0;
-        let userCompletedList = {}; // Stores tasks completed by this specific user
 
-        // Page load checking for session persistence (Auto Login)
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedPin = localStorage.getItem('user_session_pin');
-            if (savedPin && savedPin.length === 4) {
-                currentUserId = savedPin;
-                verifyAndLogin(savedPin);
-            }
-        });
+        let activeUID = localStorage.getItem('user_uid') || null;
 
-        window.handleAuth = function() {
-            const pin = document.getElementById('loginPin').value;
-            if(pin.length !== 4) return alert('অবশ্যই ৪ ডিজিটের আইডি পিন হতে হবে!');
-            currentUserId = pin;
-            verifyAndLogin(pin);
-        };
-
-        function verifyAndLogin(pin) {
-            const userRef = ref(db, `users/${pin}`);
-            get(userRef).then((snapshot) => {
-                if(snapshot.exists()) {
-                    localStorage.setItem('user_session_pin', pin);
-                    loadApp(snapshot.val());
-                } else {
-                    const newUser = {
-                        balance: 0,
-                        completedTasks: 0,
-                        createdAt: new Date().toLocaleString('bn-BD')
-                    };
-                    set(userRef, newUser).then(() => {
-                        localStorage.setItem('user_session_pin', pin);
-                        loadApp(newUser);
-                    });
-                }
-            });
+        if(activeUID) {
+            document.getElementById('pinInput').value = activeUID;
+            bindUserSession(activeUID);
         }
 
-        window.logout = function() {
-            localStorage.removeItem('user_session_pin');
-            location.reload();
-        };
-
-        function loadApp(userData) {
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.remove('hidden');
-            document.getElementById('displayId').innerText = currentUserId;
-
-            // Listen to User Account Profile Changes Realtime
-            onValue(ref(db, `users/${currentUserId}`), (snapshot) => {
-                if(snapshot.exists()){
-                    const data = snapshot.val();
-                    userBalance = data.balance || 0;
-                    userCompletedList = data.doneTasks || {}; // Get list of task IDs done by user
-                    document.getElementById('userBalance').innerText = Number(userBalance).toFixed(2);
-                    
-                    // Fetch or refresh active tasks UI based on newly synchronized profile data
-                    syncTasksRealtime();
-                }
-            });
-        }
-
-        function syncTasksRealtime() {
-            onValue(ref(db, 'tasks'), (snapshot) => {
-                const container = document.getElementById('userTaskList');
-                container.innerHTML = '';
-                
-                if(!snapshot.exists()) {
-                    container.innerHTML = '<p class="text-neutral-500 text-center py-8 text-xs">এই মুহূর্তে কোনো কাজ উপলব্ধ নেই।</p>';
-                    document.getElementById('taskCount').innerText = "০টি একটিভ";
-                    return;
-                }
-
-                let activeCounter = 0;
-
-                snapshot.forEach((child) => {
-                    const task = child.val();
-                    const taskId = child.key;
-
-                    if(task.status === true) { 
-                        activeCounter++;
-                        
-                        // Check if this user has already completed this specific task ID
-                        const isTaskDone = userCompletedList[taskId] === true;
-
-                        container.innerHTML += `
-                            <div class="premium-card p-4 rounded-2xl space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center gap-1.5 text-emerald-400 font-black text-base">
-                                        <i class="fas fa-circle-dollar-to-slot"></i> 
-                                        <span>৳${Number(task.reward).toFixed(2)}</span>
-                                    </div>
-                                    ${isTaskDone ? 
-                                        `<span class="text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Completed</span>` :
-                                        `<span class="text-[11px] bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full font-bold">Active Task</span>`
-                                    }
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <button onclick="handleRedirect('${task.link}', this, false, '${taskId}')" ${isTaskDone ? 'disabled' : ''} class="${isTaskDone ? 'bg-neutral-800 text-neutral-600' : 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700'} text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
-                                        <i class="fas fa-external-link-alt text-red-500"></i> কাজ শুরু ১ (১৫s)
-                                    </button>
-                                    <button id="step2-${taskId}" onclick="handleRedirect('${task.yt}', this, true, '${taskId}')" disabled class="bg-neutral-800 text-neutral-600 text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5 cursor-not-allowed">
-                                        <i class="fab fa-youtube text-neutral-600" id="ytIcon-${taskId}"></i> কাজ শুরু ২ (১০s)
-                                    </button>
-                                </div>
-
-                                <div class="bg-[#121212] p-3 rounded-xl border border-neutral-800/80 flex gap-2 items-center">
-                                    <input type="text" id="pinInput-${taskId}" maxlength="4" placeholder="৪ ডিজিটের পিন দিন" ${isTaskDone ? 'disabled' : ''} class="w-full bg-transparent text-sm font-semibold tracking-widest text-center text-white focus:outline-none placeholder-neutral-600 disabled:text-neutral-600">
-                                    <button onclick="verifySecretPin('${taskId}', '${task.pin}', ${task.reward})" ${isTaskDone ? 'disabled' : ''} class="${isTaskDone ? 'bg-neutral-800 text-neutral-600' : 'youtube-red hover:youtube-red-hover text-white'} text-xs font-bold px-4 py-2.5 rounded-lg transition shrink-0">
-                                        ভেরিফাই
-                                    </button>
-                                </div>
-                            </div>`;
-                    }
-                });
-
-                document.getElementById('taskCount').innerText = `${activeCounter}টি একটিভ`;
-            });
-        }
-
-        // Handle External Web Redirects securely (Dynamic Redirection outside application)
-        window.handleRedirect = function(targetUrl, btn, isStep2 = false, taskId = '') {
-            btn.disabled = true;
-            window.open(targetUrl, '_blank'); // Redirects directly to external application like YouTube
-            
-            let duration = isStep2 ? 10 : 15;
-            btn.innerText = `অপেক্ষা করুন (${duration}s)`;
-
-            const countdown = setInterval(() => {
-                duration--;
-                if(duration <= 0) {
-                    clearInterval(countdown);
-                    if(!isStep2) {
-                        btn.className = "bg-neutral-800/40 text-neutral-500 text-xs font-bold py-3 rounded-xl text-center border border-neutral-800";
-                        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> этап ১ শেষ';
-                        
-                        // [FIXED] Unlock Stage 2 Dynamic Button securely by using correct taskId parameters passing
-                        const nextBtn = document.getElementById(`step2-${taskId}`);
-                        if(nextBtn) {
-                            nextBtn.disabled = false;
-                            nextBtn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/10";
-                            const nextIcon = document.getElementById(`ytIcon-${taskId}`);
-                            if(nextIcon) nextIcon.className = "fab fa-youtube text-white";
-                        }
-                    } else {
-                        btn.className = "bg-neutral-800/40 text-neutral-500 text-xs font-bold py-3 rounded-xl text-center border border-neutral-800";
-                        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> ভিডিও দেখা শেষ';
-                    }
-                } else {
-                    btn.innerText = `অপেক্ষা করুন (${duration}s)`;
-                }
-            }, 1000);
-        };
-
-        // Realtime Verification Algorithm per Task per User Account Account Profile
-        window.verifySecretPin = function(taskId, originalPin, reward) {
-            // Safety Check: Check if already completed inside current local state
-            if(userCompletedList && userCompletedList[taskId] === true) {
-                alert("দুঃখিত! এই কাজটি আপনি ইতিমধ্যেই সম্পন্ন করে ফেলেছেন। একই কাজ বারবার করা যাবে না।");
+        window.handleAuth = async function() {
+            if(activeUID) {
+                // Terminate Secure Framework Session
+                localStorage.removeItem('user_uid');
+                activeUID = null;
+                document.getElementById('pinInput').value = '';
+                document.getElementById('pinInput').disabled = false;
+                document.getElementById('authBtn').innerText = "Login / Join";
+                document.getElementById('authBtn').className = "bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-green-600/10 transition-all whitespace-nowrap active:scale-95";
+                document.getElementById('userBalance').innerText = "$0.00";
+                document.getElementById('fingerprintBlock').className = "flex items-center justify-center bg-gray-100 text-gray-700 w-12 h-12 rounded-xl border border-gray-200/60 shadow-sm";
+                document.getElementById('statusReport').className = "text-center text-[10px] font-mono mt-2 text-gray-400 uppercase tracking-wider";
+                document.getElementById('statusReport').innerText = "Access Locked";
+                document.getElementById('liveStatusDot').classList.add('hidden');
+                setupTasksFeed();
                 return;
             }
 
-            const typedPin = document.getElementById(`pinInput-${taskId}`).value;
-            if(typedPin.length !== 4) return alert("অনুগ্রহ করে সঠিক ৪ ডিজিটের পিন কোডটি লিখুন!");
+            const pin = document.getElementById('pinInput').value.trim();
+            if(pin.length !== 6) { alert("PIN input syntax must match exactly 6 numeric keys."); return; }
 
-            if(typedPin === originalPin) {
-                // Instantly update current locally calculated parameters to prevent multi-click exploits
-                userCompletedList[taskId] = true; 
+            const userRef = ref(db, `users/${pin}`);
+            const snapshot = await get(userRef);
 
-                // Database Object Path references definitions
-                const userRef = ref(db, `users/${currentUserId}`);
-                const finalCalculatedBalance = Number(userBalance) + Number(reward);
-
-                // Push Updates into database structures atomically
-                update(userRef, {
-                    balance: finalCalculatedBalance,
-                    [`doneTasks/${taskId}`]: true // Flags this specific unique task ID as true (Completed) for this user
-                }).then(() => {
-                    alert(`কংগ্রাচুলেশন! পিন সঠিক হয়েছে এবং আপনার অ্যাকাউন্টে ৳${Number(reward).toFixed(2)} সফলভাবে যোগ করা হয়েছে।`);
-                });
-
+            if(snapshot.exists()) {
+                const data = snapshot.val();
+                if(data.isBanned) {
+                    alert("This secure cryptographic node channel has been permanently suspended by network root admin.");
+                    return;
+                }
             } else {
-                alert("ভুল পিন দিয়েছেন! ভিডিওটি মনোযোগ দিয়ে দেখে সঠিক পিন দিন এবং পুনরায় চেষ্টা করুন।");
+                // Initialize Account Blueprint Map Configuration
+                await set(userRef, {
+                    uid: pin,
+                    balance: 0.00,
+                    tasksCompleted: 0,
+                    age: 1,
+                    isBanned: false
+                });
             }
+
+            localStorage.setItem('user_uid', pin);
+            activeUID = pin;
+            bindUserSession(pin);
         };
+
+        function bindUserSession(uid) {
+            document.getElementById('pinInput').disabled = true;
+            document.getElementById('authBtn').innerText = "Logout";
+            document.getElementById('authBtn').className = "bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-red-600/10 transition-all whitespace-nowrap active:scale-95";
+            document.getElementById('fingerprintBlock').className = "flex items-center justify-center bg-green-50 text-green-600 w-12 h-12 rounded-xl border border-green-200 shadow-sm";
+            document.getElementById('liveStatusDot').classList.remove('hidden');
+
+            // Listen to Balance & Variable Ecosystem Realtime
+            onValue(ref(db, `users/${uid}`), (snapshot) => {
+                if(snapshot.exists()) {
+                    const data = snapshot.val();
+                    if(data.isBanned) {
+                        alert("Session terminated: Terminal connection blacklist alert flag intercepted.");
+                        localStorage.removeItem('user_uid');
+                        location.reload();
+                        return;
+                    }
+                    document.getElementById('userBalance').innerText = `$${parseFloat(data.balance).toFixed(2)}`;
+                    document.getElementById('statusReport').className = "text-center text-[10px] font-mono mt-2 text-green-600 font-bold uppercase tracking-wider";
+                    document.getElementById('statusReport').innerText = `Active Link Node: ONLINE (${uid})`;
+                }
+            });
+            setupTasksFeed();
+        }
+
+        function setupTasksFeed() {
+            const container = document.getElementById('userTaskBox');
+            if(!activeUID) {
+                container.innerHTML = `<p class="text-center text-gray-400 text-sm py-16 font-medium">Please authenticating your access terminal at the bottom to view premium tasks.</p>`;
+                return;
+            }
+
+            onValue(ref(db, 'tasks'), (snapshot) => {
+                container.innerHTML = '';
+                if(snapshot.exists()) {
+                    const data = snapshot.val();
+                    let itemsPresent = false;
+                    Object.keys(data).forEach(key => {
+                        const task = data[key];
+                        if(task.hidden) return; 
+                        itemsPresent = true;
+
+                        // Premium High Density Expanded Task Cards Construction
+                        const card = document.createElement('div');
+                        card.className = "bg-white border border-gray-200 hover:border-gray-300 p-5 rounded-2xl flex justify-between items-center transition-all shadow-[0_4px_12px_rgba(0,0,0,0.01)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.03)] group min-h-[90px]";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-5 flex-1 min-w-0">
+                                <div class="bg-green-50 text-green-600 font-mono font-black text-base md:text-lg px-4 py-2.5 rounded-xl border border-green-100 shrink-0 shadow-sm">
+                                    $${parseFloat(task.amount).toFixed(2)}
+                                </div>
+                                <h4 class="text-base font-bold text-black truncate pr-4">${task.title}</h4>
+                            </div>
+                            <button onclick="launchTask('${task.link}', ${task.amount})" class="bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-xl flex items-center gap-1.5 shadow-sm shadow-green-600/10 transition-all shrink-0 active:scale-95">
+                                Open <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </button>
+                        `;
+                        container.appendChild(card);
+                    });
+                    if(!itemsPresent) container.innerHTML = `<p class="text-center text-gray-400 text-sm py-16 font-mono">No active streams deployed from root control node.</p>`;
+                } else {
+                    container.innerHTML = `<p class="text-center text-gray-400 text-sm py-16 font-mono">No active streams deployed from root control node.</p>`;
+                }
+            });
+        }
+
+        window.launchTask = function(url, amount) {
+            if(!activeUID) return;
+            window.open(url, '_blank');
+            
+            const overlay = document.getElementById('timerOverlay');
+            const display = document.getElementById('countdownDisplay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            let counter = 60;
+            display.innerText = `${counter}s`;
+
+            const sessionClock = setInterval(() => {
+                counter--;
+                display.innerText = `${counter}s`;
+                if(counter <= 0) {
+                    clearInterval(sessionClock);
+                    overlay.classList.remove('flex');
+                    overlay.classList.add('hidden');
+                    
+                    // Secure Balance Injection Payload Deployment 
+                    const userRef = ref(db, `users/${activeUID}`);
+                    get(userRef).then(snap => {
+                        if(snap.exists()) {
+                            let walletBal = parseFloat(snap.val().balance || 0);
+                            let progressCount = parseInt(snap.val().tasksCompleted || 0);
+                            update(userRef, {
+                                balance: walletBal + amount,
+                                tasksCompleted: progressCount + 1
+                            });
+                            alert(`Verification Success: +$${amount.toFixed(2)} synchronized to secure node balance.`);
+                        }
+                    });
+                }
+            }, 1000);
+        }
     </script>
 </body>
-                  </html>
+</html>
