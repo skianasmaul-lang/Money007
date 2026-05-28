@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium User Dashboard (Authentication Fixed)</title>
-    <!-- Google Fonts & FontAwesome -->
+    <title>Premium User Dashboard (Popup Auth Restored)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -157,7 +156,6 @@
 </head>
 <body>
 
-<!-- Login Container -->
 <div class="login-screen" id="loginScreen">
     <h1 style="margin-bottom: 20px; letter-spacing: 2px;">PREMIUM EARN</h1>
     <button class="btn-google" onclick="loginWithGoogle()">
@@ -166,7 +164,6 @@
     </button>
 </div>
 
-<!-- Main App Dashboard -->
 <div class="dashboard" id="dashboard">
     <div class="top-bar">
         <div class="user-id-box">
@@ -176,18 +173,14 @@
         <div class="balance-box" id="userBalance">$0.00</div>
     </div>
 
-    <!-- Live Tasks Feed -->
     <div id="tasksContainer">
-        <!-- Tasks will match real-time from DB -->
-    </div>
+        </div>
 
-    <!-- Bottom Action Bar -->
     <div class="bottom-nav">
         <button class="btn-withdraw-trigger" onclick="toggleWithdrawModal(true)"><i class="fas fa-wallet"></i> উত্তোলন (Withdraw)</button>
     </div>
 </div>
 
-<!-- Withdraw Popup Dialog -->
 <div class="modal" id="withdrawModal">
     <div class="modal-content">
         <i class="fas fa-times close-modal" onclick="toggleWithdrawModal(false)"></i>
@@ -204,10 +197,9 @@
     </div>
 </div>
 
-<!-- Firebase Modular SDK Links -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -230,19 +222,15 @@
     let authUser = null;
     let isTaskRunning = false;
 
-    // ১. পারসিস্টেন্স সেটআপ (যাতে অ্যাকাউন্ট কখনো অটো-লগআউট না হয়)
+    // ১. ব্রাউজার সেশন পারসিস্টেন্স সেটআপ (যাতে অ্যাকাউন্ট অটো-লগআউট না হয়)
     setPersistence(auth, browserLocalPersistence)
-        .then(() => {
-            // রিডাইরেক্ট লগইন এর রেজাল্ট হ্যান্ডেল করা (যদি পেজ রিফ্রেশ হয়ে ফিরে আসে)
-            return getRedirectResult(auth);
-        })
         .catch((error) => {
             console.error("Persistence Error: ", error.message);
         });
 
-    // ২. রিডাইরেক্ট মেথড ব্যবহার করে নিরাপদ লগইন (যা ব্রাউজার ব্লক করতে পারবে না)
+    // ২. রিকোয়েস্ট অনুযায়ী পপ-আপ লগইন মেথড রিস্টোর করা হলো
     window.loginWithGoogle = function() {
-        signInWithRedirect(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
+        signInWithPopup(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -503,4 +491,15 @@
                 return currentData;
             }).then(() => {
                 const withdrawId = "wd_" + Date.now();
-                cons
+                const withdrawData = {
+                    id: withdrawId,
+                    userId: authUser.uid,
+                    userUidStr: currentUserData.uidStr,
+                    number: num,
+                    amount: amtBdt,
+                    method: "নগদ",
+                    status: "Pending"
+                };
+
+                set(ref(db, `withdraws/${withdrawId}`), withdrawData).then(() => {
+                    alert("আপনার উইথড্র রিকোয়েস্টটি সফলভাবে পাঠানো হয়েছে
