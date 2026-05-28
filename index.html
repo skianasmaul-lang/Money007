@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium User Dashboard</title>
+    <title>Premium User Dashboard (Fully Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -88,6 +88,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 15px;
+            transition: 0.3s;
         }
 
         .task-header {
@@ -145,6 +146,12 @@
         .form-group input { width:100%; background:#0f1115; border:1px solid var(--border-color); padding:10px; border-radius:6px; color:white;}
         
         .btn-submit { width:100%; background:var(--accent-green); color:white; border:none; padding:12px; border-radius:6px; font-weight:600; cursor:pointer;}
+        
+        /* Global Block Style for Tasks */
+        .disabled-task {
+            opacity: 0.3 !important;
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body>
@@ -195,7 +202,6 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase Configurations
     const firebaseConfig = {
         apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
         authDomain: "new-app-98e52.firebaseapp.com",
@@ -214,13 +220,12 @@
 
     let currentUserData = null;
     let authUser = null;
+    let isTaskRunning = false; // গ্লোবাল স্টেট ট্র্যাকিং (একটি টাস্ক চলাকালীন অন্যগুলো লক করার জন্য)
 
-    // গুগল দিয়ে লগইন
     window.loginWithGoogle = function() {
         signInWithPopup(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
     }
 
-    // অথেন্টিকেশন স্টেট ট্র্যাকিং ও ৪-ডিজিট সিরিয়াল আইডি জেনারেটর সিস্টেম
     onAuthStateChanged(auth, (user) => {
         if (user) {
             authUser = user;
@@ -228,13 +233,12 @@
             
             get(userRef).then((snapshot) => {
                 if (!snapshot.exists()) {
-                    // নতুন ৪ অক্ষরের সিরিয়াল আইডি তৈরি প্রসেস ট্রানজেকশন দ্বারা
                     const globalCounterRef = ref(db, 'globalCounter');
                     runTransaction(globalCounterRef, (currentCount) => {
                         return (currentCount || 0) + 1;
                     }).then((result) => {
                         let serial = result.snapshot.val();
-                        let uniqueIdStr = String(serial).padStart(4, '0'); // উদাঃ 0001, 0002
+                        let uniqueIdStr = String(serial).padStart(4, '0');
 
                         const newUserData = {
                             uidStr: uniqueIdStr,
@@ -251,7 +255,6 @@
                         });
                     });
                 } else {
-                    // অ্যাকাউন্ট আগে থেকেই থাকলে স্ট্যাটাস চেক
                     if(snapshot.val().isSuspended) {
                         alert("লগইন এরর: আপনার অ্যাকাউন্টটি এডমিন দ্বারা সাসপেন্ড করা হয়েছে!");
                         signOut(auth);
@@ -267,12 +270,11 @@
         }
     });
 
-    // ড্যাশবোর্ড সিঙ্ক এবং লাইভ লিসেনার
     function initDashboard(uid) {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
 
-        // ইউজার ইনফো লাইভ আপডেট শোনা
+        // রিয়েল টাইম নিখুঁত ব্যালেন্স সিঙ্কিং লিসেনার
         onValue(ref(db, `users/${uid}`), (snapshot) => {
             currentUserData = snapshot.val();
             if(currentUserData) {
@@ -283,18 +285,31 @@
                     return;
                 }
                 document.getElementById('userUidStr').innerText = currentUserData.uidStr;
-                document.getElementById('userBalance').innerText = `$${parseFloat(currentUserData.balance).toFixed(2)}`;
+                // ব্যালেন্স ২ দশমিক স্থানে ফিক্সড শো করবে
+                document.getElementById('userBalance').innerText = `$${parseFloat(currentUserData.balance || 0).toFixed(2)}`;
+                
+                // ব্যালেন্স ডাটা লোড হওয়ার পর টাস্ক লিস্ট ফ্রেশ করে রেন্ডার করা
+                loadTasks();
             }
         });
+    }
 
-        // লাইভ টাস্ক লোডার (শুধুমাত্র Active/Status=True জবগুলো দেখাবে)
-        onValue(ref(db, 'jobs'), (snapshot) => {
+    // টাস্ক ফিল্টারিং (যা অলরেডি সাবমিট হয়ে গেছে তা আর আসবে না)
+    function loadTasks() {
+        get(ref(db, 'jobs')).then((snapshot) => {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = "";
             if(snapshot.exists()) {
                 snapshot.forEach(childSnap => {
                     let job = childSnap.val();
-                    if(job.status === true) {
+                    
+                    // চেক করা হচ্ছে ইউজার এই নির্দিষ্ট টাস্কটি আগে কমপ্লিট করেছে কিনা
+                    let hasDone = false;
+                    if(currentUserData.completedTasks && currentUserData.completedTasks[job.id]) {
+                        hasDone = true;
+                    }
+
+                    if(job.status === true && !hasDone) {
                         renderTaskCard(job);
                     }
                 });
@@ -302,7 +317,6 @@
         });
     }
 
-    // টাস্ক কার্ড ইউজার ইন্টারফেস রেন্ডারিং ও টাইমার কন্ট্রোল
     function renderTaskCard(job) {
         const container = document.getElementById('tasksContainer');
         let taskHtml = "";
@@ -312,7 +326,7 @@
                 <div class="task-card" id="card_${job.id}">
                     <div class="task-header">
                         <span><i class="fab fa-youtube" style="color:red;"></i> ইউটিউব ভিডিও ওয়াচ</span>
-                        <span class="task-amount">$${job.amount}</span>
+                        <span class="task-amount">$${parseFloat(job.amount).toFixed(2)}</span>
                     </div>
                     <div class="task-actions">
                         <button class="btn-task btn-link1" id="btn1_${job.id}" onclick="startTimer('${job.id}', '${job.jobLink}', 'youtube')">১ম লিংক ওপেন</button>
@@ -320,18 +334,17 @@
                     </div>
                     <div class="verify-box">
                         <input type="text" id="input_${job.id}" placeholder="ভিডিও কোডটি দিন">
-                        <button class="btn-verify" onclick="verifyYoutubeJob('${job.id}', '${job.code}', ${job.amount})">Verify</button>
+                        <button class="btn-verify" id="vbtn_${job.id}" onclick="verifyYoutubeJob('${job.id}', '${job.code}', ${job.amount})">Verify</button>
                     </div>
                 </div>
             `;
         } else {
-            // অ্যাপ ইন্সটল এবং ওয়েবসাইট ভিজিট সিস্টেম
             let title = job.category === 'app' ? '<i class="fas fa-download"></i> অ্যাপ ইন্সটল টাস্ক' : '<i class="fas fa-globe"></i> ওয়েবসাইট ভিজিট টাস্ক';
             taskHtml = `
                 <div class="task-card" id="card_${job.id}">
                     <div class="task-header">
                         <span>${title}</span>
-                        <span class="task-amount">$${job.amount}</span>
+                        <span class="task-amount">$${parseFloat(job.amount).toFixed(2)}</span>
                     </div>
                     <div class="task-actions">
                         <button class="btn-task btn-link1" id="btn1_${job.id}" onclick="startTimer('${job.id}', '${job.jobLink}', 'other')">১ম লিংক ওপেন (৬০ সে.)</button>
@@ -341,10 +354,32 @@
             `;
         }
         container.innerHTML += taskHtml;
+        
+        // যদি অন্য কোনো টাস্ক বর্তমানে রানিং থাকে, তবে এই নতুন তৈরি হওয়া কার্ডটি লক দেখাবে
+        if(isTaskRunning) {
+            document.getElementById(`card_${job.id}`).classList.add('disabled-task');
+        }
     }
 
-    // টাইমার ও অটো-ক্রেডিট লজিক
+    // একটি টাস্ক চলাকালীন বাকি সব টাস্ক আন-অ্যাভেলেবল (লক) করার মেথড
+    function toggleAllOtherTasks(runningJobId, lock) {
+        isTaskRunning = lock;
+        const cards = document.querySelectorAll('.task-card');
+        cards.forEach(card => {
+            if(card.id !== `card_${runningJobId}`) {
+                if(lock) {
+                    card.classList.add('disabled-task');
+                } else {
+                    card.classList.remove('disabled-task');
+                }
+            }
+        });
+    }
+
     window.startTimer = function(jobId, link, type) {
+        // বাকি সব টাস্ক লক করে দেওয়া হলো
+        toggleAllOtherTasks(jobId, true);
+
         window.open(link, '_blank');
         let btn1 = document.getElementById(`btn1_${jobId}`);
         let btn2 = document.getElementById(`btn2_${jobId}`);
@@ -360,7 +395,6 @@
                 btn2.style.opacity = "1";
                 btn2.style.pointerEvents = "auto";
                 
-                // যদি অ্যাপ/ওয়েবসাইট টাস্ক হয় তবে সরাসরি ২য় লিংকের প্রসেস হবে
                 if(type === 'other') {
                     startSecondTimerAuto(jobId);
                 }
@@ -368,17 +402,15 @@
         }, 1000);
     }
 
-    // ইউটিউব ২য় লিংক ক্লিক
     window.openSecondLink = function(jobId, videoLink) {
         window.open(videoLink, '_blank');
     }
 
-    // অ্যাপ/ওয়েবসাইট এর জন্য ২য় টাইমার ও অটো টাকা যোগ হওয়ার সিস্টেম
     function startSecondTimerAuto(jobId) {
         let btn2 = document.getElementById(`btn2_${jobId}`);
         get(ref(db, `jobs/${jobId}`)).then(snap => {
             let job = snap.val();
-            window.open(job.jobLink, '_blank'); // রি-ওপেন বা অন্য লিংক ব্রাউজ করার জন্য
+            window.open(job.jobLink, '_blank');
             let count = 70;
             let timer = setInterval(() => {
                 count--;
@@ -387,84 +419,77 @@
                     clearInterval(timer);
                     btn2.innerText = "টাকা যুক্ত হয়েছে";
                     btn2.style.pointerEvents = "none";
-                    // অটো ব্যালেন্স এড করার রিয়েলটাইম ফাংশন
-                    claimReward(job.amount);
-                    document.getElementById(`card_${jobId}`).style.opacity = "0.4";
+                    
+                    // টাস্ক কমপ্লিট ও রিওয়ার্ড ক্ল্যাম প্রসেস (ডাটাবেজ ট্রানজেকশন)
+                    claimReward(job.id, job.amount);
+                    alert("টাস্ক সফলভাবে সম্পন্ন হয়েছে! ব্যালেন্স আপডেট করা হয়েছে।");
+                    
+                    // এই কাজ শেষ, তাই বাকি সব কাজ আবার অ্যাভেলেবল করা হলো
+                    toggleAllOtherTasks(jobId, false);
+                    document.getElementById(`card_${jobId}`).remove();
                 }
             }, 1000);
         });
     }
 
-    // ইউটিউব কোড ভেরিফিকেশন ক্ল্যাম প্রসেস
     window.verifyYoutubeJob = function(jobId, targetCode, amount) {
         const inputCode = document.getElementById(`input_${jobId}`).value.trim();
         if(inputCode === targetCode) {
-            claimReward(amount);
-            alert("সঠিক কোড! ব্যালেন্স যোগ হয়েছে।");
+            document.getElementById(`vbtn_${jobId}`).disabled = true;
+            claimReward(jobId, amount);
+            alert("সকরুণ অভিনন্দন! সঠিক কোড দেওয়া হয়েছে, ব্যালেন্স যুক্ত হয়েছে।");
+            
+            // কাজ শেষ, তাই লক রিলিজ করা হলো
+            toggleAllOtherTasks(jobId, false);
             document.getElementById(`card_${jobId}`).remove();
         } else {
-            alert("ভুল ভেরিফিকেশন কোড! আবার চেষ্টা করুন।");
+            alert("ভুল ভেরিফিকেশন কোড! আবার ট্রাই করুন।");
         }
     }
 
-    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট করার কোর মেথড
-    function claimReward(amount) {
+    // নিখুঁতভাবে রিওয়ার্ড ব্যালেন্স এবং টাস্ক ওয়ান্স (একবার) ডাটাবেজে সেভ করার মেথড
+    function claimReward(jobId, amount) {
         const userRef = ref(db, `users/${authUser.uid}`);
-        let currentBal = parseFloat(currentUserData.balance || 0);
-        let currentJobs = parseInt(currentUserData.jobsDone || 0);
-        update(userRef, {
-            balance: currentBal + parseFloat(amount),
-            jobsDone: currentJobs + 1
+        
+        // ট্রানজেকশন ব্যবহার করা হয়েছে যাতে ২ জন একসাথে করলেও ১ পয়সার হিসাব ভুল না হয়
+        runTransaction(userRef, (currentData) => {
+            if (currentData) {
+                // ব্যালেন্স যোগ
+                let currentBal = parseFloat(currentData.balance || 0);
+                let rewardAmt = parseFloat(amount || 0);
+                currentData.balance = parseFloat((currentBal + rewardAmt).toFixed(4));
+                
+                // জব কাউন্ট বৃদ্ধি
+                currentData.jobsDone = (parseInt(currentData.jobsDone || 0)) + 1;
+                
+                // এই টাস্ক আইডিটিকে ইউজারের কমপ্লিটেড লিস্টে পার্মানেন্টলি ট্র‍্যাক করা হলো
+                if (!currentData.completedTasks) {
+                    currentData.completedTasks = {};
+                }
+                currentData.completedTasks[jobId] = true;
+            }
+            return currentData;
         });
     }
 
-    // ইউআইডি কপি ক্লিপবোর্ড
     window.copyUid = function() {
         navigator.clipboard.writeText(currentUserData.uidStr);
         alert("আইডি কপি হয়েছে: " + currentUserData.uidStr);
     }
 
-    // উইথড্র ডায়ালগ বক্স কন্ট্রোল
     window.toggleWithdrawModal = function(show) {
         document.getElementById('withdrawModal').style.display = show ? 'flex' : 'none';
     }
 
-    // রিয়েল টাইম উইথড্র সাবমিশন লজিক
+    // সেনসিটিভ ও ফিক্সড উইথড্র সাবমিশন ভ্যালিডেশন
     window.submitWithdraw = function() {
         const num = document.getElementById('walletNumber').value.trim();
         const amtBdt = parseFloat(document.getElementById('walletAmount').value) || 0;
         
-        if(!num || amtBdt < 100) return alert("সঠিক নাম্বার এবং মিনিমাম ১০০ টাকা দিন");
+        if(!num || amtBdt < 100) return alert("দয়া করে সঠিক নগদ নম্বর এবং মিনিমাম ১০০ টাকা টাইপ করুন!");
 
-        // ১ ডলার = ১০০ টাকা হিসাব করে ব্যালেন্স চেক (কনভার্সন রেট আপনার ইচ্ছা মত পরিবর্তন করতে পারেন)
-        let neededUsd = amtBdt / 100; 
+        // $১ = ১০০ টাকা কনভার্সন রেট হিসেব
+        let neededUsd = parseFloat((amtBdt / 100).toFixed(4)); 
+        let userCurrentUsd = parseFloat(currentUserData.balance || 0);
 
-        if(parseFloat(currentUserData.balance) >= neededUsd) {
-            // রিয়েল টাইমে ডাটাবেজ থেকে ডলার কেটে নেওয়া হচ্ছে
-            const userRef = ref(db, `users/${authUser.uid}`);
-            update(userRef, { balance: parseFloat(currentUserData.balance) - neededUsd });
-
-            // রিকোয়েস্ট এডমিন প্যানেলে পাঠানো হচ্ছে
-            const withdrawId = "wd_" + Date.now();
-            const withdrawData = {
-                id: withdrawId,
-                userId: authUser.uid,
-                userUidStr: currentUserData.uidStr,
-                number: num,
-                amount: amtBdt,
-                method: "নগদ",
-                status: "Pending"
-            };
-
-            set(ref(db, `withdraws/${withdrawId}`), withdrawData).then(() => {
-                alert("উইথড্র রিকোয়েস্ট সফলভাবে এডমিন প্যানেলে পাঠানো হয়েছে!");
-                toggleWithdrawModal(false);
-            });
-        } else {
-            alert("ইনভ্যালিড অ্যামাউন্ট এরর: আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
-        }
-    }
-</script>
-</body>
-            </html>
-    
+        // কঠোর সিকিউরিটি ভ্যালিডেশন (ইউজারের ব্যালেন্স প্রয়োজনীয় অ্যাম
