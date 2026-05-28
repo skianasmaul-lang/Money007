@@ -1,348 +1,351 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Tasks Earning App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Premium Google Login & Timer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { background: #090d16; color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
-        /* Mobile Screen Layout Constraints */
-        .mobile-container { max-width: 480px; min-height: 100vh; background: #090d16; margin: 0 auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
-        .youtube-red { background: linear-gradient(135deg, #ff0000, #cc0000); }
-        .youtube-red-hover:hover { background: linear-gradient(135deg, #cc0000, #990000); }
-        .premium-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-input { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); }
-        .glass-input:focus { border-color: #ff0000; box-shadow: 0 0 15px rgba(255, 0, 0, 0.2); }
-        /* Hide scrollbars but keep functionality */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* Premium Glassmorphism Card */
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px rgba(255, 255, 255, 0.1) solid;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            transition: all 0.5s ease-in-out;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #ff007f, #7f00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-google {
+            background: #fff;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+        }
+
+        .btn-google:hover {
+            background: #f1f1f1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,255,255,0.2);
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
+        }
+
+        .btn-start.running {
+            background: linear-gradient(45deg, #f857a6, #ff5858);
+            box-shadow: 0 4px 15px rgba(255, 88, 88, 0.4);
+        }
+
+        /* Logout Button - Top Right */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #ff4757;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+
+        .logout-btn:hover {
+            color: #ff6b81;
+        }
+
+        /* Profile Area */
+        .profile-area {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .profile-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #00c6ff;
+            margin-bottom: 10px;
+        }
+
+        /* Timer Display */
+        .timer-display {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 20px 0;
+            font-family: monospace;
+            background: linear-gradient(45deg, #00ffcc, #00c6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: none;
+        }
+
+        /* UI States */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="mobile-container flex flex-col justify-between min-h-screen">
-        
-        <div id="authScreen" class="w-full flex-1 flex flex-col justify-center px-6 py-12 space-y-8 animate-fade-in">
-            <div class="text-center space-y-4">
-                <div class="w-24 h-24 youtube-red text-white rounded-3xl flex items-center justify-center text-5xl mx-auto shadow-2xl shadow-red-600/30 border border-red-500/30">
-                    <i class="fab fa-youtube animate-pulse"></i>
-                </div>
-                <div>
-                    <h2 class="text-3xl font-black tracking-wide text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">প্রিমিয়াম টাস্ক হাব</h2>
-                    <p class="text-neutral-400 text-xs mt-2 max-w-xs mx-auto">আপনার ৪ ডিজিটের ইউনিক আইডি পিন দিয়ে সুরক্ষিতভাবে আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
-                </div>
-            </div>
+    <div class="container">
+        <button class="logout-btn" id="logoutBtn">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
 
-            <div class="space-y-5 bg-slate-900/40 p-6 rounded-3xl border border-white/5 backdrop-blur-md shadow-xl">
-                <div class="space-y-2">
-                    <label class="text-[11px] font-bold tracking-wider text-neutral-400 uppercase block text-center">সিক্রেট লগইন পিন</label>
-                    <input type="text" id="loginPin" maxlength="4" placeholder="0001" class="w-full glass-input text-center text-4xl font-black tracking-widest py-4 rounded-2xl text-red-500 focus:outline-none transition">
-                </div>
-                <button onclick="handleAuth()" class="w-full youtube-red youtube-red-hover text-white font-extrabold py-4 rounded-2xl transition shadow-lg shadow-red-600/20 text-base flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-in-alt"></i> অ্যাকাউন্টে প্রবেশ করুন
-                </button>
-            </div>
-            <p class="text-center text-[10px] text-neutral-600">Secure AES 256 Connection</p>
+        <div id="loginScreen">
+            <h2>Welcome Back</h2>
+            <p>Access your premium dashboard instantly</p>
+            <button class="btn btn-google" id="googleLoginBtn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="20">
+                Continue with Google
+            </button>
         </div>
 
-        <div id="appScreen" class="w-full flex-1 flex flex-col hidden">
-            <div class="sticky top-0 z-50 bg-[#090d16]/90 backdrop-blur-md px-4 py-4 border-b border-neutral-900 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 youtube-red text-white rounded-xl flex items-center justify-center text-base shadow-lg shadow-red-600/20">
-                        <i class="fas fa-play"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-neutral-400">আইডি: <span id="displayId" class="text-white font-black"></span></p>
-                        <button onclick="logout()" class="text-[10px] text-red-500 font-bold uppercase tracking-wider hover:text-red-400 transition">লগআউট</button>
-                    </div>
-                </div>
-                <div class="bg-slate-900/80 border border-neutral-800 px-4 py-2 rounded-2xl text-right flex items-center gap-2.5 shadow-inner">
-                    <span class="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Wallet</span>
-                    <p class="text-xl font-black text-emerald-400">৳<span id="userBalance">0.00</span></p>
-                </div>
+        <div id="dashboardScreen" class="hidden">
+            <div class="profile-area">
+                <img src="" id="userPhoto" class="profile-img" alt="User">
+                <h3 id="userName">User Name</h3>
             </div>
-
-            <div class="p-4 space-y-4 flex-1 overflow-y-auto">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> উপলব্ধ কাজ সমূহ
-                    </h3>
-                    <span class="text-[11px] bg-neutral-900 border border-neutral-800 px-2.5 py-1 rounded-full text-neutral-400 font-medium" id="taskCount">০টি একটিভ</span>
-                </div>
-                
-                <div id="userTaskList" class="space-y-4 pb-20"></div>
-            </div>
+            
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            
+            <button class="btn btn-start" id="startBtn">
+                <i class="fa-solid fa-play" id="startIcon"></i> <span id="startText">Start Timer</span>
+            </button>
         </div>
-
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // আপনার প্রোভাইড করা ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
-            apiKey: "AIzaSyCvGMzJIZpW3S2gsXgAwFwqnjOA1Haiw5o",
-            authDomain: "admin-panel-72a68.firebaseapp.com",
-            databaseURL: "https://admin-panel-72a68-default-rtdb.firebaseio.com",
-            projectId: "admin-panel-72a68",
-            storageBucket: "admin-panel-72a68.firebasestorage.app",
-            messagingSenderId: "274073022978",
-            appId: "1:274073022978:web:2377937a2bf3132268ad1b",
-            measurementId: "G-FKBVP0F4TR"
+            apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
+            authDomain: "new-app-98e52.firebaseapp.com",
+            databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
+            projectId: "new-app-98e52",
+            storageBucket: "new-app-98e52.firebasestorage.app",
+            messagingSenderId: "402991418185",
+            appId: "1:402991418185:web:5dabc70d4404dce1902898",
+            measurementId: "G-BE3YXPV3P8"
         };
 
+        // Firebase ইনিশিয়েলাইজেশন
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
-        let currentUserId = null;
-        let userBalance = 0;
-        let userCompletedList = {};
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        // Auto Login Session Logic (Checks if logged in within last 5 minutes)
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedPin = localStorage.getItem('user_session_pin');
-            const loginTime = localStorage.getItem('user_login_time');
-            const currentTime = Date.now();
+        // DOM উপাদানসমূহ
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userPhoto = document.getElementById('userPhoto');
+        const userName = document.getElementById('userName');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const startIcon = document.getElementById('startIcon');
+        const startText = document.getElementById('startText');
 
-            // 5 minutes expiry check (5 * 60 * 1000 = 300000 ms)
-            if (savedPin && loginTime && (currentTime - loginTime < 300000)) {
-                currentUserId = savedPin;
-                verifyAndLogin(savedPin);
+        let timerInterval = null;
+        let totalSeconds = 0;
+        let isTimerRunning = false;
+        let currentUser = null;
+
+        // অথেনটিকেশন স্টেট পরিবর্তন চেক (ইউজার লগইন আছে কি না)
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                showDashboard(user);
+                await loadUserTimerData(user.uid);
             } else {
-                localStorage.removeItem('user_session_pin');
-                localStorage.removeItem('user_login_time');
+                currentUser = null;
+                resetTimerUI();
+                showLogin();
             }
         });
 
-        window.handleAuth = function() {
-            const pin = document.getElementById('loginPin').value;
-            if(pin.length !== 4) return alert('অবশ্যই ৪ ডিজিটের আইডি পিন হতে হবে!');
-            currentUserId = pin;
-            verifyAndLogin(pin);
-        };
+        // গুগল লগইন ফাংশন
+        googleLoginBtn.addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .catch((error) => console.error("Login Failed: ", error));
+        });
 
-        function verifyAndLogin(pin) {
-            const userRef = ref(db, `users/${pin}`);
-            get(userRef).then((snapshot) => {
-                if(snapshot.exists()) {
-                    localStorage.setItem('user_session_pin', pin);
-                    localStorage.setItem('user_login_time', Date.now()); // Set current timestamp
-                    loadApp(snapshot.val());
-                } else {
-                    const newUser = {
-                        balance: 0,
-                        completedTasks: 0,
-                        createdAt: new Date().toLocaleString('bn-BD')
-                    };
-                    set(userRef, newUser).then(() => {
-                        localStorage.setItem('user_session_pin', pin);
-                        localStorage.setItem('user_login_time', Date.now());
-                        loadApp(newUser);
-                    });
-                }
-            });
-        }
+        // লগআউট ফাংশন
+        logoutBtn.addEventListener('click', async () => {
+            if (currentUser && isTimerRunning) {
+                await saveTimerData(currentUser.uid, totalSeconds); // লগআউটের আগে টাইম সেভ হবে
+            }
+            signOut(auth).catch((error) => console.error("Logout Failed: ", error));
+        });
 
-        window.logout = function() {
-            localStorage.removeItem('user_session_pin');
-            localStorage.removeItem('user_login_time');
-            location.reload();
-        };
+        // টাইমার স্টার্ট/পজ বাটন কন্ট্রোল
+        startBtn.addEventListener('click', async () => {
+            if (!isTimerRunning) {
+                startTimer();
+            } else {
+                await pauseTimer();
+            }
+        });
 
-        function loadApp(userData) {
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.remove('hidden');
-            document.getElementById('displayId').innerText = currentUserId;
-
-            onValue(ref(db, `users/${currentUserId}`), (snapshot) => {
-                if(snapshot.exists()){
-                    const data = snapshot.val();
-                    userBalance = data.balance || 0;
-                    userCompletedList = data.doneTasks || {}; 
-                    document.getElementById('userBalance').innerText = Number(userBalance).toFixed(2);
-                    
-                    syncTasksRealtime();
-                }
-            });
-        }
-
-        function syncTasksRealtime() {
-            onValue(ref(db, 'tasks'), (snapshot) => {
-                const container = document.getElementById('userTaskList');
-                container.innerHTML = '';
-                
-                if(!snapshot.exists()) {
-                    container.innerHTML = '<p class="text-neutral-500 text-center py-8 text-xs">এই মুহূর্তে কোনো কাজ উপলব্ধ নেই।</p>';
-                    document.getElementById('taskCount').innerText = "০টি একটিভ";
-                    return;
-                }
-
-                let activeCounter = 0;
-
-                snapshot.forEach((child) => {
-                    const task = child.val();
-                    const taskId = child.key;
-
-                    if(task.status === true) { 
-                        activeCounter++;
-                        const isTaskDone = userCompletedList[taskId] === true;
-
-                        // Identify Task Category & Titles
-                        const category = task.category || 'youtube';
-                        let titleText = 'YOUTUBE TASK';
-                        let iconClass = 'fab fa-youtube text-red-500';
-                        
-                        if(category === 'website') {
-                            titleText = 'WEBSITE VISIT';
-                            iconClass = 'fas fa-globe text-blue-400';
-                        } else if(category === 'app') {
-                            titleText = 'APP INSTALL';
-                            iconClass = 'fas fa-download text-indigo-400';
-                        }
-
-                        // Updated to 60 seconds (1 minute) for all categories
-                        const duration1 = 60;
-                        const duration2 = 60;
-
-                        let pinSectionHTML = '';
-                        
-                        // Render PIN verification box only for YouTube Category
-                        if (category === 'youtube') {
-                            pinSectionHTML = `
-                                <div class="bg-black/40 p-3 rounded-xl border border-neutral-800/80 flex gap-2 items-center">
-                                    <input type="text" id="pinInput-${taskId}" maxlength="4" placeholder="৪ ডিজিটের পিন দিন" ${isTaskDone ? 'disabled' : ''} class="w-full bg-transparent text-sm font-semibold tracking-widest text-center text-white focus:outline-none placeholder-neutral-600 disabled:text-neutral-600">
-                                    <button onclick="verifySecretPin('${taskId}', '${task.pin}', ${task.reward})" ${isTaskDone ? 'disabled' : ''} class="${isTaskDone ? 'bg-neutral-800 text-neutral-600' : 'youtube-red hover:youtube-red-hover text-white'} text-xs font-bold px-4 py-2.5 rounded-lg transition shrink-0">
-                                        ভেরিফাই
-                                    </button>
-                                </div>`;
-                        } else {
-                            // Non-YouTube tasks notice (Will auto credit)
-                            pinSectionHTML = isTaskDone ? '' : `
-                                <div id="autoNotice-${taskId}" class="bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10 text-center">
-                                    <p class="text-[11px] text-emerald-400/80"><i class="fas fa-info-circle"></i> ২য় ধাপের সময় শেষ হলে টাকা অটোমেটিক যোগ হবে, পিন লাগবে না।</p>
-                                </div>`;
-                        }
-
-                        container.innerHTML += `
-                            <div class="premium-card p-4 rounded-2xl space-y-4 shadow-lg">
-                                <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                                    <div class="flex items-center gap-2">
-                                        <i class="${iconClass} text-sm"></i>
-                                        <span class="text-xs font-black tracking-wider text-neutral-200">${titleText}</span>
-                                    </div>
-                                    <div class="flex items-center gap-1 text-emerald-400 font-black text-sm bg-emerald-500/10 px-2.5 py-1 rounded-lg">
-                                        <span>৳${Number(task.reward).toFixed(2)}</span>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[10px] text-neutral-500 font-semibold uppercase">Task Status</span>
-                                    ${isTaskDone ? 
-                                        `<span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Completed</span>` :
-                                        `<span class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-2.5 py-0.5 rounded-full font-bold">Active</span>`
-                                    }
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <button onclick="handleRedirect('${task.link}', this, false, '${taskId}', '${category}', ${duration1}, ${task.reward})" ${isTaskDone ? 'disabled' : ''} class="${isTaskDone ? 'bg-neutral-900 text-neutral-700' : 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700'} text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
-                                        <i class="fas fa-external-link-alt text-red-500"></i> কাজ শুরু ১ (${duration1}s)
-                                    </button>
-                                    <button id="step2-${taskId}" onclick="handleRedirect('${task.yt}', this, true, '${taskId}', '${category}', ${duration2}, ${task.reward})" disabled class="bg-neutral-900 text-neutral-700 text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5 cursor-not-allowed">
-                                        <i class="fab fa-youtube text-neutral-700" id="ytIcon-${taskId}"></i> কাজ শুরু ২ (${duration2}s)
-                                    </button>
-                                </div>
-
-                                ${pinSectionHTML}
-                            </div>`;
-                    }
-                });
-
-                document.getElementById('taskCount').innerText = `${activeCounter}টি একটিভ`;
-            });
-        }
-
-        // Handle External Web Redirects & Auto Rewards logic
-        window.handleRedirect = function(targetUrl, btn, isStep2 = false, taskId = '', category = 'youtube', duration = 60, reward = 0) {
-            btn.disabled = true;
-            window.open(targetUrl, '_blank'); 
+        // ড্যাশবোর্ড ভিউ দেখানো
+        function showDashboard(user) {
+            loginScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            logoutBtn.style.display = 'flex';
             
-            let timeLeft = duration;
-            btn.innerText = `অপেক্ষা করুন (${timeLeft}s)`;
+            userName.innerText = user.displayName;
+            userPhoto.src = user.photoURL || 'https://via.placeholder.com/80';
+            timerDisplay.style.display = 'block';
+        }
 
-            const countdown = setInterval(() => {
-                timeLeft--;
-                if(timeLeft <= 0) {
-                    clearInterval(countdown);
-                    if(!isStep2) {
-                        btn.className = "bg-neutral-900/40 text-neutral-500 text-xs font-bold py-3 rounded-xl text-center border border-neutral-800/50";
-                        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> ধাপ ১ শেষ';
-                        
-                        const nextBtn = document.getElementById(`step2-${taskId}`);
-                        if(nextBtn) {
-                            nextBtn.disabled = false;
-                            nextBtn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/20";
-                            const nextIcon = document.getElementById(`ytIcon-${taskId}`);
-                            if(nextIcon) nextIcon.className = "fab fa-youtube text-white";
-                        }
-                    } else {
-                        btn.className = "bg-neutral-900/40 text-neutral-500 text-xs font-bold py-3 rounded-xl text-center border border-neutral-800/50";
-                        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> ধাপ ২ শেষ';
-                        
-                        // Trigger Automatic Credit Logic for App/Website category instantly when Step 2 finishes
-                        if(category !== 'youtube') {
-                            executeAutoCredit(taskId, reward);
-                        }
-                    }
-                } else {
-                    btn.innerText = `অপেক্ষা করুন (${timeLeft}s)`;
+        // লগইন ভিউ দেখানো
+        function showLogin() {
+            loginScreen.classList.remove('hidden');
+            dashboardScreen.classList.add('hidden');
+            logoutBtn.style.display = 'none';
+        }
+
+        // Firestore থেকে ওই জিমেইলের আগের টাইম ডাটা আনা
+        async function loadUserTimerData(uid) {
+            const docRef = doc(db, "users", uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                totalSeconds = docSnap.data().savedTime || 0;
+            } else {
+                totalSeconds = 0;
+                await setDoc(docRef, { savedTime: 0, email: currentUser.email });
+            }
+            updateTimerDisplay();
+        }
+
+        // Firestore-এ বর্তমান টাইম ডাটা সেভ করা
+        async function saveTimerData(uid, time) {
+            const docRef = doc(db, "users", uid);
+            await updateDoc(docRef, { savedTime: time });
+        }
+
+        // টাইমার চালু করা
+        function startTimer() {
+            isTimerRunning = true;
+            startText.innerText = "Pause Timer";
+            startIcon.className = "fa-solid fa-pause";
+            startBtn.classList.add('running');
+
+            timerInterval = setInterval(async () => {
+                totalSeconds++;
+                updateTimerDisplay();
+                
+                // প্রতি ৫ সেকেন্ড পর পর ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে ডাটাবেজে টাইম আপডেট হবে (নিরাপত্তার জন্য)
+                if (totalSeconds % 5 === 0 && currentUser) {
+                    saveTimerData(currentUser.uid, totalSeconds);
                 }
             }, 1000);
-        };
-
-        // Auto Credit Reward Algorithm for Non-YouTube tasks (No Pin Requirement)
-        function executeAutoCredit(taskId, reward) {
-            if(userCompletedList && userCompletedList[taskId] === true) return;
-
-            userCompletedList[taskId] = true; 
-            const userRef = ref(db, `users/${currentUserId}`);
-            const finalCalculatedBalance = Number(userBalance) + Number(reward);
-
-            update(userRef, {
-                balance: finalCalculatedBalance,
-                [`doneTasks/${taskId}`]: true 
-            }).then(() => {
-                alert(`টাস্ক সফলভাবে সম্পন্ন হয়েছে! কোনো পিন ছাড়াই আপনার অ্যাকাউন্টে ৳${Number(reward).toFixed(2)} অটোমেটিক যোগ করা হয়েছে।`);
-            });
         }
 
-        // Realtime Verification Algorithm for YouTube Tasks via Code Input
-        window.verifySecretPin = function(taskId, originalPin, reward) {
-            if(userCompletedList && userCompletedList[taskId] === true) {
-                alert("দুঃখিত! এই কাজটি আপনি ইতিমধ্যেই সম্পন্ন করে ফেলেছেন।");
-                return;
+        // টাইমার পজ করা
+        async function pauseTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            startText.innerText = "Start Timer";
+            startIcon.className = "fa-solid fa-play";
+            startBtn.classList.remove('running');
+            
+            if (currentUser) {
+                await saveTimerData(currentUser.uid, totalSeconds);
             }
+        }
 
-            const typedPin = document.getElementById(`pinInput-${taskId}`).value;
-            if(typedPin.length !== 4) return alert("অনুগ্রহ করে সঠিক ৪ ডিজিটের পিন কোডটি লিখুন!");
+        // টাইমার স্ক্রিন রিসেট
+        function resetTimerUI() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            totalSeconds = 0;
+            updateTimerDisplay();
+            startText.innerText = "Start Timer";
+            startIcon.className = "fa-solid fa-play";
+            startBtn.classList.remove('running');
+        }
 
-            if(typedPin === originalPin) {
-                userCompletedList[taskId] = true; 
-
-                const userRef = ref(db, `users/${currentUserId}`);
-                const finalCalculatedBalance = Number(userBalance) + Number(reward);
-
-                update(userRef, {
-                    balance: finalCalculatedBalance,
-                    [`doneTasks/${taskId}`]: true 
-                }).then(() => {
-                    alert(`কংগ্রাচুলেশন! পিন সঠিক হয়েছে এবং আপনার অ্যাকাউন্টে ৳${Number(reward).toFixed(2)} সফলভাবে যোগ করা হয়েছে।`);
-                });
-            } else {
-                alert("ভুল পিন দিয়েছেন! ভিডিওটি মনোযোগ দিয়ে দেখে সঠিক পিন দিন এবং পুনরায় চেষ্টা করুন।");
-            }
-        };
+        // ফরম্যাট অনুযায়ী টাইম পর্দায় দেখানো (HH:MM:SS)
+        function updateTimerDisplay() {
+            const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const secs = String(totalSeconds % 60).padStart(2, '0');
+            timerDisplay.innerText = `${hrs}:${mins}:${secs}`;
+        }
     </script>
 </body>
 </html>
