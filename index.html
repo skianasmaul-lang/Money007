@@ -88,6 +88,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 15px;
+            transition: opacity 0.3s ease;
         }
 
         .task-header {
@@ -145,6 +146,12 @@
         .form-group input { width:100%; background:#0f1115; border:1px solid var(--border-color); padding:10px; border-radius:6px; color:white;}
         
         .btn-submit { width:100%; background:var(--accent-green); color:white; border:none; padding:12px; border-radius:6px; font-weight:600; cursor:pointer;}
+        
+        /* Global helper class for locking tasks */
+        .task-disabled {
+            opacity: 0.3 !important;
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body>
@@ -166,8 +173,7 @@
         <div class="balance-box" id="userBalance">$0.00</div>
     </div>
 
-    <div id="tasksContainer">
-        </div>
+    <div id="tasksContainer"></div>
 
     <div class="bottom-nav">
         <button class="btn-withdraw-trigger" onclick="toggleWithdrawModal(true)"><i class="fas fa-wallet"></i> উত্তোলন (Withdraw)</button>
@@ -192,7 +198,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     // Firebase Configurations
@@ -214,10 +220,15 @@
 
     let currentUserData = null;
     let authUser = null;
+    let isTaskRunning = false; // গ্লোবাল ফ্ল্যাগ: কোনো টাস্ক চলছে কিনা ট্র্যাকিংয়ের জন্য
 
-    // গুগল দিয়ে লগইন
+    // গুগল দিয়ে লগইন (১০-২০ মিনিট বা সেশন সক্রিয় রাখার জন্য Persistence সেট করা হয়েছে)
     window.loginWithGoogle = function() {
-        signInWithPopup(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
+        setPersistence(auth, browserSessionPersistence)
+            .then(() => {
+                return signInWithPopup(auth, provider);
+            })
+            .catch(error => alert("লগইন ব্যর্থ: " + error.message));
     }
 
     // অথেন্টিকেশন স্টেট ট্র্যাকিং ও ৪-ডিজিট সিরিয়াল আইডি জেনারেটর সিস্টেম
@@ -228,13 +239,12 @@
             
             get(userRef).then((snapshot) => {
                 if (!snapshot.exists()) {
-                    // নতুন ৪ অক্ষরের সিরিয়াল আইডি তৈরি প্রসেস ট্রানজেকশন দ্বারা
                     const globalCounterRef = ref(db, 'globalCounter');
                     runTransaction(globalCounterRef, (currentCount) => {
                         return (currentCount || 0) + 1;
                     }).then((result) => {
                         let serial = result.snapshot.val();
-                        let uniqueIdStr = String(serial).padStart(4, '0'); // উদাঃ 0001, 0002
+                        let uniqueIdStr = String(serial).padStart(4, '0');
 
                         const newUserData = {
                             uidStr: uniqueIdStr,
@@ -251,7 +261,6 @@
                         });
                     });
                 } else {
-                    // অ্যাকাউন্ট আগে থেকেই থাকলে স্ট্যাটাস চেক
                     if(snapshot.val().isSuspended) {
                         alert("লগইন এরর: আপনার অ্যাকাউন্টটি এডমিন দ্বারা সাসপেন্ড করা হয়েছে!");
                         signOut(auth);
@@ -287,18 +296,30 @@
             }
         });
 
-        // লাইভ টাস্ক লোডার (শুধুমাত্র Active/Status=True জবগুলো দেখাবে)
-        onValue(ref(db, 'jobs'), (snapshot) => {
+        // লাইভ টাস্ক লোডার (Active টাস্ক এবং যেগুলো ইউজার ইতিমধ্যে সম্পন্ন করেনি শুধু সেগুলো দেখাবে)
+        onValue(ref(db, 'jobs'), (jobsSnapshot) => {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = "";
-            if(snapshot.exists()) {
-                snapshot.forEach(childSnap => {
-                    let job = childSnap.val();
-                    if(job.status === true) {
-                        renderTaskCard(job);
+            
+            // ইউজারের সম্পন্ন করা টাস্কের লিস্ট চেক করা হচ্ছে
+            get(ref(db, `users/${uid}/completedTasks`)).then((completedSnapshot) => {
+                const completedTasks = completedSnapshot.exists() ? completedSnapshot.val() : {};
+
+                if(jobsSnapshot.exists()) {
+                    jobsSnapshot.forEach(childSnap => {
+                        let job = childSnap.val();
+                        // রুলস: টাস্ক একটিভ থাকতে হবে এবং ইউজার আগে এটি সম্পন্ন করেনি এমন হতে হবে
+                        if(job.status === true && !completedTasks[job.id]) {
+                            renderTaskCard(job);
+                        }
+                    });
+                    
+                    // কোনো টাস্ক রানিং থাকলে বাকিগুলো লক করা বজায় রাখা
+                    if(isTaskRunning) {
+                        lockAllOtherTasks('');
                     }
-                });
-            }
+                }
+            });
         });
     }
 
@@ -325,7 +346,6 @@
                 </div>
             `;
         } else {
-            // অ্যাপ ইন্সটল এবং ওয়েবসাইট ভিজিট সিস্টেম
             let title = job.category === 'app' ? '<i class="fas fa-download"></i> অ্যাপ ইন্সটল টাস্ক' : '<i class="fas fa-globe"></i> ওয়েবসাইট ভিজিট টাস্ক';
             taskHtml = `
                 <div class="task-card" id="card_${job.id}">
@@ -343,8 +363,30 @@
         container.innerHTML += taskHtml;
     }
 
+    // অন্যান্য সমস্ত টাস্ক লক করার ফাংশন (একটি টাস্ক চলাকালীন বাকিগুলো বন্ধ থাকবে)
+    function lockAllOtherTasks(currentJobId) {
+        const cards = document.querySelectorAll('.task-card');
+        cards.forEach(card => {
+            if(card.id !== `card_${currentJobId}`) {
+                card.classList.add('task-disabled');
+            }
+        });
+    }
+
+    // কাজ শেষ হলে সব টাস্ক আনলক করার ফাংশন
+    function unlockAllTasks() {
+        const cards = document.querySelectorAll('.task-card');
+        cards.forEach(card => {
+            card.classList.remove('task-disabled');
+        });
+    }
+
     // টাইমার ও অটো-ক্রেডিট লজিক
     window.startTimer = function(jobId, link, type) {
+        if(isTaskRunning) return; // সেফটি চেক
+        isTaskRunning = true;
+        lockAllOtherTasks(jobId);
+
         window.open(link, '_blank');
         let btn1 = document.getElementById(`btn1_${jobId}`);
         let btn2 = document.getElementById(`btn2_${jobId}`);
@@ -357,10 +399,11 @@
             if(count <= 0) {
                 clearInterval(timer);
                 btn1.innerText = "সম্পন্ন";
-                btn2.style.opacity = "1";
-                btn2.style.pointerEvents = "auto";
+                if(btn2) {
+                    btn2.style.opacity = "1";
+                    btn2.style.pointerEvents = "auto";
+                }
                 
-                // যদি অ্যাপ/ওয়েবসাইট টাস্ক হয় তবে সরাসরি ২য় লিংকের প্রসেস হবে
                 if(type === 'other') {
                     startSecondTimerAuto(jobId);
                 }
@@ -377,8 +420,13 @@
     function startSecondTimerAuto(jobId) {
         let btn2 = document.getElementById(`btn2_${jobId}`);
         get(ref(db, `jobs/${jobId}`)).then(snap => {
+            if(!snap.exists()) {
+                isTaskRunning = false;
+                unlockAllTasks();
+                return;
+            }
             let job = snap.val();
-            window.open(job.jobLink, '_blank'); // রি-ওপেন বা অন্য লিংক ব্রাউজ করার জন্য
+            window.open(job.jobLink, '_blank');
             let count = 70;
             let timer = setInterval(() => {
                 count--;
@@ -387,9 +435,12 @@
                     clearInterval(timer);
                     btn2.innerText = "টাকা যুক্ত হয়েছে";
                     btn2.style.pointerEvents = "none";
-                    // অটো ব্যালেন্স এড করার রিয়েলটাইম ফাংশন
-                    claimReward(job.amount);
-                    document.getElementById(`card_${jobId}`).style.opacity = "0.4";
+                    
+                    // রিওয়ার্ড এবং টাস্ক ওয়ান-টাইম কমপ্লিট হিস্ট্রি সেভ
+                    claimReward(job.amount, jobId);
+                    isTaskRunning = false;
+                    unlockAllTasks();
+                    document.getElementById(`card_${jobId}`).remove();
                 }
             }, 1000);
         });
@@ -399,22 +450,34 @@
     window.verifyYoutubeJob = function(jobId, targetCode, amount) {
         const inputCode = document.getElementById(`input_${jobId}`).value.trim();
         if(inputCode === targetCode) {
-            claimReward(amount);
+            claimReward(amount, jobId);
             alert("সঠিক কোড! ব্যালেন্স যোগ হয়েছে।");
+            isTaskRunning = false;
+            unlockAllTasks();
             document.getElementById(`card_${jobId}`).remove();
         } else {
             alert("ভুল ভেরিফিকেশন কোড! আবার চেষ্টা করুন।");
         }
     }
 
-    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট করার কোর মেথড
-    function claimReward(amount) {
+    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট এবং টাস্কটি চিরতরে লক করা
+    function claimReward(amount, jobId) {
         const userRef = ref(db, `users/${authUser.uid}`);
-        let currentBal = parseFloat(currentUserData.balance || 0);
-        let currentJobs = parseInt(currentUserData.jobsDone || 0);
-        update(userRef, {
-            balance: currentBal + parseFloat(amount),
-            jobsDone: currentJobs + 1
+        
+        // রিয়েলটাইম ডাটাবেজ থেকে লেটেস্ট ব্যালেন্স নিয়ে ট্রানজেকশন/আপডেট করা হচ্ছে
+        get(userRef).then(snapshot => {
+            if(snapshot.exists()) {
+                let data = snapshot.val();
+                let currentBal = parseFloat(data.balance || 0);
+                let currentJobs = parseInt(data.jobsDone || 0);
+                
+                let updates = {};
+                updates['balance'] = currentBal + parseFloat(amount);
+                updates['jobsDone'] = currentJobs + 1;
+                updates[`completedTasks/${jobId}`] = true; // এই নির্দিষ্ট টাস্কটি এই ইউজারের জন্য সম্পন্ন মার্ক করা হলো
+
+                update(userRef, updates);
+            }
         });
     }
 
@@ -429,41 +492,9 @@
         document.getElementById('withdrawModal').style.display = show ? 'flex' : 'none';
     }
 
-    // রিয়েল টাইম উইথড্র সাবমিশন লজিক
+    // রিয়েল টাইম উইথড্র সাবমিশন লজিক (কঠোর রিয়েলটাইম সিকিউরিটি ভেরিফিকেশন সহ)
     window.submitWithdraw = function() {
         const num = document.getElementById('walletNumber').value.trim();
         const amtBdt = parseFloat(document.getElementById('walletAmount').value) || 0;
         
-        if(!num || amtBdt < 100) return alert("সঠিক নাম্বার এবং মিনিমাম ১০০ টাকা দিন");
-
-        // ১ ডলার = ১০০ টাকা হিসাব করে ব্যালেন্স চেক (কনভার্সন রেট আপনার ইচ্ছা মত পরিবর্তন করতে পারেন)
-        let neededUsd = amtBdt / 100; 
-
-        if(parseFloat(currentUserData.balance) >= neededUsd) {
-            // রিয়েল টাইমে ডাটাবেজ থেকে ডলার কেটে নেওয়া হচ্ছে
-            const userRef = ref(db, `users/${authUser.uid}`);
-            update(userRef, { balance: parseFloat(currentUserData.balance) - neededUsd });
-
-            // রিকোয়েস্ট এডমিন প্যানেলে পাঠানো হচ্ছে
-            const withdrawId = "wd_" + Date.now();
-            const withdrawData = {
-                id: withdrawId,
-                userId: authUser.uid,
-                userUidStr: currentUserData.uidStr,
-                number: num,
-                amount: amtBdt,
-                method: "নগদ",
-                status: "Pending"
-            };
-
-            set(ref(db, `withdraws/${withdrawId}`), withdrawData).then(() => {
-                alert("উইথড্র রিকোয়েস্ট সফলভাবে এডমিন প্যানেলে পাঠানো হয়েছে!");
-                toggleWithdrawModal(false);
-            });
-        } else {
-            alert("ইনভ্যালিড অ্যামাউন্ট এরর: আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই!");
-        }
-    }
-</script>
-</body>
-</html>
+        if(!n
