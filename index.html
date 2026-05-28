@@ -146,7 +146,7 @@
         .form-group input { width:100%; background:#0f1115; border:1px solid var(--border-color); padding:10px; border-radius:6px; color:white;}
         
         .btn-submit { width:100%; background:var(--accent-green); color:white; border:none; padding:12px; border-radius:6px; font-weight:600; cursor:pointer;}
-        
+
         /* Global helper class for locking tasks */
         .task-disabled {
             opacity: 0.3 !important;
@@ -198,7 +198,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     // Firebase Configurations
@@ -220,15 +220,11 @@
 
     let currentUserData = null;
     let authUser = null;
-    let isTaskRunning = false; // গ্লোবাল ফ্ল্যাগ: কোনো টাস্ক চলছে কিনা ট্র্যাকিংয়ের জন্য
+    let isTaskRunning = false; // গলোবাল ফ্ল্যাগ: কোনো টাস্ক চলছে কিনা ট্র্যাকিংয়ের জন্য
 
-    // গুগল দিয়ে লগইন (১০-২০ মিনিট বা সেশন সক্রিয় রাখার জন্য Persistence সেট করা হয়েছে)
+    // গুগল দিয়ে লগইন (হুবহু আপনার আগের মূল মেথড)
     window.loginWithGoogle = function() {
-        setPersistence(auth, browserSessionPersistence)
-            .then(() => {
-                return signInWithPopup(auth, provider);
-            })
-            .catch(error => alert("লগইন ব্যর্থ: " + error.message));
+        signInWithPopup(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
     }
 
     // অথেন্টিকেশন স্টেট ট্র্যাকিং ও ৪-ডিজিট সিরিয়াল আইডি জেনারেটর সিস্টেম
@@ -296,7 +292,7 @@
             }
         });
 
-        // লাইভ টাস্ক লোডার (Active টাস্ক এবং যেগুলো ইউজার ইতিমধ্যে সম্পন্ন করেনি শুধু সেগুলো দেখাবে)
+        // লাইভ টাস্ক লোডার (Active টাস্ক এবং যেগুলো ইউজার আগে সম্পন্ন করেনি শুধু সেগুলো দেখাবে)
         onValue(ref(db, 'jobs'), (jobsSnapshot) => {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = "";
@@ -383,7 +379,7 @@
 
     // টাইমার ও অটো-ক্রেডিট লজিক
     window.startTimer = function(jobId, link, type) {
-        if(isTaskRunning) return; // সেফটি চেক
+        if(isTaskRunning) return; 
         isTaskRunning = true;
         lockAllOtherTasks(jobId);
 
@@ -436,7 +432,6 @@
                     btn2.innerText = "টাকা যুক্ত হয়েছে";
                     btn2.style.pointerEvents = "none";
                     
-                    // রিওয়ার্ড এবং টাস্ক ওয়ান-টাইম কমপ্লিট হিস্ট্রি সেভ
                     claimReward(job.amount, jobId);
                     isTaskRunning = false;
                     unlockAllTasks();
@@ -460,11 +455,10 @@
         }
     }
 
-    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট এবং টাস্কটি চিরতরে লক করা
+    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট এবং টাস্কটি ওয়ান-টাইম লক করা
     function claimReward(amount, jobId) {
         const userRef = ref(db, `users/${authUser.uid}`);
         
-        // রিয়েলটাইম ডাটাবেজ থেকে লেটেস্ট ব্যালেন্স নিয়ে ট্রানজেকশন/আপডেট করা হচ্ছে
         get(userRef).then(snapshot => {
             if(snapshot.exists()) {
                 let data = snapshot.val();
@@ -474,7 +468,7 @@
                 let updates = {};
                 updates['balance'] = currentBal + parseFloat(amount);
                 updates['jobsDone'] = currentJobs + 1;
-                updates[`completedTasks/${jobId}`] = true; // এই নির্দিষ্ট টাস্কটি এই ইউজারের জন্য সম্পন্ন মার্ক করা হলো
+                updates[`completedTasks/${jobId}`] = true; 
 
                 update(userRef, updates);
             }
@@ -492,9 +486,20 @@
         document.getElementById('withdrawModal').style.display = show ? 'flex' : 'none';
     }
 
-    // রিয়েল টাইম উইথড্র সাবমিশন লজিক (কঠোর রিয়েলটাইম সিকিউরিটি ভেরিফিকেশন সহ)
+    // রিয়েল টাইম উইথড্র সাবমিশন লজিক (কঠোর রিয়েলটাইম সিকিউরিটি ভেরিফিকেশন)
     window.submitWithdraw = function() {
         const num = document.getElementById('walletNumber').value.trim();
         const amtBdt = parseFloat(document.getElementById('walletAmount').value) || 0;
         
-        if(!n
+        if(!num || amtBdt < 100) return alert("সঠিক নাম্বার এবং মিনিমাম ১০০ টাকা দিন");
+
+        let neededUsd = amtBdt / 100; // ১ ডলার = ১০০ টাকা কনভার্সন রেট
+
+        const userRef = ref(db, `users/${authUser.uid}`);
+        
+        get(userRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                let freshUserData = snapshot.val();
+                let actualBalance = parseFloat(freshUserData.balance || 0);
+
+                if(actualBal
