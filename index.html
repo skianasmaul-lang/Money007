@@ -1,369 +1,311 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium User Portal</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        body { background-color: #0b0f19; color: #ffffff; font-family: sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 2px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>User App</title>
+
+<style>
+
+body{
+margin:0;
+font-family:sans-serif;
+background:#0f0f0f;
+color:white;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+padding:20px;
+background:#151515;
+align-items:center;
+}
+
+.balance{
+background:#00c853;
+padding:10px 18px;
+border-radius:12px;
+font-weight:bold;
+}
+
+.tasks{
+padding:20px;
+}
+
+.task{
+background:#1b1b1b;
+padding:20px;
+border-radius:20px;
+margin-bottom:20px;
+}
+
+.btn{
+padding:12px 20px;
+border:none;
+border-radius:12px;
+background:#00c853;
+color:white;
+font-weight:bold;
+margin-top:10px;
+cursor:pointer;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#111;
+border:none;
+border-radius:10px;
+color:white;
+}
+
+</style>
 </head>
-<body class="flex flex-col min-h-screen">
 
-    <div id="authOverlay" class="fixed inset-0 bg-black/95 flex flex-col items-center justify-center p-4 z-50 transition-opacity duration-300">
-        <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
-            <h2 class="text-2xl font-black text-emerald-500 mb-2 tracking-wide">EARN HUB</h2>
-            <p class="text-gray-400 text-sm mb-6">রিয়েল-টাইম টাস্ক কমপ্লিট করে ফ্রিল্যান্সিং ক্যারিয়ার শুরু করুন।</p>
-            <button onclick="login()" class="w-full bg-white text-black font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 shadow-lg hover:bg-gray-100 transition">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="G">
-                <span>Continue With Google</span>
-            </button>
-        </div>
-    </div>
+<body>
 
-    <div id="appContainer" class="hidden flex-1 flex flex-col">
-        <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="bg-black border border-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                    <span id="displayUid" class="font-mono text-emerald-400 font-bold tracking-widest text-sm">----</span>
-                    <button onclick="copyId()" class="text-gray-500 hover:text-white transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                    </button>
-                </div>
-            </div>
-            <div class="bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 px-4 py-1.5 rounded-xl text-right font-black tracking-wide">
-                <span class="text-xs font-normal block text-gray-400">ব্যালেন্স</span>
-                <span id="userBalance" class="text-lg">৳0.00</span>
-            </div>
-        </header>
+<div class="top">
 
-        <main class="flex-1 max-w-xl w-full mx-auto p-4 space-y-4 pb-24 overflow-y-auto custom-scrollbar" id="taskFeed">
-            </main>
+<div>
+UID:
+<span id="uid">0000</span>
+</div>
 
-        <footer class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-4 z-40">
-            <div class="max-w-xl mx-auto flex items-center justify-between">
-                <button onclick="openWithdrawModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-xl transition text-sm">টাকা উত্তোলন (Withdraw)</button>
-                <button onclick="logout()" class="text-sm font-semibold text-gray-400 hover:text-red-400 transition">Logout</button>
-            </div>
-        </footer>
-    </div>
+<div class="balance">
+$<span id="balance">0</span>
+</div>
 
-    <div id="withdrawModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-sm relative">
-            <button onclick="closeWithdrawModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
-            <h3 class="text-xl font-bold text-emerald-400 mb-4 text-center">নগদ উত্তোলন ফর্ম</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">আপনার নগদ পার্সোনাল নম্বর দিন</label>
-                    <input type="tel" id="wdNumber" placeholder="017XXXXXXXX" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500 text-center tracking-wider">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">পরিমাণ লিখুন (মিনিমাম ১০০ টাকা)</label>
-                    <input type="number" id="wdAmount" placeholder="100" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500 text-center font-bold text-lg">
-                    <span class="text-[10px] text-gray-500 block text-right mt-1">($১ সমান ১০০ টাকা হিসাব করা হবে)</span>
-                </div>
-                <button onclick="submitWithdraw()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-emerald-900/20">রিকোয়েস্ট সাবমিট করুন</button>
-            </div>
-        </div>
-    </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<div style="padding:20px;">
+<button class="btn" id="googleLogin">
+Continue With Google
+</button>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
-            authDomain: "new-app-98e52.firebaseapp.com",
-            databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
-            projectId: "new-app-98e52",
-            storageBucket: "new-app-98e52.firebasestorage.app",
-            messagingSenderId: "402991418185",
-            appId: "1:402991418185:web:5dabc70d4404dce1902898",
-            measurementId: "G-BE3YXPV3P8"
-        };
+<div class="tasks" id="tasks"></div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        const provider = new GoogleAuthProvider();
+<script type="module">
 
-        let currentUser = null;
-        let currentUserDbKey = null;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-        window.login = function() {
-            signInWithPopup(auth, provider).catch(err => alert("অথেনটিকেশন এরর হয়েছে: " + err.message));
-        }
+import {
+getDatabase,
+ref,
+set,
+onValue,
+push,
+update,
+get
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        window.logout = function() {
-            signOut(auth);
-        }
+import {
+getAuth,
+GoogleAuthProvider,
+signInWithPopup,
+onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
-                currentUser = user;
-                checkAndRegisterUser(user);
-            } else {
-                currentUser = null;
-                currentUserDbKey = null;
-                document.getElementById('authOverlay').classList.remove('hidden');
-                document.getElementById('appContainer').classList.add('hidden');
-            }
-        });
+const firebaseConfig = {
 
-        function checkAndRegisterUser(user) {
-            const cleanEmailKey = user.email.replace(/[.#$[\]]/g, "_");
-            currentUserDbKey = cleanEmailKey;
-            
-            const userRef = ref(db, 'users/' + cleanEmailKey);
-            get(userRef).then((snapshot) => {
-                if(snapshot.exists()) {
-                    const data = snapshot.val();
-                    if(data.status === "suspended") {
-                        alert("Error: আপনার অ্যাকাউন্টটি অ্যাডমিন দ্বারা সাসপেন্ড করা হয়েছে!");
-                        signOut(auth);
-                        return;
-                    }
-                    bootstrapUserSpace(data);
-                } else {
-                    // নতুন আইডি সিকোয়েন্স জেনারেশন (যেমন: 0001)
-                    get(ref(db, 'users')).then((allUsersSnap) => {
-                        let count = 1;
-                        if(allUsersSnap.exists()) {
-                            count = Object.keys(allUsersSnap.val()).length + 1;
-                        }
-                        const newUid = String(count).padStart(4, '0');
-                        const newUserPayload = {
-                            uid: newUid,
-                            email: user.email,
-                            balance: 0.00,
-                            status: "active",
-                            createdAt: Date.now(),
-                            completedJobsCount: 0,
-                            withdrawCount: 0
-                        };
-                        set(userRef, newUserPayload).then(() => bootstrapUserSpace(newUserPayload));
-                    });
-                }
-            });
-        }
+apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
+authDomain: "new-app-98e52.firebaseapp.com",
+databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
+projectId: "new-app-98e52",
+storageBucket: "new-app-98e52.firebasestorage.app",
+messagingSenderId: "402991418185",
+appId: "1:402991418185:web:5dabc70d4404dce1902898",
+measurementId: "G-BE3YXPV3P8"
 
-        function bootstrapUserSpace(userData) {
-            document.getElementById('authOverlay').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('hidden');
-            document.getElementById('displayUid').innerText = userData.uid;
+};
 
-            // ব্যালেন্স সিঙ্ক রিয়েলটাইম লুপ
-            onValue(ref(db, 'users/' + currentUserDbKey), (snap) => {
-                if(snap.exists()){
-                    if(snap.val().status === 'suspended') {
-                        alert("আপনার অ্যাকাউন্টটি সাসপেন্ড করা হয়েছে!");
-                        signOut(auth);
-                        return;
-                    }
-                    document.getElementById('userBalance').innerText = "৳" + (snap.val().balance || 0).toFixed(2);
-                }
-            });
+const app = initializeApp(firebaseConfig);
 
-            // টাস্ক ফিড প্রসেসিং রিয়েলটাইম লুপ
-            onValue(ref(db, 'tasks'), (taskSnap) => {
-                get(ref(db, 'users/' + currentUserDbKey + '/history')).then((histSnap) => {
-                    const history = histSnap.exists() ? histSnap.val() : {};
-                    renderTasks(taskSnap.val(), history);
-                });
-            });
-        }
+const db = getDatabase(app);
 
-        window.copyId = function() {
-            const txt = document.getElementById('displayUid').innerText;
-            navigator.clipboard.writeText(txt).then(() => alert("আইডি কপি হয়েছে: " + txt));
-        }
+const auth = getAuth(app);
 
-        function renderTasks(tasks, history) {
-            const feed = document.getElementById('taskFeed');
-            feed.innerHTML = "";
-            if(!tasks) {
-                feed.innerHTML = `<p class="text-gray-500 text-center py-8">এই মুহূর্তে কোনো কাজ উপলব্ধ নেই।</p>`;
-                return;
-            }
+const provider = new GoogleAuthProvider();
 
-            Object.keys(tasks).forEach(key => {
-                const t = tasks[key];
-                if(t.status !== 'on' || history[key]) return; // যদি কাজটি অফ থাকে বা ইউজার ইতিমধ্যে সম্পন্ন করে থাকে
+document.getElementById('googleLogin').onclick = async()=>{
 
-                let taskHtml = "";
-                if(t.category === 'youtube') {
-                    taskHtml = `
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex flex-col gap-3">
-                            <div class="flex justify-between items-start">
-                                <span class="bg-red-950 text-red-400 border border-red-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">YouTube View</span>
-                                <span class="text-emerald-400 font-bold text-base">৳${t.amount}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button id="btn1_${key}" onclick="openLinkOne('${key}', '${t.jobLink}')" class="bg-gray-800 text-white font-bold py-2 rounded-xl text-xs hover:bg-gray-700 transition">১ম লিংক ওপেন</button>
-                                <button id="btn2_${key}" disabled onclick="openLinkTwo('${key}', '${t.videoLink}')" class="bg-gray-800 text-white/40 font-bold py-2 rounded-xl text-xs cursor-not-allowed transition">২য় লিংক লক</button>
-                            </div>
-                            <div class="flex gap-2 items-center mt-2">
-                                <input type="text" id="pin_${key}" placeholder="পিন কোড লিখুন" maxlength="4" class="w-full bg-black border border-gray-700 rounded-xl p-2 text-center text-xs text-white focus:outline-none focus:border-emerald-500 tracking-widest">
-                                <button onclick="verifyYoutubeTask('${key}', '${t.pin}', ${t.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">ভেরিফাই</button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // অ্যাপ ইনস্টল অথবা ওয়েবসাইট ভিজিট ক্যাটাগরি
-                    taskHtml = `
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex flex-col gap-3">
-                            <div class="flex justify-between items-start">
-                                <span class="bg-emerald-950 text-emerald-400 border border-emerald-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">${t.category}</span>
-                                <span class="text-emerald-400 font-bold text-base">৳${t.amount}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button id="btn1_${key}" onclick="openSurveyOne('${key}', '${t.jobLink}')" class="bg-gray-800 text-white font-bold py-2 rounded-xl text-xs hover:bg-gray-700 transition">১ম লিংক (৬০ সেকেন্ড)</button>
-                                <button id="btn2_${key}" disabled onclick="openSurveyTwo('${key}', '${t.jobLink}', ${t.amount})" class="bg-gray-800 text-white/40 font-bold py-2 rounded-xl text-xs cursor-not-allowed transition">২য় লিংক (৭০ সেকেন্ড)</button>
-                            </div>
-                        </div>
-                    `;
-                }
-                feed.innerHTML += taskHtml;
-            });
-        }
+await signInWithPopup(auth,provider);
 
-        // --- টাস্ক টাইমার ও অ্যাকশন লজিক ---
-        window.openLinkOne = function(key, link) {
-            window.open(link, '_blank');
-            let sec = 60;
-            const btn1 = document.getElementById(`btn1_${key}`);
-            btn1.disabled = true;
-            
-            const timer = setInterval(() => {
-                sec--;
-                btn1.innerText = `${sec}s অপেক্ষা করুন`;
-                if(sec <= 0) {
-                    clearInterval(timer);
-                    btn1.innerText = "১ম লিংক সম্পন্ন";
-                    const btn2 = document.getElementById(`btn2_${key}`);
-                    btn2.disabled = false;
-                    btn2.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-emerald-500 transition";
-                    btn2.innerText = "২য় লিংক ওপেন করুন";
-                }
-            }, 1000);
-        }
+}
 
-        window.openLinkTwo = function(key, link) {
-            window.open(link, '_blank');
-        }
+onAuthStateChanged(auth,async(user)=>{
 
-        window.verifyYoutubeTask = function(key, realPin, amount) {
-            const inputPin = document.getElementById(`pin_${key}`).value.trim();
-            if(inputPin !== realPin) return alert("ভুল ভেরিফিকেশন কোড! আবার ট্রাই করুন।");
+if(!user) return;
 
-            claimTaskReward(key, amount);
-        }
+const userRef = ref(db,'users/'+user.uid);
 
-        // অ্যাপ এবং ওয়েবসাইট ভিজিটের জন্য টাইমার মেকানিজম
-        window.openSurveyOne = function(key, link) {
-            window.open(link, '_blank');
-            let sec = 60;
-            const btn1 = document.getElementById(`btn1_${key}`);
-            btn1.disabled = true;
-            
-            const timer = setInterval(() => {
-                sec--;
-                btn1.innerText = `${sec}s অপেক্ষা করুন`;
-                if(sec <= 0) {
-                    clearInterval(timer);
-                    btn1.innerText = "১ম লিংক কমপ্লিট";
-                    const btn2 = document.getElementById(`btn2_${key}`);
-                    btn2.disabled = false;
-                    btn2.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-emerald-500 transition";
-                    btn2.innerText = "২য় লিংক (৭০ সেকেন্ড)";
-                }
-            }, 1000);
-        }
+const snap = await get(userRef);
 
-        window.openSurveyTwo = function(key, link, amount) {
-            window.open(link, '_blank');
-            let sec = 70;
-            const btn2 = document.getElementById(`btn2_${key}`);
-            btn2.disabled = true;
-            
-            const timer = setInterval(() => {
-                sec--;
-                btn2.innerText = `${sec}s অপেক্ষা করুন`;
-                if(sec <= 0) {
-                    clearInterval(timer);
-                    btn2.innerText = "২য় লিংক কমপ্লিট";
-                    claimTaskReward(key, amount);
-                }
-            }, 1000);
-        }
+if(!snap.exists()){
 
-        function claimTaskReward(taskKey, amount) {
-            const userRef = ref(db, 'users/' + currentUserDbKey);
-            runTransaction(userRef, (currentData) => {
-                if (currentData) {
-                    if (!currentData.history) currentData.history = {};
-                    if (!currentData.history[taskKey]) {
-                        currentData.history[taskKey] = true;
-                        currentData.balance = (currentData.balance || 0) + amount;
-                        currentData.completedJobsCount = (currentData.completedJobsCount || 0) + 1;
-                    }
-                }
-                return currentData;
-            }).then(() => {
-                alert(`অভিনন্দন! আপনার অ্যাকাউন্টে ৳${amount} যোগ করা হয়েছে।`);
-            });
-        }
+const allUsersSnap = await get(ref(db,'users'));
 
-        // --- উইথড্রল সেকশন লজিক ---
-        window.openWithdrawModal = function() {
-            document.getElementById('withdrawModal').classList.remove('hidden');
-        }
-        window.closeWithdrawModal = function() {
-            document.getElementById('withdrawModal').classList.add('hidden');
-        }
+const total = allUsersSnap.exists()
+? Object.keys(allUsersSnap.val()).length + 1
+: 1;
 
-        window.submitWithdraw = function() {
-            const num = document.getElementById('wdNumber').value.trim();
-            const amt = parseFloat(document.getElementById('wdAmount').value) || 0;
+const customUID = String(total).padStart(4,'0');
 
-            if(!num || amt < 100) return alert("সঠিক নগদ নম্বর দিন এবং মিনিমাম ১০০ টাকা উইথড্র করুন!");
+await set(userRef,{
+email:user.email,
+balance:0,
+customUID,
+suspended:false,
+createdAt:Date.now()
+});
 
-            const userRef = ref(db, 'users/' + currentUserDbKey);
-            
-            // রিয়েল-টাইম ট্রানজেকশন ব্যালেন্স লক এবং ডেবিট চেক
-            runTransaction(userRef, (user) => {
-                if(user) {
-                    if((user.balance || 0) < amt) {
-                        return; // ব্যালেন্স কম থাকলে ট্রানজেকশন ক্যানসেল হবে
-                    }
-                    user.balance = user.balance - amt;
-                }
-                return user;
-            }).then((result) => {
-                if(!result.committed) return alert("ইনভ্যালিড অ্যামাউন্ট এরর: আপনার অ্যাকাউন্টে পর্যাপ্ত টাকা নেই!");
+}
 
-                const wdId = "wd_" + Date.now();
-                get(userRef).then(s => {
-                    set(ref(db, 'withdrawals/' + wdId), {
-                        id: wdId,
-                        userKey: currentUserDbKey,
-                        userUid: s.val().uid,
-                        amount: amt,
-                        method: "Nogod",
-                        status: "pending",
-                        timestamp: Date.now()
-                    }).then(() => {
-                        alert("আপনার উইথড্র রিকোয়েস্ট পেন্ডিংয়ে পাঠানো হয়েছে!");
-                        closeWithdrawModal();
-                    });
-                });
-            });
-        }
-    </script>
+loadUser(user.uid);
+
+});
+
+async function loadUser(uid){
+
+onValue(ref(db,'users/'+uid),(snap)=>{
+
+const user = snap.val();
+
+document.getElementById('uid').innerText =
+user.customUID;
+
+document.getElementById('balance').innerText =
+user.balance || 0;
+
+if(user.suspended){
+
+alert("Account Suspended");
+
+auth.signOut();
+
+}
+
+});
+
+onValue(ref(db,'tasks'),(snap)=>{
+
+const data = snap.val() || {};
+
+let html='';
+
+Object.entries(data).forEach(([id,task])=>{
+
+if(!task.status) return;
+
+html += `
+<div class="task">
+
+<h3>${task.title}</h3>
+
+<p>Reward: $${task.amount}</p>
+
+<button class="btn"
+onclick="startTask('${id}')">
+Open Task
+</button>
+
+<div id="verify-${id}"></div>
+
+</div>
+`;
+
+});
+
+document.getElementById('tasks').innerHTML = html;
+
+});
+
+window.startTask = async(id)=>{
+
+const taskSnap = await get(ref(db,'tasks/'+id));
+
+const task = taskSnap.val();
+
+window.open(task.jobLink);
+
+setTimeout(()=>{
+
+window.open(task.videoLink);
+
+if(task.type==='youtube'){
+
+document.getElementById(`verify-${id}`).innerHTML = `
+
+<input type="text"
+id="code-${id}"
+placeholder="Enter Verify Code">
+
+<button class="btn"
+onclick="verifyTask('${id}')">
+Verify
+</button>
+
+`;
+
+}else{
+
+completeTask(id);
+
+}
+
+},60000);
+
+}
+
+window.verifyTask = async(id)=>{
+
+const taskSnap = await get(ref(db,'tasks/'+id));
+
+const task = taskSnap.val();
+
+const code = document.getElementById(`code-${id}`).value;
+
+if(code !== task.code){
+
+alert("Invalid Code");
+return;
+
+}
+
+completeTask(id);
+
+}
+
+async function completeTask(id){
+
+const currentUser = auth.currentUser;
+
+const userRef = ref(db,'users/'+currentUser.uid);
+
+const userSnap = await get(userRef);
+
+const user = userSnap.val();
+
+const taskSnap = await get(ref(db,'tasks/'+id));
+
+const task = taskSnap.val();
+
+await update(userRef,{
+balance:(user.balance || 0) + parseFloat(task.amount)
+});
+
+alert("Reward Added");
+
+}
+
+}
+
+</script>
+
 </body>
 </html>
