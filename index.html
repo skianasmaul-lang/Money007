@@ -1,311 +1,815 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>User App</title>
-
-<style>
-
-body{
-margin:0;
-font-family:sans-serif;
-background:#0f0f0f;
-color:white;
-}
-
-.top{
-display:flex;
-justify-content:space-between;
-padding:20px;
-background:#151515;
-align-items:center;
-}
-
-.balance{
-background:#00c853;
-padding:10px 18px;
-border-radius:12px;
-font-weight:bold;
-}
-
-.tasks{
-padding:20px;
-}
-
-.task{
-background:#1b1b1b;
-padding:20px;
-border-radius:20px;
-margin-bottom:20px;
-}
-
-.btn{
-padding:12px 20px;
-border:none;
-border-radius:12px;
-background:#00c853;
-color:white;
-font-weight:bold;
-margin-top:10px;
-cursor:pointer;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-background:#111;
-border:none;
-border-radius:10px;
-color:white;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="top">
-
-<div>
-UID:
-<span id="uid">0000</span>
-</div>
-
-<div class="balance">
-$<span id="balance">0</span>
-</div>
-
-</div>
-
-<div style="padding:20px;">
-<button class="btn" id="googleLogin">
-Continue With Google
-</button>
-</div>
-
-<div class="tasks" id="tasks"></div>
-
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+import {
+getAuth,
+signInWithPopup,
+GoogleAuthProvider,
+signOut,
+onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import {
 getDatabase,
 ref,
 set,
-onValue,
-push,
 update,
-get
+onValue,
+get,
+push,
+runTransaction
 }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-import {
-getAuth,
-GoogleAuthProvider,
-signInWithPopup,
-onAuthStateChanged
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+// ================= FIREBASE CONFIG =================
 
 const firebaseConfig = {
 
 apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
+
 authDomain: "new-app-98e52.firebaseapp.com",
+
 databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
+
 projectId: "new-app-98e52",
+
 storageBucket: "new-app-98e52.firebasestorage.app",
+
 messagingSenderId: "402991418185",
+
 appId: "1:402991418185:web:5dabc70d4404dce1902898",
+
 measurementId: "G-BE3YXPV3P8"
 
 };
 
-const app = initializeApp(firebaseConfig);
 
-const db = getDatabase(app);
+
+// ================= INIT =================
+
+const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 
+const db = getDatabase(app);
+
 const provider = new GoogleAuthProvider();
 
-document.getElementById('googleLogin').onclick = async()=>{
+let currentUser = null;
+let currentUserDbKey = null;
 
-await signInWithPopup(auth,provider);
+
+
+// ================= LOGIN =================
+
+window.login = function(){
+
+signInWithPopup(auth, provider)
+
+.catch(err=>{
+
+alert("Authentication Error : " + err.message);
+
+});
 
 }
 
-onAuthStateChanged(auth,async(user)=>{
 
-if(!user) return;
 
-const userRef = ref(db,'users/'+user.uid);
+// ================= LOGOUT =================
+
+window.logout = function(){
+
+signOut(auth);
+
+}
+
+
+
+// ================= AUTH STATE =================
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(user){
+
+currentUser = user;
+
+await registerOrLogin(user);
+
+}else{
+
+currentUser = null;
+
+currentUserDbKey = null;
+
+document.getElementById('authOverlay').classList.remove('hidden');
+
+document.getElementById('appContainer').classList.add('hidden');
+
+}
+
+});
+
+
+
+// ================= REGISTER =================
+
+async function registerOrLogin(user){
+
+const cleanKey = user.email.replace(/[.#$[\]]/g, "_");
+
+currentUserDbKey = cleanKey;
+
+const userRef = ref(db, 'users/' + cleanKey);
 
 const snap = await get(userRef);
 
-if(!snap.exists()){
+if(snap.exists()){
 
-const allUsersSnap = await get(ref(db,'users'));
+const data = snap.val();
 
-const total = allUsersSnap.exists()
-? Object.keys(allUsersSnap.val()).length + 1
-: 1;
+if(data.status === 'suspended'){
 
-const customUID = String(total).padStart(4,'0');
+alert("Your Account Suspended");
 
-await set(userRef,{
-email:user.email,
-balance:0,
-customUID,
-suspended:false,
-createdAt:Date.now()
-});
+signOut(auth);
+
+return;
 
 }
 
-loadUser(user.uid);
+startUserPanel(data);
 
-});
+}else{
 
-async function loadUser(uid){
+const usersSnap = await get(ref(db,'users'));
 
-onValue(ref(db,'users/'+uid),(snap)=>{
+let total = 1;
+
+if(usersSnap.exists()){
+
+total = Object.keys(usersSnap.val()).length + 1;
+
+}
+
+const uid = String(total).padStart(4,'0');
+
+const payload = {
+
+uid: uid,
+
+email: user.email,
+
+balance: 0,
+
+status: 'active',
+
+createdAt: Date.now(),
+
+completedJobsCount: 0,
+
+withdrawCount: 0,
+
+history: {}
+
+};
+
+await set(userRef, payload);
+
+startUserPanel(payload);
+
+}
+
+}
+
+
+
+// ================= USER PANEL =================
+
+function startUserPanel(userData){
+
+document.getElementById('authOverlay').classList.add('hidden');
+
+document.getElementById('appContainer').classList.remove('hidden');
+
+document.getElementById('displayUid').innerText = userData.uid;
+
+
+
+// ================= REALTIME USER SYNC =================
+
+onValue(ref(db,'users/' + currentUserDbKey), (snap)=>{
+
+if(!snap.exists()) return;
 
 const user = snap.val();
 
-document.getElementById('uid').innerText =
-user.customUID;
 
-document.getElementById('balance').innerText =
-user.balance || 0;
 
-if(user.suspended){
+// suspended check
 
-alert("Account Suspended");
+if(user.status === 'suspended'){
 
-auth.signOut();
+alert("Account Suspended By Admin");
+
+signOut(auth);
+
+return;
 
 }
 
+
+
+// realtime balance
+
+document.getElementById('userBalance').innerText =
+
+'৳' + Number(user.balance || 0).toFixed(2);
+
 });
 
-onValue(ref(db,'tasks'),(snap)=>{
 
-const data = snap.val() || {};
 
-let html='';
+// ================= REALTIME TASKS =================
 
-Object.entries(data).forEach(([id,task])=>{
+onValue(ref(db,'tasks'), async(taskSnap)=>{
 
-if(!task.status) return;
+const taskData = taskSnap.val() || {};
 
-html += `
-<div class="task">
+const historySnap = await get(
 
-<h3>${task.title}</h3>
+ref(db,'users/' + currentUserDbKey + '/history')
 
-<p>Reward: $${task.amount}</p>
+);
 
-<button class="btn"
-onclick="startTask('${id}')">
-Open Task
-</button>
+const history = historySnap.exists()
 
-<div id="verify-${id}"></div>
+? historySnap.val()
 
-</div>
+: {};
+
+renderTasks(taskData, history);
+
+});
+
+}
+
+
+
+// ================= COPY UID =================
+
+window.copyId = function(){
+
+const txt = document.getElementById('displayUid').innerText;
+
+navigator.clipboard.writeText(txt);
+
+alert("Copied : " + txt);
+
+}
+
+
+
+// ================= TASK RENDER =================
+
+function renderTasks(tasks, history){
+
+const feed = document.getElementById('taskFeed');
+
+feed.innerHTML = '';
+
+if(!tasks){
+
+feed.innerHTML = `
+<p class="text-gray-500 text-center py-10">
+No Tasks Available
+</p>
 `;
 
-});
+return;
 
-document.getElementById('tasks').innerHTML = html;
+}
 
-});
 
-window.startTask = async(id)=>{
 
-const taskSnap = await get(ref(db,'tasks/'+id));
+Object.entries(tasks).forEach(([key,t])=>{
 
-const task = taskSnap.val();
 
-window.open(task.jobLink);
 
-setTimeout(()=>{
+// admin off/on sync
 
-window.open(task.videoLink);
+if(t.status !== true && t.status !== 'on') return;
 
-if(task.type==='youtube'){
 
-document.getElementById(`verify-${id}`).innerHTML = `
 
-<input type="text"
-id="code-${id}"
-placeholder="Enter Verify Code">
+// already completed hide
 
-<button class="btn"
-onclick="verifyTask('${id}')">
-Verify
+if(history[key]) return;
+
+
+
+let html = '';
+
+
+
+// ================= YOUTUBE TASK =================
+
+if(t.type === 'youtube' || t.category === 'youtube'){
+
+html = `
+
+<div class="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex flex-col gap-3">
+
+<div class="flex justify-between items-start">
+
+<span class="bg-red-950 text-red-400 border border-red-900 text-[10px] font-bold px-2 py-0.5 rounded-full">
+
+YouTube
+
+</span>
+
+<span class="text-emerald-400 font-bold text-base">
+
+৳${t.amount}
+
+</span>
+
+</div>
+
+
+
+<div class="grid grid-cols-2 gap-2 mt-2">
+
+<button id="btn1_${key}"
+
+onclick="openLinkOne('${key}','${t.jobLink}')"
+
+class="bg-gray-800 text-white font-bold py-2 rounded-xl text-xs">
+
+১ম লিংক
+
 </button>
+
+
+
+<button id="btn2_${key}"
+
+disabled
+
+onclick="openLinkTwo('${key}','${t.videoLink}')"
+
+class="bg-gray-800 text-white/40 font-bold py-2 rounded-xl text-xs">
+
+২য় লিংক
+
+</button>
+
+</div>
+
+
+
+<div class="flex gap-2 items-center mt-2">
+
+<input
+
+type="text"
+
+id="pin_${key}"
+
+placeholder="PIN"
+
+maxlength="4"
+
+class="w-full bg-black border border-gray-700 rounded-xl p-2 text-center text-xs text-white">
+
+<button
+
+onclick="verifyYoutubeTask('${key}','${t.code || t.pin}',${t.amount})"
+
+class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs">
+
+Verify
+
+</button>
+
+</div>
+
+</div>
 
 `;
 
 }else{
 
-completeTask(id);
+
+
+// ================= APP / WEBSITE =================
+
+html = `
+
+<div class="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex flex-col gap-3">
+
+<div class="flex justify-between items-start">
+
+<span class="bg-emerald-950 text-emerald-400 border border-emerald-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+
+${t.type || t.category}
+
+</span>
+
+<span class="text-emerald-400 font-bold text-base">
+
+৳${t.amount}
+
+</span>
+
+</div>
+
+
+
+<div class="grid grid-cols-2 gap-2 mt-2">
+
+<button id="btn1_${key}"
+
+onclick="openSurveyOne('${key}','${t.jobLink}')"
+
+class="bg-gray-800 text-white font-bold py-2 rounded-xl text-xs">
+
+১ম লিংক
+
+</button>
+
+
+
+<button id="btn2_${key}"
+
+disabled
+
+onclick="openSurveyTwo('${key}','${t.videoLink || t.jobLink}',${t.amount})"
+
+class="bg-gray-800 text-white/40 font-bold py-2 rounded-xl text-xs">
+
+২য় লিংক
+
+</button>
+
+</div>
+
+</div>
+
+`;
 
 }
 
-},60000);
+feed.innerHTML += html;
+
+});
 
 }
 
-window.verifyTask = async(id)=>{
 
-const taskSnap = await get(ref(db,'tasks/'+id));
 
-const task = taskSnap.val();
+// ================= FIRST TIMER =================
 
-const code = document.getElementById(`code-${id}`).value;
+window.openLinkOne = function(key,link){
 
-if(code !== task.code){
+window.open(link,'_blank');
 
-alert("Invalid Code");
+let sec = 60;
+
+const btn = document.getElementById(`btn1_${key}`);
+
+btn.disabled = true;
+
+
+
+const timer = setInterval(()=>{
+
+sec--;
+
+btn.innerText = sec + 's';
+
+if(sec<=0){
+
+clearInterval(timer);
+
+btn.innerText = 'Done';
+
+
+
+const btn2 = document.getElementById(`btn2_${key}`);
+
+btn2.disabled = false;
+
+btn2.className =
+
+"bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs";
+
+btn2.innerText = 'Open';
+
+}
+
+},1000);
+
+}
+
+
+
+// ================= SECOND YOUTUBE =================
+
+window.openLinkTwo = function(key,link){
+
+window.open(link,'_blank');
+
+}
+
+
+
+// ================= VERIFY =================
+
+window.verifyYoutubeTask = function(key,realPin,amount){
+
+const pin = document.getElementById(`pin_${key}`).value.trim();
+
+if(pin !== String(realPin)){
+
+alert("Wrong PIN");
+
 return;
 
 }
 
-completeTask(id);
+claimReward(key,amount);
 
 }
 
-async function completeTask(id){
 
-const currentUser = auth.currentUser;
 
-const userRef = ref(db,'users/'+currentUser.uid);
+// ================= SURVEY TIMER =================
 
-const userSnap = await get(userRef);
+window.openSurveyOne = function(key,link){
 
-const user = userSnap.val();
+window.open(link,'_blank');
 
-const taskSnap = await get(ref(db,'tasks/'+id));
+let sec = 60;
 
-const task = taskSnap.val();
+const btn = document.getElementById(`btn1_${key}`);
 
-await update(userRef,{
-balance:(user.balance || 0) + parseFloat(task.amount)
+btn.disabled = true;
+
+
+
+const timer = setInterval(()=>{
+
+sec--;
+
+btn.innerText = sec + 's';
+
+if(sec<=0){
+
+clearInterval(timer);
+
+btn.innerText = 'Completed';
+
+
+
+const btn2 = document.getElementById(`btn2_${key}`);
+
+btn2.disabled = false;
+
+btn2.className =
+
+"bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs";
+
+btn2.innerText = 'Open';
+
+}
+
+},1000);
+
+}
+
+
+
+window.openSurveyTwo = function(key,link,amount){
+
+window.open(link,'_blank');
+
+let sec = 70;
+
+const btn = document.getElementById(`btn2_${key}`);
+
+btn.disabled = true;
+
+
+
+const timer = setInterval(()=>{
+
+sec--;
+
+btn.innerText = sec + 's';
+
+if(sec<=0){
+
+clearInterval(timer);
+
+btn.innerText = 'Completed';
+
+claimReward(key,amount);
+
+}
+
+},1000);
+
+}
+
+
+
+// ================= CLAIM REWARD =================
+
+async function claimReward(taskKey,amount){
+
+const userRef = ref(db,'users/' + currentUserDbKey);
+
+
+
+await runTransaction(userRef,(user)=>{
+
+if(user){
+
+if(!user.history){
+
+user.history = {};
+
+}
+
+
+
+// already claimed protection
+
+if(user.history[taskKey]){
+
+return user;
+
+}
+
+
+
+user.history[taskKey] = true;
+
+user.balance =
+
+Number(user.balance || 0) + Number(amount);
+
+user.completedJobsCount =
+
+(user.completedJobsCount || 0) + 1;
+
+}
+
+return user;
+
 });
 
-alert("Reward Added");
+
+
+alert('Reward Added');
 
 }
+
+
+
+// ================= WITHDRAW =================
+
+window.openWithdrawModal = function(){
+
+document.getElementById('withdrawModal')
+
+.classList.remove('hidden');
+
+}
+
+
+
+window.closeWithdrawModal = function(){
+
+document.getElementById('withdrawModal')
+
+.classList.add('hidden');
+
+}
+
+
+
+// ================= WITHDRAW SUBMIT =================
+
+window.submitWithdraw = async function(){
+
+const number =
+
+document.getElementById('wdNumber').value.trim();
+
+const amount =
+
+parseFloat(document.getElementById('wdAmount').value);
+
+
+
+if(!number || amount < 100){
+
+alert("Minimum Withdraw 100");
+
+return;
+
+}
+
+
+
+const userRef = ref(db,'users/' + currentUserDbKey);
+
+
+
+// balance check + realtime debit
+
+const result = await runTransaction(userRef,(user)=>{
+
+if(user){
+
+if((user.balance || 0) < amount){
+
+return;
+
+}
+
+
+
+user.balance =
+
+Number(user.balance || 0) - Number(amount);
+
+
+
+user.withdrawCount =
+
+(user.withdrawCount || 0) + 1;
+
+}
+
+return user;
+
+});
+
+
+
+if(!result.committed){
+
+alert("Insufficient Balance");
+
+return;
+
+}
+
+
+
+const snap = await get(userRef);
+
+const user = snap.val();
+
+
+
+// admin panel sync
+
+const wdRef = push(ref(db,'withdrawals'));
+
+
+
+await set(wdRef,{
+
+userKey: currentUserDbKey,
+
+uid: user.uid,
+
+amount: amount,
+
+number: number,
+
+method: 'Nogod',
+
+status: 'pending',
+
+createdAt: Date.now()
+
+});
+
+
+
+alert("Withdraw Request Sent");
+
+closeWithdrawModal();
 
 }
 
 </script>
-
-</body>
-</html>
