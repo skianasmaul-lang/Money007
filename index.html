@@ -202,9 +202,9 @@
                             iconClass = 'fas fa-download text-indigo-400';
                         }
 
-                        // Set custom duration per category (YouTube = 15s/10s, Others = 60s/60s)
-                        const duration1 = (category === 'youtube') ? 15 : 60;
-                        const duration2 = (category === 'youtube') ? 10 : 60;
+                        // Updated to 60 seconds (1 minute) for all categories
+                        const duration1 = 60;
+                        const duration2 = 60;
 
                         let pinSectionHTML = '';
                         
@@ -264,7 +264,7 @@
         }
 
         // Handle External Web Redirects & Auto Rewards logic
-        window.handleRedirect = function(targetUrl, btn, isStep2 = false, taskId = '', category = 'youtube', duration = 15, reward = 0) {
+        window.handleRedirect = function(targetUrl, btn, isStep2 = false, taskId = '', category = 'youtube', duration = 60, reward = 0) {
             btn.disabled = true;
             window.open(targetUrl, '_blank'); 
             
@@ -345,4 +345,4 @@
         };
     </script>
 </body>
-    </html>
+</html>
