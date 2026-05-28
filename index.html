@@ -1,75 +1,86 @@
-;<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Modern Rewards</title>
+    <title>Premium Tasks Earning App</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #ffffff; color: #000000; font-family: 'Segoe UI', Roboto, sans-serif; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        body { background: #090d16; color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+        /* Mobile Screen Layout Constraints */
+        .mobile-container { max-width: 480px; min-height: 100vh; background: #090d16; margin: 0 auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
+        .youtube-red { background: linear-gradient(135deg, #ff0000, #cc0000); }
+        .youtube-red-hover:hover { background: linear-gradient(135deg, #cc0000, #990000); }
+        .premium-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-input { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); }
+        .glass-input:focus { border-color: #ff0000; box-shadow: 0 0 15px rgba(255, 0, 0, 0.2); }
+        /* Hide scrollbars but keep functionality */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="pb-32 bg-white text-black min-h-screen flex flex-col">
+<body>
 
-    <nav class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-40 flex justify-between items-center shadow-sm">
-        <div class="flex items-center gap-2">
-            <div class="w-3 h-7 bg-green-500 rounded-full"></div>
-            <span class="text-2xl font-black tracking-tight text-black">CASH<span class="text-green-600">NODE</span></span>
-        </div>
+    <div class="mobile-container flex flex-col justify-between min-h-screen">
         
-        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-5 py-2.5 rounded-full shadow-inner">
-            <i class="fa-solid fa-circle-dollar-to-slot text-green-600 text-lg"></i>
-            <span id="userBalance" class="font-mono font-black text-xl text-black">$0.00</span>
-        </div>
-    </nav>
-
-    <main class="max-w-3xl w-full mx-auto p-4 md:p-6 flex-1 flex flex-col justify-between">
-        
-        <div id="timerOverlay" class="hidden bg-red-50 border border-red-200 p-4 rounded-2xl items-center justify-between shadow-sm mb-6 animate-pulse">
-            <span class="text-sm font-semibold text-red-700 flex items-center gap-2">
-                <i class="fa-solid fa-circle-notch fa-spin text-red-500"></i> Job Link Active! Do not close the window...
-            </span>
-            <span id="countdownDisplay" class="font-mono font-black text-xl text-white bg-red-600 px-4 py-1.5 rounded-xl shadow-sm">60s</span>
-        </div>
-
-        <div class="flex-1">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-6">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span> Live Earning Stream
-                </h3>
-                <span id="liveStatusDot" class="text-xs font-semibold text-red-500 bg-red-50 px-2.5 py-0.5 rounded-full hidden">Disconnected</span>
-            </div>
-            
-            <div id="userTaskBox" class="space-y-4 custom-scroll overflow-y-auto max-h-[60vh] pr-1">
-                <p class="text-center text-gray-400 text-sm py-16 font-medium">Please authenticating your access terminal at the bottom to view premium tasks.</p>
-            </div>
-        </div>
-    </main>
-
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 md:p-5 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
-        <div class="max-w-xl mx-auto flex items-center justify-between gap-4">
-            
-            <div class="flex items-center justify-center bg-gray-100 text-gray-700 w-12 h-12 rounded-xl border border-gray-200/60 shadow-sm transition-all" id="fingerprintBlock">
-                <i class="fa-solid fa-fingerprint text-xl"></i>
+        <div id="authScreen" class="w-full flex-1 flex flex-col justify-center px-6 py-12 space-y-8 animate-fade-in">
+            <div class="text-center space-y-4">
+                <div class="w-24 h-24 youtube-red text-white rounded-3xl flex items-center justify-center text-5xl mx-auto shadow-2xl shadow-red-600/30 border border-red-500/30">
+                    <i class="fab fa-youtube animate-pulse"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black tracking-wide text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">প্রিমিয়াম টাস্ক হাব</h2>
+                    <p class="text-neutral-400 text-xs mt-2 max-w-xs mx-auto">আপনার ৪ ডিজিটের ইউনিক আইডি পিন দিয়ে সুরক্ষিতভাবে আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+                </div>
             </div>
 
-            <div class="flex-1 relative">
-                <input id="pinInput" type="text" maxlength="6" placeholder="Enter 6-Digit PIN" class="w-full bg-gray-50 border border-gray-200 text-center text-lg font-mono font-bold tracking-[0.2em] rounded-xl py-3 px-4 text-black placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder:text-gray-400 focus:outline-none focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-500/10 transition-all shadow-inner">
+            <div class="space-y-5 bg-slate-900/40 p-6 rounded-3xl border border-white/5 backdrop-blur-md shadow-xl">
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold tracking-wider text-neutral-400 uppercase block text-center">সিক্রেট লগইন পিন</label>
+                    <input type="text" id="loginPin" maxlength="4" placeholder="0001" class="w-full glass-input text-center text-4xl font-black tracking-widest py-4 rounded-2xl text-red-500 focus:outline-none transition">
+                </div>
+                <button onclick="handleAuth()" class="w-full youtube-red youtube-red-hover text-white font-extrabold py-4 rounded-2xl transition shadow-lg shadow-red-600/20 text-base flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i> অ্যাকাউন্টে প্রবেশ করুন
+                </button>
+            </div>
+            <p class="text-center text-[10px] text-neutral-600">Secure AES 256 Connection</p>
+        </div>
+
+        <div id="appScreen" class="w-full flex-1 flex flex-col hidden">
+            <div class="sticky top-0 z-50 bg-[#090d16]/90 backdrop-blur-md px-4 py-4 border-b border-neutral-900 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 youtube-red text-white rounded-xl flex items-center justify-center text-base shadow-lg shadow-red-600/20">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-neutral-400">আইডি: <span id="displayId" class="text-white font-black"></span></p>
+                        <button onclick="logout()" class="text-[10px] text-red-500 font-bold uppercase tracking-wider hover:text-red-400 transition">লগআউট</button>
+                    </div>
+                </div>
+                <div class="bg-slate-900/80 border border-neutral-800 px-4 py-2 rounded-2xl text-right flex items-center gap-2.5 shadow-inner">
+                    <span class="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Wallet</span>
+                    <p class="text-xl font-black text-emerald-400">৳<span id="userBalance">0.00</span></p>
+                </div>
             </div>
 
-            <button id="authBtn" onclick="handleAuth()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-green-600/10 transition-all whitespace-nowrap active:scale-95">
-                Login / Join
-            </button>
+            <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> উপলব্ধ কাজ সমূহ
+                    </h3>
+                    <span class="text-[11px] bg-neutral-900 border border-neutral-800 px-2.5 py-1 rounded-full text-neutral-400 font-medium" id="taskCount">০টি একটিভ</span>
+                </div>
+                
+                <div id="userTaskList" class="space-y-4 pb-20"></div>
+            </div>
         </div>
-        <div id="statusReport" class="text-center text-[10px] font-mono mt-2 text-gray-400 uppercase tracking-wider">Access Locked</div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCvGMzJIZpW3S2gsXgAwFwqnjOA1Haiw5o",
@@ -84,161 +95,254 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        let currentUserId = null;
+        let userBalance = 0;
+        let userCompletedList = {};
 
-        let activeUID = localStorage.getItem('user_uid') || null;
+        // Auto Login Session Logic (Checks if logged in within last 5 minutes)
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedPin = localStorage.getItem('user_session_pin');
+            const loginTime = localStorage.getItem('user_login_time');
+            const currentTime = Date.now();
 
-        if(activeUID) {
-            document.getElementById('pinInput').value = activeUID;
-            bindUserSession(activeUID);
-        }
-
-        window.handleAuth = async function() {
-            if(activeUID) {
-                // Terminate Secure Framework Session
-                localStorage.removeItem('user_uid');
-                activeUID = null;
-                document.getElementById('pinInput').value = '';
-                document.getElementById('pinInput').disabled = false;
-                document.getElementById('authBtn').innerText = "Login / Join";
-                document.getElementById('authBtn').className = "bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-green-600/10 transition-all whitespace-nowrap active:scale-95";
-                document.getElementById('userBalance').innerText = "$0.00";
-                document.getElementById('fingerprintBlock').className = "flex items-center justify-center bg-gray-100 text-gray-700 w-12 h-12 rounded-xl border border-gray-200/60 shadow-sm";
-                document.getElementById('statusReport').className = "text-center text-[10px] font-mono mt-2 text-gray-400 uppercase tracking-wider";
-                document.getElementById('statusReport').innerText = "Access Locked";
-                document.getElementById('liveStatusDot').classList.add('hidden');
-                setupTasksFeed();
-                return;
-            }
-
-            const pin = document.getElementById('pinInput').value.trim();
-            if(pin.length !== 6) { alert("PIN input syntax must match exactly 6 numeric keys."); return; }
-
-            const userRef = ref(db, `users/${pin}`);
-            const snapshot = await get(userRef);
-
-            if(snapshot.exists()) {
-                const data = snapshot.val();
-                if(data.isBanned) {
-                    alert("This secure cryptographic node channel has been permanently suspended by network root admin.");
-                    return;
-                }
+            // 5 minutes expiry check (5 * 60 * 1000 = 300000 ms)
+            if (savedPin && loginTime && (currentTime - loginTime < 300000)) {
+                currentUserId = savedPin;
+                verifyAndLogin(savedPin);
             } else {
-                // Initialize Account Blueprint Map Configuration
-                await set(userRef, {
-                    uid: pin,
-                    balance: 0.00,
-                    tasksCompleted: 0,
-                    age: 1,
-                    isBanned: false
-                });
+                localStorage.removeItem('user_session_pin');
+                localStorage.removeItem('user_login_time');
             }
+        });
 
-            localStorage.setItem('user_uid', pin);
-            activeUID = pin;
-            bindUserSession(pin);
+        window.handleAuth = function() {
+            const pin = document.getElementById('loginPin').value;
+            if(pin.length !== 4) return alert('অবশ্যই ৪ ডিজিটের আইডি পিন হতে হবে!');
+            currentUserId = pin;
+            verifyAndLogin(pin);
         };
 
-        function bindUserSession(uid) {
-            document.getElementById('pinInput').disabled = true;
-            document.getElementById('authBtn').innerText = "Logout";
-            document.getElementById('authBtn').className = "bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm tracking-wide shadow-md shadow-red-600/10 transition-all whitespace-nowrap active:scale-95";
-            document.getElementById('fingerprintBlock').className = "flex items-center justify-center bg-green-50 text-green-600 w-12 h-12 rounded-xl border border-green-200 shadow-sm";
-            document.getElementById('liveStatusDot').classList.remove('hidden');
-
-            // Listen to Balance & Variable Ecosystem Realtime
-            onValue(ref(db, `users/${uid}`), (snapshot) => {
+        function verifyAndLogin(pin) {
+            const userRef = ref(db, `users/${pin}`);
+            get(userRef).then((snapshot) => {
                 if(snapshot.exists()) {
-                    const data = snapshot.val();
-                    if(data.isBanned) {
-                        alert("Session terminated: Terminal connection blacklist alert flag intercepted.");
-                        localStorage.removeItem('user_uid');
-                        location.reload();
-                        return;
-                    }
-                    document.getElementById('userBalance').innerText = `$${parseFloat(data.balance).toFixed(2)}`;
-                    document.getElementById('statusReport').className = "text-center text-[10px] font-mono mt-2 text-green-600 font-bold uppercase tracking-wider";
-                    document.getElementById('statusReport').innerText = `Active Link Node: ONLINE (${uid})`;
+                    localStorage.setItem('user_session_pin', pin);
+                    localStorage.setItem('user_login_time', Date.now()); // Set current timestamp
+                    loadApp(snapshot.val());
+                } else {
+                    const newUser = {
+                        balance: 0,
+                        completedTasks: 0,
+                        createdAt: new Date().toLocaleString('bn-BD')
+                    };
+                    set(userRef, newUser).then(() => {
+                        localStorage.setItem('user_session_pin', pin);
+                        localStorage.setItem('user_login_time', Date.now());
+                        loadApp(newUser);
+                    });
                 }
             });
-            setupTasksFeed();
         }
 
-        function setupTasksFeed() {
-            const container = document.getElementById('userTaskBox');
-            if(!activeUID) {
-                container.innerHTML = `<p class="text-center text-gray-400 text-sm py-16 font-medium">Please authenticating your access terminal at the bottom to view premium tasks.</p>`;
+        window.logout = function() {
+            localStorage.removeItem('user_session_pin');
+            localStorage.removeItem('user_login_time');
+            location.reload();
+        };
+
+        function loadApp(userData) {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            document.getElementById('displayId').innerText = currentUserId;
+
+            onValue(ref(db, `users/${currentUserId}`), (snapshot) => {
+                if(snapshot.exists()){
+                    const data = snapshot.val();
+                    userBalance = data.balance || 0;
+                    userCompletedList = data.doneTasks || {}; 
+                    document.getElementById('userBalance').innerText = Number(userBalance).toFixed(2);
+                    
+                    syncTasksRealtime();
+                }
+            });
+        }
+
+        function syncTasksRealtime() {
+            onValue(ref(db, 'tasks'), (snapshot) => {
+                const container = document.getElementById('userTaskList');
+                container.innerHTML = '';
+                
+                if(!snapshot.exists()) {
+                    container.innerHTML = '<p class="text-neutral-500 text-center py-8 text-xs">এই মুহূর্তে কোনো কাজ উপলব্ধ নেই।</p>';
+                    document.getElementById('taskCount').innerText = "০টি একটিভ";
+                    return;
+                }
+
+                let activeCounter = 0;
+
+                snapshot.forEach((child) => {
+                    const task = child.val();
+                    const taskId = child.key;
+
+                    if(task.status === true) { 
+                        activeCounter++;
+                        const isTaskDone = userCompletedList[taskId] === true;
+
+                        // Identify Task Category & Titles
+                        const category = task.category || 'youtube';
+                        let titleText = 'YOUTUBE TASK';
+                        let iconClass = 'fab fa-youtube text-red-500';
+                        
+                        if(category === 'website') {
+                            titleText = 'WEBSITE VISIT';
+                            iconClass = 'fas fa-globe text-blue-400';
+                        } else if(category === 'app') {
+                            titleText = 'APP INSTALL';
+                            iconClass = 'fas fa-download text-indigo-400';
+                        }
+
+                        // Set custom duration per category (YouTube = 15s/10s, Others = 60s/60s)
+                        const duration1 = (category === 'youtube') ? 15 : 60;
+                        const duration2 = (category === 'youtube') ? 10 : 60;
+
+                        let pinSectionHTML = '';
+                        
+                        // Render PIN verification box only for YouTube Category
+                        if (category === 'youtube') {
+                            pinSectionHTML = `
+                                <div class="bg-black/40 p-3 rounded-xl border border-neutral-800/80 flex gap-2 items-center">
+                                    <input type="text" id="pinInput-${taskId}" maxlength="4" placeholder="৪ ডিজিটের পিন দিন" ${isTaskDone ? 'disabled' : ''} class="w-full bg-transparent text-sm font-semibold tracking-widest text-center text-white focus:outline-none placeholder-neutral-600 disabled:text-neutral-600">
+                                    <button onclick="verifySecretPin('${taskId}', '${task.pin}', ${task.reward})" ${isTaskDone ? 'disabled' : ''} class="${isTaskDone ? 'bg-neutral-800 text-neutral-600' : 'youtube-red hover:youtube-red-hover text-white'} text-xs font-bold px-4 py-2.5 rounded-lg transition shrink-0">
+                                        ভেরিফাই
+                                    </button>
+                                </div>`;
+                        } else {
+                            // Non-YouTube tasks notice (Will auto credit)
+                            pinSectionHTML = isTaskDone ? '' : `
+                                <div id="autoNotice-${taskId}" class="bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10 text-center">
+                                    <p class="text-[11px] text-emerald-400/80"><i class="fas fa-info-circle"></i> ২য় ধাপের সময় শেষ হলে টাকা অটোমেটিক যোগ হবে, পিন লাগবে না।</p>
+                                </div>`;
+                        }
+
+                        container.innerHTML += `
+                            <div class="premium-card p-4 rounded-2xl space-y-4 shadow-lg">
+                                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                                    <div class="flex items-center gap-2">
+                                        <i class="${iconClass} text-sm"></i>
+                                        <span class="text-xs font-black tracking-wider text-neutral-200">${titleText}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 text-emerald-400 font-black text-sm bg-emerald-500/10 px-2.5 py-1 rounded-lg">
+                                        <span>৳${Number(task.reward).toFixed(2)}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-neutral-500 font-semibold uppercase">Task Status</span>
+                                    ${isTaskDone ? 
+                                        `<span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Completed</span>` :
+                                        `<span class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-2.5 py-0.5 rounded-full font-bold">Active</span>`
+                                    }
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="handleRedirect('${task.link}', this, false, '${taskId}', '${category}', ${duration1}, ${task.reward})" ${isTaskDone ? 'disabled' : ''} class="${isTaskDone ? 'bg-neutral-900 text-neutral-700' : 'bg-neutral-800 text-neutral-200 hover:bg-neutral-700'} text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-external-link-alt text-red-500"></i> কাজ শুরু ১ (${duration1}s)
+                                    </button>
+                                    <button id="step2-${taskId}" onclick="handleRedirect('${task.yt}', this, true, '${taskId}', '${category}', ${duration2}, ${task.reward})" disabled class="bg-neutral-900 text-neutral-700 text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                        <i class="fab fa-youtube text-neutral-700" id="ytIcon-${taskId}"></i> কাজ শুরু ২ (${duration2}s)
+                                    </button>
+                                </div>
+
+                                ${pinSectionHTML}
+                            </div>`;
+                    }
+                });
+
+                document.getElementById('taskCount').innerText = `${activeCounter}টি একটিভ`;
+            });
+        }
+
+        // Handle External Web Redirects & Auto Rewards logic
+        window.handleRedirect = function(targetUrl, btn, isStep2 = false, taskId = '', category = 'youtube', duration = 15, reward = 0) {
+            btn.disabled = true;
+            window.open(targetUrl, '_blank'); 
+            
+            let timeLeft = duration;
+            btn.innerText = `অপেক্ষা করুন (${timeLeft}s)`;
+
+            const countdown = setInterval(() => {
+                timeLeft--;
+                if(timeLeft <= 0) {
+                    clearInterval(countdown);
+                    if(!isStep2) {
+                        btn.className = "bg-neutral-900/40 text-neutral-500 text-xs font-bold py-3 rounded-xl text-center border border-neutral-800/50";
+                        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> ধাপ ১ শেষ';
+                        
+                        const nextBtn = document.getElementById(`step2-${taskId}`);
+                        if(nextBtn) {
+                            nextBtn.disabled = false;
+                            nextBtn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/20";
+                            const nextIcon = document.getElementById(`ytIcon-${taskId}`);
+                            if(nextIcon) nextIcon.className = "fab fa-youtube text-white";
+                        }
+                    } else {
+                        btn.className = "bg-neutral-900/40 text-neutral-500 text-xs font-bold py-3 rounded-xl text-center border border-neutral-800/50";
+                        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> ধাপ ২ শেষ';
+                        
+                        // Trigger Automatic Credit Logic for App/Website category instantly when Step 2 finishes
+                        if(category !== 'youtube') {
+                            executeAutoCredit(taskId, reward);
+                        }
+                    }
+                } else {
+                    btn.innerText = `অপেক্ষা করুন (${timeLeft}s)`;
+                }
+            }, 1000);
+        };
+
+        // Auto Credit Reward Algorithm for Non-YouTube tasks (No Pin Requirement)
+        function executeAutoCredit(taskId, reward) {
+            if(userCompletedList && userCompletedList[taskId] === true) return;
+
+            userCompletedList[taskId] = true; 
+            const userRef = ref(db, `users/${currentUserId}`);
+            const finalCalculatedBalance = Number(userBalance) + Number(reward);
+
+            update(userRef, {
+                balance: finalCalculatedBalance,
+                [`doneTasks/${taskId}`]: true 
+            }).then(() => {
+                alert(`টাস্ক সফলভাবে সম্পন্ন হয়েছে! কোনো পিন ছাড়াই আপনার অ্যাকাউন্টে ৳${Number(reward).toFixed(2)} অটোমেটিক যোগ করা হয়েছে।`);
+            });
+        }
+
+        // Realtime Verification Algorithm for YouTube Tasks via Code Input
+        window.verifySecretPin = function(taskId, originalPin, reward) {
+            if(userCompletedList && userCompletedList[taskId] === true) {
+                alert("দুঃখিত! এই কাজটি আপনি ইতিমধ্যেই সম্পন্ন করে ফেলেছেন।");
                 return;
             }
 
-            onValue(ref(db, 'tasks'), (snapshot) => {
-                container.innerHTML = '';
-                if(snapshot.exists()) {
-                    const data = snapshot.val();
-                    let itemsPresent = false;
-                    Object.keys(data).forEach(key => {
-                        const task = data[key];
-                        if(task.hidden) return; 
-                        itemsPresent = true;
+            const typedPin = document.getElementById(`pinInput-${taskId}`).value;
+            if(typedPin.length !== 4) return alert("অনুগ্রহ করে সঠিক ৪ ডিজিটের পিন কোডটি লিখুন!");
 
-                        // Premium High Density Expanded Task Cards Construction
-                        const card = document.createElement('div');
-                        card.className = "bg-white border border-gray-200 hover:border-gray-300 p-5 rounded-2xl flex justify-between items-center transition-all shadow-[0_4px_12px_rgba(0,0,0,0.01)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.03)] group min-h-[90px]";
-                        card.innerHTML = `
-                            <div class="flex items-center gap-5 flex-1 min-w-0">
-                                <div class="bg-green-50 text-green-600 font-mono font-black text-base md:text-lg px-4 py-2.5 rounded-xl border border-green-100 shrink-0 shadow-sm">
-                                    $${parseFloat(task.amount).toFixed(2)}
-                                </div>
-                                <h4 class="text-base font-bold text-black truncate pr-4">${task.title}</h4>
-                            </div>
-                            <button onclick="launchTask('${task.link}', ${task.amount})" class="bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-xl flex items-center gap-1.5 shadow-sm shadow-green-600/10 transition-all shrink-0 active:scale-95">
-                                Open <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                            </button>
-                        `;
-                        container.appendChild(card);
-                    });
-                    if(!itemsPresent) container.innerHTML = `<p class="text-center text-gray-400 text-sm py-16 font-mono">No active streams deployed from root control node.</p>`;
-                } else {
-                    container.innerHTML = `<p class="text-center text-gray-400 text-sm py-16 font-mono">No active streams deployed from root control node.</p>`;
-                }
-            });
-        }
+            if(typedPin === originalPin) {
+                userCompletedList[taskId] = true; 
 
-        window.launchTask = function(url, amount) {
-            if(!activeUID) return;
-            window.open(url, '_blank');
-            
-            const overlay = document.getElementById('timerOverlay');
-            const display = document.getElementById('countdownDisplay');
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
+                const userRef = ref(db, `users/${currentUserId}`);
+                const finalCalculatedBalance = Number(userBalance) + Number(reward);
 
-            let counter = 60;
-            display.innerText = `${counter}s`;
-
-            const sessionClock = setInterval(() => {
-                counter--;
-                display.innerText = `${counter}s`;
-                if(counter <= 0) {
-                    clearInterval(sessionClock);
-                    overlay.classList.remove('flex');
-                    overlay.classList.add('hidden');
-                    
-                    // Secure Balance Injection Payload Deployment 
-                    const userRef = ref(db, `users/${activeUID}`);
-                    get(userRef).then(snap => {
-                        if(snap.exists()) {
-                            let walletBal = parseFloat(snap.val().balance || 0);
-                            let progressCount = parseInt(snap.val().tasksCompleted || 0);
-                            update(userRef, {
-                                balance: walletBal + amount,
-                                tasksCompleted: progressCount + 1
-                            });
-                            alert(`Verification Success: +$${amount.toFixed(2)} synchronized to secure node balance.`);
-                        }
-                    });
-                }
-            }, 1000);
-        }
+                update(userRef, {
+                    balance: finalCalculatedBalance,
+                    [`doneTasks/${taskId}`]: true 
+                }).then(() => {
+                    alert(`কংগ্রাচুলেশন! পিন সঠিক হয়েছে এবং আপনার অ্যাকাউন্টে ৳${Number(reward).toFixed(2)} সফলভাবে যোগ করা হয়েছে।`);
+                });
+            } else {
+                alert("ভুল পিন দিয়েছেন! ভিডিওটি মনোযোগ দিয়ে দেখে সঠিক পিন দিন এবং পুনরায় চেষ্টা করুন।");
+            }
+        };
     </script>
 </body>
-</html>
+    </html>
