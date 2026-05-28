@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium User Dashboard (Fully Fixed)</title>
+    <title>Premium User Dashboard (Authentication Fixed)</title>
+    <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -156,6 +157,7 @@
 </head>
 <body>
 
+<!-- Login Container -->
 <div class="login-screen" id="loginScreen">
     <h1 style="margin-bottom: 20px; letter-spacing: 2px;">PREMIUM EARN</h1>
     <button class="btn-google" onclick="loginWithGoogle()">
@@ -164,6 +166,7 @@
     </button>
 </div>
 
+<!-- Main App Dashboard -->
 <div class="dashboard" id="dashboard">
     <div class="top-bar">
         <div class="user-id-box">
@@ -173,14 +176,18 @@
         <div class="balance-box" id="userBalance">$0.00</div>
     </div>
 
+    <!-- Live Tasks Feed -->
     <div id="tasksContainer">
-        </div>
+        <!-- Tasks will match real-time from DB -->
+    </div>
 
+    <!-- Bottom Action Bar -->
     <div class="bottom-nav">
         <button class="btn-withdraw-trigger" onclick="toggleWithdrawModal(true)"><i class="fas fa-wallet"></i> উত্তোলন (Withdraw)</button>
     </div>
 </div>
 
+<!-- Withdraw Popup Dialog -->
 <div class="modal" id="withdrawModal">
     <div class="modal-content">
         <i class="fas fa-times close-modal" onclick="toggleWithdrawModal(false)"></i>
@@ -197,9 +204,10 @@
     </div>
 </div>
 
+<!-- Firebase Modular SDK Links -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -220,10 +228,21 @@
 
     let currentUserData = null;
     let authUser = null;
-    let isTaskRunning = false; // গ্লোবাল স্টেট ট্র্যাকিং (একটি টাস্ক চলাকালীন অন্যগুলো লক করার জন্য)
+    let isTaskRunning = false;
 
+    // ১. পারসিস্টেন্স সেটআপ (যাতে অ্যাকাউন্ট কখনো অটো-লগআউট না হয়)
+    setPersistence(auth, browserLocalPersistence)
+        .then(() => {
+            // রিডাইরেক্ট লগইন এর রেজাল্ট হ্যান্ডেল করা (যদি পেজ রিফ্রেশ হয়ে ফিরে আসে)
+            return getRedirectResult(auth);
+        })
+        .catch((error) => {
+            console.error("Persistence Error: ", error.message);
+        });
+
+    // ২. রিডাইরেক্ট মেথড ব্যবহার করে নিরাপদ লগইন (যা ব্রাউজার ব্লক করতে পারবে না)
     window.loginWithGoogle = function() {
-        signInWithPopup(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
+        signInWithRedirect(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -274,7 +293,6 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
 
-        // রিয়েল টাইম নিখুঁত ব্যালেন্স সিঙ্কিং লিসেনার
         onValue(ref(db, `users/${uid}`), (snapshot) => {
             currentUserData = snapshot.val();
             if(currentUserData) {
@@ -285,16 +303,12 @@
                     return;
                 }
                 document.getElementById('userUidStr').innerText = currentUserData.uidStr;
-                // ব্যালেন্স ২ দশমিক স্থানে ফিক্সড শো করবে
                 document.getElementById('userBalance').innerText = `$${parseFloat(currentUserData.balance || 0).toFixed(2)}`;
-                
-                // ব্যালেন্স ডাটা লোড হওয়ার পর টাস্ক লিস্ট ফ্রেশ করে রেন্ডার করা
                 loadTasks();
             }
         });
     }
 
-    // টাস্ক ফিল্টারিং (যা অলরেডি সাবমিট হয়ে গেছে তা আর আসবে না)
     function loadTasks() {
         get(ref(db, 'jobs')).then((snapshot) => {
             const container = document.getElementById('tasksContainer');
@@ -303,7 +317,6 @@
                 snapshot.forEach(childSnap => {
                     let job = childSnap.val();
                     
-                    // চেক করা হচ্ছে ইউজার এই নির্দিষ্ট টাস্কটি আগে কমপ্লিট করেছে কিনা
                     let hasDone = false;
                     if(currentUserData.completedTasks && currentUserData.completedTasks[job.id]) {
                         hasDone = true;
@@ -355,13 +368,11 @@
         }
         container.innerHTML += taskHtml;
         
-        // যদি অন্য কোনো টাস্ক বর্তমানে রানিং থাকে, তবে এই নতুন তৈরি হওয়া কার্ডটি লক দেখাবে
         if(isTaskRunning) {
             document.getElementById(`card_${job.id}`).classList.add('disabled-task');
         }
     }
 
-    // একটি টাস্ক চলাকালীন বাকি সব টাস্ক আন-অ্যাভেলেবল (লক) করার মেথড
     function toggleAllOtherTasks(runningJobId, lock) {
         isTaskRunning = lock;
         const cards = document.querySelectorAll('.task-card');
@@ -377,7 +388,6 @@
     }
 
     window.startTimer = function(jobId, link, type) {
-        // বাকি সব টাস্ক লক করে দেওয়া হলো
         toggleAllOtherTasks(jobId, true);
 
         window.open(link, '_blank');
@@ -420,11 +430,9 @@
                     btn2.innerText = "টাকা যুক্ত হয়েছে";
                     btn2.style.pointerEvents = "none";
                     
-                    // টাস্ক কমপ্লিট ও রিওয়ার্ড ক্ল্যাম প্রসেস (ডাটাবেজ ট্রানজেকশন)
                     claimReward(job.id, job.amount);
                     alert("টাস্ক সফলভাবে সম্পন্ন হয়েছে! ব্যালেন্স আপডেট করা হয়েছে।");
                     
-                    // এই কাজ শেষ, তাই বাকি সব কাজ আবার অ্যাভেলেবল করা হলো
                     toggleAllOtherTasks(jobId, false);
                     document.getElementById(`card_${jobId}`).remove();
                 }
@@ -439,7 +447,6 @@
             claimReward(jobId, amount);
             alert("সকরুণ অভিনন্দন! সঠিক কোড দেওয়া হয়েছে, ব্যালেন্স যুক্ত হয়েছে।");
             
-            // কাজ শেষ, তাই লক রিলিজ করা হলো
             toggleAllOtherTasks(jobId, false);
             document.getElementById(`card_${jobId}`).remove();
         } else {
@@ -447,22 +454,17 @@
         }
     }
 
-    // নিখুঁতভাবে রিওয়ার্ড ব্যালেন্স এবং টাস্ক ওয়ান্স (একবার) ডাটাবেজে সেভ করার মেথড
     function claimReward(jobId, amount) {
         const userRef = ref(db, `users/${authUser.uid}`);
         
-        // ট্রানজেকশন ব্যবহার করা হয়েছে যাতে ২ জন একসাথে করলেও ১ পয়সার হিসাব ভুল না হয়
         runTransaction(userRef, (currentData) => {
             if (currentData) {
-                // ব্যালেন্স যোগ
                 let currentBal = parseFloat(currentData.balance || 0);
                 let rewardAmt = parseFloat(amount || 0);
                 currentData.balance = parseFloat((currentBal + rewardAmt).toFixed(4));
                 
-                // জব কাউন্ট বৃদ্ধি
                 currentData.jobsDone = (parseInt(currentData.jobsDone || 0)) + 1;
                 
-                // এই টাস্ক আইডিটিকে ইউজারের কমপ্লিটেড লিস্টে পার্মানেন্টলি ট্র‍্যাক করা হলো
                 if (!currentData.completedTasks) {
                     currentData.completedTasks = {};
                 }
@@ -481,15 +483,24 @@
         document.getElementById('withdrawModal').style.display = show ? 'flex' : 'none';
     }
 
-    // সেনসিটিভ ও ফিক্সড উইথড্র সাবমিশন ভ্যালিডেশন
     window.submitWithdraw = function() {
         const num = document.getElementById('walletNumber').value.trim();
         const amtBdt = parseFloat(document.getElementById('walletAmount').value) || 0;
         
         if(!num || amtBdt < 100) return alert("দয়া করে সঠিক নগদ নম্বর এবং মিনিমাম ১০০ টাকা টাইপ করুন!");
 
-        // $১ = ১০০ টাকা কনভার্সন রেট হিসেব
         let neededUsd = parseFloat((amtBdt / 100).toFixed(4)); 
         let userCurrentUsd = parseFloat(currentUserData.balance || 0);
 
-        // কঠোর সিকিউরিটি ভ্যালিডেশন (ইউজারের ব্যালেন্স প্রয়োজনীয় অ্যাম
+        if(userCurrentUsd >= neededUsd) {
+            const userRef = ref(db, `users/${authUser.uid}`);
+            
+            runTransaction(userRef, (currentData) => {
+                if (currentData) {
+                    let currentBal = parseFloat(currentData.balance || 0);
+                    currentData.balance = parseFloat((currentBal - neededUsd).toFixed(4));
+                }
+                return currentData;
+            }).then(() => {
+                const withdrawId = "wd_" + Date.now();
+                cons
