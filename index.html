@@ -50,6 +50,7 @@
             gap: 10px;
             box-shadow: 0 4px 15px rgba(255,255,255,0.1);
             transition: 0.3s;
+            outline: none;
         }
 
         .btn-google:hover { transform: translateY(-2px); }
@@ -147,12 +148,24 @@
         
         .btn-submit { width:100%; background:var(--accent-green); color:white; border:none; padding:12px; border-radius:6px; font-weight:600; cursor:pointer;}
 
-        /* Global helper class for locking tasks */
-        .task-disabled {
-            opacity: 0.3 !important;
+        /* নির্দিষ্ট কার্ডের বাটন লক করার গ্লোবাল ক্লাস */
+        .card-buttons-locked .btn-task, 
+        .card-buttons-locked .btn-verify,
+        .card-buttons-locked input {
+            opacity: 0.4 !important;
             pointer-events: none !important;
         }
     </style>
+    
+    <script>
+        window.loginWithGoogle = function() {
+            if (typeof window.firebaseLoginTrigger === 'function') {
+                window.firebaseLoginTrigger();
+            } else {
+                alert("দয়া করে ১ সেকেন্ড অপেক্ষা করুন, ফায়ারবেস সিস্টেম লোড হচ্ছে...");
+            }
+        };
+    </script>
 </head>
 <body>
 
@@ -220,10 +233,10 @@
 
     let currentUserData = null;
     let authUser = null;
-    let isTaskRunning = false; // গলোবাল ফ্ল্যাগ: কোনো টাস্ক চলছে কিনা ট্র্যাকিংয়ের জন্য
+    let isTaskRunning = false; 
 
-    // গুগল দিয়ে লগইন (হুবহু আপনার আগের মূল মেথড)
-    window.loginWithGoogle = function() {
+    // মূল লগইন ফাংশনকে গ্লোবাল ট্রিগারের সাথে কানেক্ট করা হলো
+    window.firebaseLoginTrigger = function() {
         signInWithPopup(auth, provider).catch(error => alert("লগইন ব্যর্থ: " + error.message));
     }
 
@@ -292,25 +305,22 @@
             }
         });
 
-        // লাইভ টাস্ক লোডার (Active টাস্ক এবং যেগুলো ইউজার আগে সম্পন্ন করেনি শুধু সেগুলো দেখাবে)
+        // লাইভ টাস্ক লোডার (শুধুমাত্র একটিভ এবং যেগুলো ইউজার আগে কখনো করেনি সেগুলো আসবে)
         onValue(ref(db, 'jobs'), (jobsSnapshot) => {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = "";
             
-            // ইউজারের সম্পন্ন করা টাস্কের লিস্ট চেক করা হচ্ছে
             get(ref(db, `users/${uid}/completedTasks`)).then((completedSnapshot) => {
                 const completedTasks = completedSnapshot.exists() ? completedSnapshot.val() : {};
 
                 if(jobsSnapshot.exists()) {
                     jobsSnapshot.forEach(childSnap => {
                         let job = childSnap.val();
-                        // রুলস: টাস্ক একটিভ থাকতে হবে এবং ইউজার আগে এটি সম্পন্ন করেনি এমন হতে হবে
                         if(job.status === true && !completedTasks[job.id]) {
                             renderTaskCard(job);
                         }
                     });
                     
-                    // কোনো টাস্ক রানিং থাকলে বাকিগুলো লক করা বজায় রাখা
                     if(isTaskRunning) {
                         lockAllOtherTasks('');
                     }
@@ -359,21 +369,21 @@
         container.innerHTML += taskHtml;
     }
 
-    // অন্যান্য সমস্ত টাস্ক লক করার ফাংশন (একটি টাস্ক চলাকালীন বাকিগুলো বন্ধ থাকবে)
+    // অন্যান্য সমস্ত টাস্ক লক করার ফাংশন
     function lockAllOtherTasks(currentJobId) {
         const cards = document.querySelectorAll('.task-card');
         cards.forEach(card => {
             if(card.id !== `card_${currentJobId}`) {
-                card.classList.add('task-disabled');
+                card.classList.add('card-buttons-locked');
             }
         });
     }
 
-    // কাজ শেষ হলে সব টাস্ক আনলক করার ফাংশন
+    // সব টাস্ক আনলক করার মেথড
     function unlockAllTasks() {
         const cards = document.querySelectorAll('.task-card');
         cards.forEach(card => {
-            card.classList.remove('task-disabled');
+            card.classList.remove('card-buttons-locked');
         });
     }
 
@@ -455,7 +465,7 @@
         }
     }
 
-    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট এবং টাস্কটি ওয়ান-টাইম লক করা
+    // রিওয়ার্ড ব্যালেন্স ডেটাবেজে রিয়েলটাইম আপডেট এবং ওয়ান-টাইম কমপ্লিট টাস্ক সেভ
     function claimReward(amount, jobId) {
         const userRef = ref(db, `users/${authUser.uid}`);
         
@@ -486,20 +496,18 @@
         document.getElementById('withdrawModal').style.display = show ? 'flex' : 'none';
     }
 
-    // রিয়েল টাইম উইথড্র সাবমিশন লজিক (কঠোর রিয়েলটাইম সিকিউরিটি ভেরিফিকেশন)
+    // রিয়েল টাইম উইথড্র সাবমিশন লজিক
     window.submitWithdraw = function() {
         const num = document.getElementById('walletNumber').value.trim();
         const amtBdt = parseFloat(document.getElementById('walletAmount').value) || 0;
         
         if(!num || amtBdt < 100) return alert("সঠিক নাম্বার এবং মিনিমাম ১০০ টাকা দিন");
 
-        let neededUsd = amtBdt / 100; // ১ ডলার = ১০০ টাকা কনভার্সন রেট
+        let neededUsd = amtBdt / 100; 
 
         const userRef = ref(db, `users/${authUser.uid}`);
         
         get(userRef).then((snapshot) => {
             if (snapshot.exists()) {
                 let freshUserData = snapshot.val();
-                let actualBalance = parseFloat(freshUserData.balance || 0);
-
-                if(actualBal
+                let actualBalance = pars
