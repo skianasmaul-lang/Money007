@@ -75,7 +75,6 @@
 </head>
 <body>
 
-    <!-- 1. Authentication (Login) Screen -->
     <div id="authScreen">
         <div class="login-card">
             <h2>MONEY 007</h2>
@@ -92,14 +91,12 @@
         </div>
     </div>
 
-    <!-- 2. Banned Block Screen Overlay -->
     <div id="blockScreen" class="block-screen">
         <i class="fa-solid fa-user-slash"></i>
         <h2>Your Account has been Suspended!</h2>
         <p style="color: #666; margin-top: 10px;">Please contact support for more information regarding your account status.</p>
     </div>
 
-    <!-- 3. Core App Dashboard Screen -->
     <div id="appScreen">
         <div class="app-header">
             <button class="btn-header-action" onclick="openWithdrawModal()"><i class="fa-solid fa-wallet"></i> Withdraw</button>
@@ -108,22 +105,18 @@
         </div>
 
         <div class="container">
-            <!-- Task Engine -->
             <div class="timer-box">
                 <div class="circle-timer" id="countdownCircle">60s</div>
                 <button class="btn-start-task" id="startTaskBtn" onclick="triggerTask()">START TASK</button>
             </div>
 
-            <!-- Statement Lists -->
             <div class="history-section">
                 <h3><i class="fa-solid fa-clock-history"></i> Withdrawal History</h3>
                 <div class="history-list" id="withdrawHistoryContainer">
-                    <!-- Dynamic Rows -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- Sticky Footer Info -->
         <div class="app-footer">
             <div class="footer-share-box">
                 <div class="copy-row">
@@ -138,7 +131,6 @@
         </div>
     </div>
 
-    <!-- 4. Withdraw Modal Popup -->
     <div class="pop-overlay" id="withdrawModal">
         <div class="pop-box">
             <i class="fa-solid fa-xmark close-pop" onclick="closeWithdrawModal()"></i>
@@ -150,11 +142,11 @@
         </div>
     </div>
 
-    <!-- Firebase Script Engine Connection -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, child, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+    <script>
+        // Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
             authDomain: "new-app-98e52.firebaseapp.com",
@@ -166,8 +158,9 @@
             measurementId: "G-BE3YXPV3P8"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let currentUser = null;
         let currentUID = null;
@@ -183,7 +176,7 @@
             }
 
             // Check db for existing profile
-            get(ref(db, 'users')).then((snapshot) => {
+            db.ref('users').once('value').then((snapshot) => {
                 let foundUID = null;
                 let allUsers = snapshot.exists() ? snapshot.val() : {};
                 
@@ -220,7 +213,7 @@
                         createdAt: new Date().toISOString()
                     };
                     
-                    set(ref(db, `users/${newUID}`), newUserObj).then(() => {
+                    db.ref(`users/${newUID}`).set(newUserObj).then(() => {
                         launchDashboard(newUID);
                     });
                 }
@@ -235,7 +228,7 @@
             document.getElementById('displayUID').innerText = uid;
 
             // Stream User Records Real-time
-            onValue(ref(db, `users/${uid}`), (snapshot) => {
+            db.ref(`users/${uid}`).on('value', (snapshot) => {
                 const user = snapshot.val();
                 if(!user) return;
                 
@@ -255,7 +248,7 @@
             });
 
             // Stream Withdraw Statements Real-time
-            onValue(ref(db, 'withdraws'), (snapshot) => {
+            db.ref('withdraws').on('value', (snapshot) => {
                 const data = snapshot.val() || {};
                 const container = document.getElementById('withdrawHistoryContainer');
                 container.innerHTML = '';
@@ -297,7 +290,7 @@
                     const newTasks = (currentUser.tasksCount || 0) + 1;
                     
                     // Update current user progress
-                    update(ref(db, `users/${currentUID}`), {
+                    db.ref(`users/${currentUID}`).update({
                         balance: newBal,
                         tasksCount: newTasks
                     }).then(() => {
@@ -306,20 +299,20 @@
                             const refUID = currentUser.referredBy;
                             
                             // Get Referrer's current balance safely
-                            get(ref(db, `users/${refUID}`)).then((refSnapshot) => {
+                            db.ref(`users/${refUID}`).once('value').then((refSnapshot) => {
                                 if(refSnapshot.exists()) {
                                     const refUserData = refSnapshot.val();
                                     const refCurrentBalance = parseFloat(refUserData.balance || 0);
                                     
                                     // Inject 10 TK into referrer wallet
-                                    update(ref(db, `users/${refUID}`), {
+                                    db.ref(`users/${refUID}`).update({
                                         balance: refCurrentBalance + 10.00
                                     });
                                 }
                             });
 
                             // Mark as paid so bonus isn't triggered repeatedly
-                            update(ref(db, `users/${currentUID}`), { isReferPaid: true });
+                            db.ref(`users/${currentUID}`).update({ isReferPaid: true });
                         }
                     });
 
@@ -372,4 +365,12 @@
             }
 
             const remainingBalance = parseFloat(currentUser.balance) - totalCharge;
-            con
+            
+            // Generate a fresh unique withdrawal request ID
+            const newWithdrawID = "WID" + Math.floor(100000 + Math.random() * 900000).toString();
+            
+            const withdrawData = {
+                uid: currentUID,
+                phone: currentUser.phone,
+                bkash: bPhone,
+                amount: 100.00
