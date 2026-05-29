@@ -247,6 +247,9 @@
 
         // Countdown Timer Engine
         window.triggerTask = function() {
+            
+            showAd();
+            
             let timerValue = 60;
             const circle = document.getElementById('countdownCircle');
             const btn = document.getElementById('startTaskBtn');
@@ -353,3 +356,11 @@
     
 </body>
 </html>
+<button onclick="showAd()">Show Ad</button>
+<div id="adContainer"></div>
+
+<script>
+  function showAd() {
+    document.getElementById('adContainer').innerHTML = '<script src="https://pl29584990.effectivecpmnetwork.com/62/95/48/62954896d92dd2fbfb4b56a82fa0f119.js"></script>';
+  }
+</script>
