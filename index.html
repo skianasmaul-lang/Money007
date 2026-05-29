@@ -1,353 +1,270 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money 007 - Premium Earning App</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f7f9fa; color: #1e293b; }
-        .premium-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; }
-    </style>
-</head>
-<body class="min-h-screen flex items-center justify-center bg-gray-100 p-0 sm:p-4">
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
-    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-gray-200">
-        
-        <div id="loginPage" class="flex-1 flex flex-col justify-center px-8 py-12 bg-white">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-yellow-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-yellow-400/30 mb-4 animate-bounce">
-                    <i class="fa-solid fa-money-bill-trend-up text-3xl text-slate-900"></i>
-                </div>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">MONEY 007</h2>
-                <p class="text-sm text-gray-500 mt-1 font-medium">সবচেয়ে বিশ্বস্ত রিয়েল-টাইম আর্নিং প্ল্যাটফর্ম</p>
-            </div>
+import {
+    getDatabase,
+    ref,
+    get,
+    set,
+    onValue,
+    update,
+    push,
+    runTransaction
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-            <div class="space-y-5">
+const firebaseConfig = {
+    apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
+    authDomain: "new-app-98e52.firebaseapp.com",
+    databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
+    projectId: "new-app-98e52",
+    storageBucket: "new-app-98e52.firebasestorage.app",
+    messagingSenderId: "402991418185",
+    appId: "1:402991418185:web:5dabc70d4404dce1902898",
+    measurementId: "G-BE3YXPV3P8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let currentUserPhone = null;
+let isTaskRunning = false;
+
+function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+}
+
+window.handleAuth = async function () {
+
+    const phone = document.getElementById("loginPhone").value.trim();
+
+    if (phone.length !== 11 || !phone.startsWith("01")) {
+        alert("সঠিক ফোন নাম্বার দিন");
+        return;
+    }
+
+    currentUserPhone = phone;
+
+    try {
+
+        const userRef = ref(db, `users/${phone}`);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+
+            initUserRealtimeSession();
+
+        } else {
+
+            const uid = Math.floor(
+                100000 + Math.random() * 900000
+            ).toString();
+
+            const refBy = getQueryParam("ref") || "";
+
+            await set(userRef, {
+                phone: phone,
+                uid: uid,
+                balance: 0,
+                tasksCompleted: 0,
+                referralCount: 0,
+                referredBy: refBy,
+                isBanned: false,
+                createdAt: Date.now()
+            });
+
+            initUserRealtimeSession();
+        }
+
+    } catch (err) {
+        console.log(err);
+        alert("Firebase Error: " + err.message);
+    }
+};
+
+function initUserRealtimeSession() {
+
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("homePage").classList.remove("hidden");
+
+    const userRef = ref(db, `users/${currentUserPhone}`);
+
+    onValue(userRef, (snapshot) => {
+
+        const user = snapshot.val();
+
+        if (!user) return;
+
+        if (user.isBanned) {
+            alert("আপনার আইডি ব্যান করা হয়েছে");
+            return;
+        }
+
+        document.getElementById("uBalance").innerText =
+            Number(user.balance || 0).toFixed(2);
+
+        document.getElementById("uTasksCount").innerText =
+            `${user.tasksCompleted || 0} টি`;
+
+        document.getElementById("uReferCount").innerText =
+            `${user.referralCount || 0} জন`;
+
+        document.getElementById("uUIDLabel").innerText =
+            user.uid || "------";
+
+        renderLogsHistory(user);
+    });
+}
+
+function renderLogsHistory(user) {
+
+    let html = "";
+
+    if (user.withdraws) {
+
+        Object.keys(user.withdraws).forEach(key => {
+
+            const item = user.withdraws[key];
+
+            html += `
+            <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">আপনার মোবাইল নম্বর দিন</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 font-semibold text-sm">+88</span>
-                        <input type="tel" id="loginPhone" placeholder="01XXXXXXXXX" maxlength="11" class="w-full bg-gray-50 text-slate-900 font-bold tracking-widest text-lg border border-gray-200 rounded-2xl pl-14 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all">
-                    </div>
+                    <span class="font-bold block text-slate-800">
+                        বিকাশ উইথড্র (৳${item.amount})
+                    </span>
                 </div>
 
-                <button onclick="handleAuth()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold text-base py-4 rounded-2xl shadow-lg shadow-yellow-400/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    লগইন / অ্যাকাউন্ট তৈরি করুন <i class="fa-solid fa-arrow-right-long"></i>
-                </button>
+                <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-bold">
+                    ${item.status}
+                </span>
             </div>
-        </div>
+            `;
+        });
+    }
 
-        <div id="homePage" class="hidden flex-1 flex flex-col">
-            
-            <header class="premium-card text-white px-5 py-4 flex justify-between items-center shadow-md">
-                <button onclick="openWithdrawModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm shadow-emerald-900/30 transition-all cursor-pointer">
-                    <i class="fa-solid fa-wallet text-sm text-yellow-300"></i> উইথড্র
-                </button>
-                
-                <h1 class="text-xl font-black text-yellow-400 tracking-wider font-[Poppins]">MONEY 007</h1>
-                
-                <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-3 py-1.5 text-right min-w-[90px]">
-                    <p class="text-[9px] text-gray-300 font-medium uppercase tracking-wider">ব্যালেন্স</p>
-                    <p class="text-sm font-bold text-yellow-300">৳<span id="uBalance">0.00</span></p>
-                </div>
-            </header>
+    if (html === "") {
+        html = `
+        <p class="text-gray-400 text-center py-10">
+            কোন হিস্ট্রি ডাটা এখনো তৈরি হয়নি
+        </p>
+        `;
+    }
 
-            <div class="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar pb-24">
-                
-                <div id="banAlertNotice" class="hidden bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-center font-medium text-sm space-y-1">
-                    <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 block mb-1"></i>
-                    আপনার অ্যাকাউন্টটি অ্যাডমিন দ্বারা সাময়িকভাবে ব্যান করা হয়েছে!
-                </div>
+    document.getElementById("historyLogsContainer").innerHTML = html;
+}
 
-                <div id="mainWorkBox" class="bg-white border border-gray-100 rounded-3xl p-6 text-center shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-yellow-400 via-emerald-500 to-yellow-400"></div>
-                    
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">টাস্ক ইঞ্জিন</p>
-                    <div id="timerDisplay" class="text-4xl font-black text-slate-800 tracking-tight my-2">00:00</div>
-                    <p class="text-xs text-gray-400 mb-5">প্রতিটি ক্লিকের টাস্ক পূর্ণ হলে পাবেন <span class="text-emerald-600 font-bold">৳০.০১</span> টাকা</p>
-                    
-                    <button id="startTaskBtn" onclick="triggerTaskMining()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold text-lg py-4 rounded-2xl shadow-md shadow-yellow-400/10 active:scale-[0.98] transition-all cursor-pointer">
-                        <i class="fa-solid fa-circle-play mr-1"></i> স্টার্ট বাটন
-                    </button>
-                </div>
+window.triggerTaskMining = function () {
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-                        <h4 class="text-xs text-gray-400 font-bold uppercase"><i class="fa-solid fa-chart-line text-yellow-500 mr-1"></i> সম্পন্ন টাস্ক</h4>
-                        <p id="uTasksCount" class="text-xl font-bold text-slate-800 mt-1">০ টি</p>
-                    </div>
-                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-                        <h4 class="text-xs text-gray-400 font-bold uppercase"><i class="fa-solid fa-circle-nodes text-emerald-500 mr-1"></i> মোট রেফার</h4>
-                        <p id="uReferCount" class="text-xl font-bold text-slate-800 mt-1">০ জন</p>
-                    </div>
-                </div>
+    if (isTaskRunning) return;
 
-                <div class="space-y-3">
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> উত্তোলন ও কাজের হিস্ট্রি</h3>
-                    <div id="historyLogsContainer" class="bg-white border border-gray-100 rounded-2xl p-4 min-h-[150px] max-h-[220px] overflow-y-auto custom-scrollbar space-y-2 text-xs">
-                        <p class="text-gray-400 text-center py-10">কোন হিস্ট্রি ডাটা এখনো তৈরি হয়নি</p>
-                    </div>
-                </div>
+    isTaskRunning = true;
 
-            </div>
+    const btn = document.getElementById("startTaskBtn");
+    const timer = document.getElementById("timerDisplay");
 
-            <footer class="absolute bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
-                <div class="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
-                    <div class="text-xs">
-                        <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider">আপনার ইউনিক রেফারেল কোড</span>
-                        <span id="uUIDLabel" class="font-mono font-bold text-slate-800 text-sm tracking-widest">------</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="copyReferralLink()" class="bg-slate-900 text-white text-xs font-bold p-2.5 rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer" title="কপি করুন">
-                            <i class="fa-solid fa-copy"></i>
-                        </button>
-                        <button onclick="copyReferralLink()" class="bg-yellow-400 text-slate-900 text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-yellow-500 transition-colors flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-share-nodes"></i> শেয়ার
-                        </button>
-                    </div>
-                </div>
+    btn.disabled = true;
 
-                <div class="flex justify-between items-center text-[10px] text-gray-400 font-medium px-1">
-                    <span class="flex items-center gap-1"><i class="fa-solid fa-envelope text-slate-400"></i> skian01321755056@gmail.com</span>
-                    <span>Link: money007.shop</span>
-                </div>
-            </footer>
-        </div>
+    let timeLeft = 60;
 
-        <div id="withdrawModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border border-gray-100 transform scale-100 transition-all">
-                <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">বিকাশ লাইভ উইথড্র</h3>
-                        <p class="text-[10px] text-red-500 font-bold uppercase tracking-wide mt-0.5"><i class="fa-solid fa-circle-exclamation"></i> মিনিমাম ১০০ টাকা উইথড্র | ফি ১০%</p>
-                    </div>
-                    <button onclick="closeWithdrawModal()" class="text-gray-400 hover:text-red-500 text-lg cursor-pointer"><i class="fa-solid fa-circle-xmark"></i></button>
-                </div>
+    const interval = setInterval(async () => {
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">আপনার বিকাশ নম্বর দিন</label>
-                        <input type="tel" id="bkashNumber" placeholder="01XXXXXXXXX" maxlength="11" class="w-full bg-gray-50 border border-gray-200 text-slate-900 font-bold tracking-widest px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                    </div>
-                    
-                    <div class="bg-yellow-50 p-3 rounded-xl border border-yellow-100/60 text-xs text-yellow-800 space-y-1">
-                        <div class="flex justify-between"><span>উত্তোলন অ্যামাউন্ট:</span> <span class="font-bold">৳১০০.০০</span></div>
-                        <div class="flex justify-between"><span>১০% এডমিন প্রসেসিং ফি:</span> <span class="font-bold text-red-600">৳১০.০০</span></div>
-                        <div class="flex justify-between border-t border-yellow-200 pt-1 font-bold"><span>ব্যালেন্স থেকে কাটা হবে:</span> <span>৳১১০.০০</span></div>
-                    </div>
+        timeLeft--;
 
-                    <button onclick="submitWithdrawRequest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/10 transition-all cursor-pointer">
-                        <i class="fa-solid fa-paper-plane mr-1"></i> উইথড্র রিকোয়েস্ট পাঠান
-                    </button>
-                </div>
-            </div>
-        </div>
+        timer.innerText =
+            `00:${timeLeft < 10 ? "0" + timeLeft : timeLeft}`;
 
-    </div>
+        if (timeLeft <= 0) {
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // এখানে ফিক্স করা হয়েছে: get ইম্পোর্ট করা হয়েছে
-        import { getDatabase, ref, get, set, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+            clearInterval(interval);
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
-            authDomain: "new-app-98e52.firebaseapp.com",
-            databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
-            projectId: "new-app-98e52",
-            storageBucket: "new-app-98e52.firebasestorage.app",
-            messagingSenderId: "402991418185",
-            appId: "1:402991418185:web:5dabc70d4404dce1902898",
-            measurementId: "G-BE3YXPV3P8"
-        };
+            const balanceRef =
+                ref(db, `users/${currentUserPhone}/balance`);
 
-        // Initialize App Instance
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+            const taskRef =
+                ref(db, `users/${currentUserPhone}/tasksCompleted`);
 
-        // System state variables
-        let currentUserPhone = null;
-        let isTaskRunning = false;
-
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
-        // Authentication Controller
-        window.handleAuth = async function() {
-            const phone = document.getElementById('loginPhone').value.trim();
-            if(phone.length !== 11 || !phone.startsWith("01")) {
-                alert("দয়া করে সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন!");
-                return;
-            }
-
-            currentUserPhone = phone;
-            const userRef = ref(db, `users/${phone}`);
-            
-            try {
-                const snapshot = await get(userRef);
-                if(snapshot.exists()) {
-                    initUserRealtimeSession();
-                } else {
-                    const randomUID = Math.floor(100000 + Math.random() * 900000).toString();
-                    const refBy = getQueryParam('ref') || "";
-
-                    const newProfilePayload = {
-                        phone: phone,
-                        uid: randomUID,
-                        balance: 0.0000,
-                        tasksCompleted: 0,
-                        referralCount: 0,
-                        referredBy: refBy,
-                        isBanned: false,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    await set(userRef, newProfilePayload);
-                    
-                    if(refBy && refBy.length === 6) {
-                        processReferralCredit(refBy);
-                    }
-
-                    initUserRealtimeSession();
-                }
-            } catch(err) {
-                alert("সার্ভার কানেকশন এরর: " + err.message);
-            }
-        }
-
-        function processReferralCredit(targetUID) {
-            get(ref(db, 'users')).then(snapshot => {
-                const data = snapshot.val();
-                if(data) {
-                    Object.keys(data).forEach(pKey => {
-                        if(data[pKey].uid === targetUID) {
-                            const refCountRef = ref(db, `users/${pKey}/referralCount`);
-                            runTransaction(refCountRef, (current) => (current || 0) + 1);
-                        }
-                    });
-                }
+            await runTransaction(balanceRef, (current) => {
+                return (current || 0) + 0.01;
             });
-        }
 
-        function initUserRealtimeSession() {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('homePage').classList.remove('hidden');
-
-            const userRef = ref(db, `users/${currentUserPhone}`);
-            onValue(userRef, (snapshot) => {
-                const user = snapshot.val();
-                if(!user) return;
-
-                if(user.isBanned) {
-                    document.getElementById('banAlertNotice').classList.remove('hidden');
-                    document.getElementById('mainWorkBox').classList.add('pointer-events-none', 'opacity-30');
-                    document.getElementById('uBalance').innerText = "0.00";
-                    alert("আপনার অ্যাকাউন্টটি ব্যান করা হয়েছে!");
-                    window.location.reload(); 
-                    return;
-                } else {
-                    document.getElementById('banAlertNotice').classList.add('hidden');
-                    document.getElementById('mainWorkBox').classList.remove('pointer-events-none', 'opacity-30');
-                }
-
-                document.getElementById('uBalance').innerText = user.balance.toFixed(2);
-                document.getElementById('uTasksCount').innerText = `${user.tasksCompleted || 0} টি`;
-                document.getElementById('uReferCount').innerText = `${user.referralCount || 0} জন`;
-                document.getElementById('uUIDLabel').innerText = user.uid;
-
-                renderLogsHistory(user);
+            await runTransaction(taskRef, (current) => {
+                return (current || 0) + 1;
             });
+
+            timer.innerText = "00:00";
+
+            btn.disabled = false;
+
+            isTaskRunning = false;
+
+            alert("টাস্ক সফল হয়েছে");
         }
 
-        function renderLogsHistory(user) {
-            let logsHTML = '';
-            if(user.withdraws) {
-                Object.keys(user.withdraws).forEach(wKey => {
-                    const w = user.withdraws[wKey];
-                    let badgeColor = "bg-yellow-100 text-yellow-700";
-                    let statusTxt = "পেন্ডিং";
-                    
-                    if(w.status === 'approved') { badgeColor = "bg-green-100 text-green-700"; statusTxt = "সফল"; }
-                    if(w.status === 'refunded') { badgeColor = "bg-red-100 text-red-700"; statusTxt = "রিফান্ডেড"; }
+    }, 1000);
+};
 
-                    logsHTML += `
-                        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-                            <div>
-                                <span class="font-bold block text-slate-800">বিকাশ উইথড্র (৳${w.amount})</span>
-                                <span class="text-[10px] text-gray-400">${w.time}</span>
-                            </div>
-                            <span class="px-2 py-0.5 rounded-md font-bold ${badgeColor}">${statusTxt}</span>
-                        </div>`;
-                });
-            }
+window.openWithdrawModal = function () {
+    document.getElementById("withdrawModal")
+        .classList.remove("hidden");
+};
 
-            if(logsHTML === '') {
-                logsHTML = `<p class="text-gray-400 text-center py-10">কোন হিস্ট্রি ডাটা এখনো তৈরি হয়নি</p>`;
-            }
-            document.getElementById('historyLogsContainer').innerHTML = logsHTML;
-        }
+window.closeWithdrawModal = function () {
+    document.getElementById("withdrawModal")
+        .classList.add("hidden");
+};
 
-        window.triggerTaskMining = function() {
-            if(isTaskRunning) return;
-            isTaskRunning = true;
+window.submitWithdrawRequest = async function () {
 
-            const startBtn = document.getElementById('startTaskBtn');
-            const timerLabel = document.getElementById('timerDisplay');
-            
-            startBtn.disabled = true;
-            startBtn.className = "w-full bg-gray-200 text-gray-400 font-extrabold text-lg py-4 rounded-2xl cursor-not-allowed";
-            
-            let timeLeft = 60;
-            const timerInterval = setInterval(() => {
-                timeLeft--;
-                let secondsStr = timeLeft < 10 ? "0" + timeLeft : timeLeft;
-                timerLabel.innerText = `00:${secondsStr}`;
+    const bkash =
+        document.getElementById("bkashNumber").value.trim();
 
-                if(timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    
-                    const balanceRef = ref(db, `users/${currentUserPhone}/balance`);
-                    runTransaction(balanceRef, (currentBalance) => (currentBalance || 0) + 0.01);
+    if (bkash.length !== 11) {
+        alert("সঠিক বিকাশ নাম্বার দিন");
+        return;
+    }
 
-                    const taskCounterRef = ref(db, `users/${currentUserPhone}/tasksCompleted`);
-                    runTransaction(taskCounterRef, (currentCount) => (currentCount || 0) + 1);
+    const userRef = ref(db, `users/${currentUserPhone}`);
+    const snapshot = await get(userRef);
 
-                    alert("অভিনন্দন! আপনার ৬০ সেকেন্ডের টাস্ক সফলভাবে সম্পন্ন হয়েছে।");
+    const user = snapshot.val();
 
-                    isTaskRunning = false;
-                    timerLabel.innerText = "00:00";
-                    startBtn.disabled = false;
-                    startBtn.className = "w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold text-lg py-4 rounded-2xl shadow-md shadow-yellow-400/10 active:scale-[0.98] transition-all cursor-pointer";
-                }
-            }, 1000);
-        }
+    if ((user.balance || 0) < 110) {
+        alert("পর্যাপ্ত ব্যালেন্স নেই");
+        return;
+    }
 
-        window.openWithdrawModal = function() {
-            document.getElementById('withdrawModal').classList.remove('hidden');
-        }
-        window.closeWithdrawModal = function() {
-            document.getElementById('withdrawModal').classList.add('hidden');
-        }
+    const withdrawRef =
+        ref(db, `users/${currentUserPhone}/withdraws`);
 
-        window.submitWithdrawRequest = async function() {
-            const bkashNum = document.getElementById('bkashNumber').value.trim();
-            if(bkashNum.length !== 11 || !bkashNum.startsWith("01")) {
-                alert("দয়া করে সঠিক ১১ ডিজিটের বিকাশ নম্বর দিন!");
-                return;
-            }
+    const newWithdraw = push(withdrawRef);
 
-            const userRef = ref(db, `users/${currentUserPhone}`);
-            try {
-                const snapshot = await get(userRef);
-                const user = snapshot.val();
-                
-                if(user.withdrawLockUntil) {
-    
+    await set(newWithdraw, {
+        number: bkash,
+        amount: 100,
+        status: "pending",
+        time: new Date().toLocaleString()
+    });
+
+    await update(userRef, {
+        balance: (user.balance || 0) - 110
+    });
+
+    alert("Withdraw request sent");
+
+    closeWithdrawModal();
+};
+
+window.copyReferralLink = function () {
+
+    const uid =
+        document.getElementById("uUIDLabel").innerText;
+
+    const link =
+        `${window.location.origin}${window.location.pathname}?ref=${uid}`;
+
+    navigator.clipboard.writeText(link);
+
+    alert("Referral link copied");
+};
+
+</script>
