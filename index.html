@@ -1,80 +1,159 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium User Portal</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>MONEY 007 - Earn Real Cash</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0b0f19; color: #ffffff; font-family: sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 2px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f7f9fc; color: #333; }
+        
+        /* Auth Screen (Login) */
+        #authScreen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #fff; }
+        .login-card { width: 90%; max-width: 400px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; background: #fff; border-top: 5px solid #ffcc00; }
+        .login-card h2 { font-size: 28px; font-weight: bold; margin-bottom: 8px; color: #111; }
+        .login-card p { font-size: 14px; color: #666; margin-bottom: 25px; }
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; left: 15px; top: 15px; color: #888; }
+        .input-group input { width: 100%; padding: 14px 14px 14px 45px; border: 1px solid #e0e0e0; background: #f9f9f9; border-radius: 8px; outline: none; font-size: 16px; transition: 0.3s; }
+        .input-group input:focus { border-color: #ffcc00; background: #fff; }
+        .btn-login { width: 100%; padding: 14px; background: #ffcc00; color: #111; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-login:hover { background: #e6b800; }
+
+        /* Main App Screen */
+        #appScreen { display: none; max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 90px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        
+        /* Header Dashboard */
+        .app-header { background: #ffcc00; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; display: flex; justify-content: space-between; align-items: center; color: #111; box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2); }
+        .app-header h1 { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+        .header-btns { display: flex; gap: 10px; }
+        .btn-header-action { background: rgba(255,255,255,0.3); border: 1px solid rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-header-action:hover { background: #fff; }
+
+        /* Main Content Container */
+        .container { padding: 20px; }
+
+        /* Timer Counter UI */
+        .timer-box { text-align: center; margin: 30px 0; }
+        .circle-timer { width: 130px; height: 130px; border-radius: 50%; border: 6px solid #f0f0f0; border-top-color: #28a745; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: bold; color: #28a745; transition: 0.3s; }
+        .btn-start-task { background: #28a745; color: #fff; border: none; padding: 15px 45px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3); transition: 0.3s; }
+        .btn-start-task:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* History Segment */
+        .history-section { margin-top: 30px; }
+        .history-section h3 { font-size: 16px; margin-bottom: 12px; color: #444; display: flex; align-items: center; gap: 8px; }
+        .history-list { max-height: 200px; overflow-y: auto; }
+        .h-item { display: flex; justify-content: space-between; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #ffcc00; font-size: 13px; }
+        .h-item .status { font-weight: bold; }
+        .status-pending { color: #f0ad4e; }
+        .status-approved { color: #28a745; }
+        .status-refunded { color: #d9534f; }
+
+        /* Footer Info & Customer Service */
+        .app-footer { background: #f9f9f9; border-top: 1px solid #eee; padding: 15px; position: absolute; bottom: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: #666; }
+        .footer-share-box { display: flex; gap: 10px; align-items: center; }
+        .copy-row { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #111; background: #fff; padding: 6px 12px; border-radius: 20px; border: 1px dashed #ccc; }
+        .copy-btn { color: #28a745; cursor: pointer; }
+        .share-btn { background: #ffcc00; color: #111; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .share-btn:hover { background: #e6b800; }
+        .support-mail { display: flex; align-items: center; gap: 5px; color: #666; text-decoration: none; margin-top: 2px; }
+
+        /* Custom Popup Overlay */
+        .pop-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 2000; }
+        .pop-box { background: #fff; padding: 25px; width: 85%; max-width: 360px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        .pop-box h3 { font-size: 18px; margin-bottom: 10px; color: #111; }
+        .pop-box p { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5; }
+        .pop-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; text-align: center; margin-bottom: 15px; font-size: 16px; }
+        .pop-box button { width: 100%; padding: 12px; background: #28a745; border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .close-pop { position: absolute; top: 12px; right: 12px; font-size: 18px; color: #888; cursor: pointer; }
+
+        /* Block Screen */
+        .block-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        .block-screen i { font-size: 60px; color: #d9534f; margin-bottom: 20px; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body>
 
-    <div id="authOverlay" class="fixed inset-0 bg-black/95 flex flex-col items-center justify-center p-4 z-50 transition-opacity duration-300">
-        <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
-            <h2 class="text-2xl font-black text-emerald-500 mb-2 tracking-wide">EARN HUB</h2>
-            <p class="text-gray-400 text-sm mb-6">রিয়েল-টাইম টাস্ক কমপ্লিট করে ফ্রিল্যান্সিং ক্যারিয়ার শুরু করুন।</p>
-            <button onclick="login()" class="w-full bg-white text-black font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 shadow-lg hover:bg-gray-100 transition">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="G">
-                <span>Continue With Google</span>
-            </button>
+    <!-- 1. Authentication (Login) Screen -->
+    <div id="authScreen">
+        <div class="login-card">
+            <h2>MONEY 007</h2>
+            <p>Enter details to enter the dashboard</p>
+            <div class="input-group">
+                <i class="fa-solid fa-phone"></i>
+                <input type="tel" id="authPhone" placeholder="Mobile Number (11 Digit)" maxlength="11">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-gift"></i>
+                <input type="text" id="authRefer" placeholder="Refer Code (Optional)" maxlength="6">
+            </div>
+            <button class="btn-login" onclick="processAuth()">Verify & Enter</button>
         </div>
     </div>
 
-    <div id="appContainer" class="hidden flex-1 flex flex-col">
-        <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="bg-black border border-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                    <span id="displayUid" class="font-mono text-emerald-400 font-bold tracking-widest text-sm">----</span>
-                    <button onclick="copyId()" class="text-gray-500 hover:text-white transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                    </button>
-                </div>
-            </div>
-            <div class="bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 px-4 py-1.5 rounded-xl text-right font-black tracking-wide">
-                <span class="text-xs font-normal block text-gray-400">ব্যালেন্স</span>
-                <span id="userBalance" class="text-lg">৳0.00</span>
-            </div>
-        </header>
-
-        <main class="flex-1 max-w-xl w-full mx-auto p-4 space-y-4 pb-24 overflow-y-auto custom-scrollbar" id="taskFeed">
-            </main>
-
-        <footer class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-4 z-40">
-            <div class="max-w-xl mx-auto flex items-center justify-between">
-                <button onclick="openWithdrawModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-xl transition text-sm">টাকা উত্তোলন (Withdraw)</button>
-                <button onclick="logout()" class="text-sm font-semibold text-gray-400 hover:text-red-400 transition">Logout</button>
-            </div>
-        </footer>
+    <!-- 2. Banned Block Screen Overlay -->
+    <div id="blockScreen" class="block-screen">
+        <i class="fa-solid fa-user-slash"></i>
+        <h2>Your Account has been Suspended!</h2>
+        <p style="color: #666; margin-top: 10px;">Please contact support for more information regarding your account status.</p>
     </div>
 
-    <div id="withdrawModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-sm relative">
-            <button onclick="closeWithdrawModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
-            <h3 class="text-xl font-bold text-emerald-400 mb-4 text-center">নগদ উত্তোলন ফর্ম</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">আপনার নগদ পার্সোনাল নম্বর দিন</label>
-                    <input type="tel" id="wdNumber" placeholder="017XXXXXXXX" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500 text-center tracking-wider">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">পরিমাণ লিখুন (মিনিমাম ১০০ টাকা)</label>
-                    <input type="number" id="wdAmount" placeholder="100" class="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500 text-center font-bold text-lg">
-                    <span class="text-[10px] text-gray-500 block text-right mt-1">($১ সমান ১০০ টাকা হিসাব করা হবে)</span>
-                </div>
-                <button onclick="submitWithdraw()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-emerald-900/20">রিকোয়েস্ট সাবমিট করুন</button>
+    <!-- 3. Core App Dashboard Screen -->
+    <div id="appScreen">
+        <div class="app-header">
+            <button class="btn-header-action" onclick="openWithdrawModal()"><i class="fa-solid fa-wallet"></i> Withdraw</button>
+            <h1>MONEY 007</h1>
+            <button class="btn-header-action" style="background:#fff;"><i class="fa-solid fa-coins" style="color:#e6b800"></i> <span id="userBalance">0.00</span> ৳</button>
+        </div>
+
+        <div class="container">
+            <!-- Task Engine -->
+            <div class="timer-box">
+                <div class="circle-timer" id="countdownCircle">60s</div>
+                <button class="btn-start-task" id="startTaskBtn" onclick="triggerTask()">START TASK</button>
             </div>
+
+            <!-- Statement Lists -->
+            <div class="history-section">
+                <h3><i class="fa-solid fa-clock-history"></i> Withdrawal History</h3>
+                <div class="history-list" id="withdrawHistoryContainer">
+                    <!-- Dynamic Rows -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Footer Info -->
+        <div class="app-footer">
+            <div class="footer-share-box">
+                <div class="copy-row">
+                    <span>UID: <span id="displayUID">------</span></span>
+                    <i class="fa-regular fa-copy copy-btn" onclick="copyUID()"></i>
+                </div>
+                <button class="share-btn" onclick="copyShareLink()" title="Copy Share Link"><i class="fa-solid fa-share-nodes"></i></button>
+            </div>
+            <a href="mailto:skian01321755056@gmail.com" class="support-mail">
+                <i class="fa-regular fa-envelope"></i> skian01321755056@gmail.com
+            </a>
         </div>
     </div>
 
+    <!-- 4. Withdraw Modal Popup -->
+    <div class="pop-overlay" id="withdrawModal">
+        <div class="pop-box">
+            <i class="fa-solid fa-xmark close-pop" onclick="closeWithdrawModal()"></i>
+            <h3>Bkash Instant Cashout</h3>
+            <p style="color: #ff3333; font-weight: bold; margin-bottom: 5px;">Fixed amount: 100 TK</p>
+            <p>10% Service Fee applies. Total cost will be 110 TK from your main account balance.</p>
+            <input type="tel" id="bkashNumber" placeholder="Enter Bkash Number" maxlength="11">
+            <button onclick="submitWithdraw()">Submit Cashout</button>
+        </div>
+    </div>
+
+    <!-- Firebase Script Engine Connection -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set, update, onValue, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, child, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
@@ -88,283 +167,209 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getDatabase(app);
-        const provider = new GoogleAuthProvider();
 
         let currentUser = null;
-        let currentUserDbKey = null;
+        let currentUID = null;
 
-        window.login = function() {
-            signInWithPopup(auth, provider).catch(err => alert("অথেনটিকেশন এরর হয়েছে: " + err.message));
-        }
+        // Authentication Routine
+        window.processAuth = function() {
+            const phone = document.getElementById('authPhone').value.trim();
+            const inputRefer = document.getElementById('authRefer').value.trim();
 
-        window.logout = function() {
-            signOut(auth);
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
-                currentUser = user;
-                checkAndRegisterUser(user);
-            } else {
-                currentUser = null;
-                currentUserDbKey = null;
-                document.getElementById('authOverlay').classList.remove('hidden');
-                document.getElementById('appContainer').classList.add('hidden');
-            }
-        });
-
-        function checkAndRegisterUser(user) {
-            const cleanEmailKey = user.email.replace(/[.#$[\]]/g, "_");
-            currentUserDbKey = cleanEmailKey;
-            
-            const userRef = ref(db, 'users/' + cleanEmailKey);
-            get(userRef).then((snapshot) => {
-                if(snapshot.exists()) {
-                    const data = snapshot.val();
-                    if(data.status === "suspended") {
-                        alert("Error: আপনার অ্যাকাউন্টটি অ্যাডমিন দ্বারা সাসপেন্ড করা হয়েছে!");
-                        signOut(auth);
-                        return;
-                    }
-                    bootstrapUserSpace(data);
-                } else {
-                    // নতুন আইডি সিকোয়েন্স জেনারেশন (যেমন: 0001)
-                    get(ref(db, 'users')).then((allUsersSnap) => {
-                        let count = 1;
-                        if(allUsersSnap.exists()) {
-                            count = Object.keys(allUsersSnap.val()).length + 1;
-                        }
-                        const newUid = String(count).padStart(4, '0');
-                        const newUserPayload = {
-                            uid: newUid,
-                            email: user.email,
-                            balance: 0.00,
-                            status: "active",
-                            createdAt: Date.now(),
-                            completedJobsCount: 0,
-                            withdrawCount: 0
-                        };
-                        set(userRef, newUserPayload).then(() => bootstrapUserSpace(newUserPayload));
-                    });
-                }
-            });
-        }
-
-        function bootstrapUserSpace(userData) {
-            document.getElementById('authOverlay').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('hidden');
-            document.getElementById('displayUid').innerText = userData.uid;
-
-            // ব্যালেন্স সিঙ্ক রিয়েলটাইম লুপ
-            onValue(ref(db, 'users/' + currentUserDbKey), (snap) => {
-                if(snap.exists()){
-                    if(snap.val().status === 'suspended') {
-                        alert("আপনার অ্যাকাউন্টটি সাসপেন্ড করা হয়েছে!");
-                        signOut(auth);
-                        return;
-                    }
-                    document.getElementById('userBalance').innerText = "৳" + (snap.val().balance || 0).toFixed(2);
-                }
-            });
-
-            // টাস্ক ফিড প্রসেসিং রিয়েলটাইম লুপ
-            onValue(ref(db, 'tasks'), (taskSnap) => {
-                get(ref(db, 'users/' + currentUserDbKey + '/history')).then((histSnap) => {
-                    const history = histSnap.exists() ? histSnap.val() : {};
-                    renderTasks(taskSnap.val(), history);
-                });
-            });
-        }
-
-        window.copyId = function() {
-            const txt = document.getElementById('displayUid').innerText;
-            navigator.clipboard.writeText(txt).then(() => alert("আইডি কপি হয়েছে: " + txt));
-        }
-
-        function renderTasks(tasks, history) {
-            const feed = document.getElementById('taskFeed');
-            feed.innerHTML = "";
-            if(!tasks) {
-                feed.innerHTML = `<p class="text-gray-500 text-center py-8">এই মুহূর্তে কোনো কাজ উপলব্ধ নেই।</p>`;
+            if(phone.length !== 11 || !/^\d+$/.test(phone)) {
+                alert("Please type a valid 11 digit phone number!");
                 return;
             }
 
-            Object.keys(tasks).forEach(key => {
-                const t = tasks[key];
-                if(t.status !== 'on' || history[key]) return; // যদি কাজটি অফ থাকে বা ইউজার ইতিমধ্যে সম্পন্ন করে থাকে
+            // Check db for existing profile
+            get(ref(db, 'users')).then((snapshot) => {
+                let foundUID = null;
+                let allUsers = snapshot.exists() ? snapshot.val() : {};
+                
+                for(let uid in allUsers) {
+                    if(allUsers[uid].phone === phone) {
+                        foundUID = uid;
+                        break;
+                    }
+                }
 
-                let taskHtml = "";
-                if(t.category === 'youtube') {
-                    taskHtml = `
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex flex-col gap-3">
-                            <div class="flex justify-between items-start">
-                                <span class="bg-red-950 text-red-400 border border-red-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">YouTube View</span>
-                                <span class="text-emerald-400 font-bold text-base">৳${t.amount}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button id="btn1_${key}" onclick="openLinkOne('${key}', '${t.jobLink}')" class="bg-gray-800 text-white font-bold py-2 rounded-xl text-xs hover:bg-gray-700 transition">১ম লিংক ওপেন</button>
-                                <button id="btn2_${key}" disabled onclick="openLinkTwo('${key}', '${t.videoLink}')" class="bg-gray-800 text-white/40 font-bold py-2 rounded-xl text-xs cursor-not-allowed transition">২য় লিংক লক</button>
-                            </div>
-                            <div class="flex gap-2 items-center mt-2">
-                                <input type="text" id="pin_${key}" placeholder="পিন কোড লিখুন" maxlength="4" class="w-full bg-black border border-gray-700 rounded-xl p-2 text-center text-xs text-white focus:outline-none focus:border-emerald-500 tracking-widest">
-                                <button onclick="verifyYoutubeTask('${key}', '${t.pin}', ${t.amount})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">ভেরিফাই</button>
-                            </div>
-                        </div>
-                    `;
+                if(foundUID) {
+                    launchDashboard(foundUID);
                 } else {
-                    // অ্যাপ ইনস্টল অথবা ওয়েবসাইট ভিজিট ক্যাটাগরি
-                    taskHtml = `
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex flex-col gap-3">
-                            <div class="flex justify-between items-start">
-                                <span class="bg-emerald-950 text-emerald-400 border border-emerald-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">${t.category}</span>
-                                <span class="text-emerald-400 font-bold text-base">৳${t.amount}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button id="btn1_${key}" onclick="openSurveyOne('${key}', '${t.jobLink}')" class="bg-gray-800 text-white font-bold py-2 rounded-xl text-xs hover:bg-gray-700 transition">১ম লিংক (৬০ সেকেন্ড)</button>
-                                <button id="btn2_${key}" disabled onclick="openSurveyTwo('${key}', '${t.jobLink}', ${t.amount})" class="bg-gray-800 text-white/40 font-bold py-2 rounded-xl text-xs cursor-not-allowed transition">২য় লিংক (৭০ সেকেন্ড)</button>
-                            </div>
-                        </div>
-                    `;
-                }
-                feed.innerHTML += taskHtml;
-            });
-        }
-
-        // --- টাস্ক টাইমার ও অ্যাকশন লজিক ---
-        window.openLinkOne = function(key, link) {
-            window.open(link, '_blank');
-            let sec = 60;
-            const btn1 = document.getElementById(`btn1_${key}`);
-            btn1.disabled = true;
-            
-            const timer = setInterval(() => {
-                sec--;
-                btn1.innerText = `${sec}s অপেক্ষা করুন`;
-                if(sec <= 0) {
-                    clearInterval(timer);
-                    btn1.innerText = "১ম লিংক সম্পন্ন";
-                    const btn2 = document.getElementById(`btn2_${key}`);
-                    btn2.disabled = false;
-                    btn2.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-emerald-500 transition";
-                    btn2.innerText = "২য় লিংক ওপেন করুন";
-                }
-            }, 1000);
-        }
-
-        window.openLinkTwo = function(key, link) {
-            window.open(link, '_blank');
-        }
-
-        window.verifyYoutubeTask = function(key, realPin, amount) {
-            const inputPin = document.getElementById(`pin_${key}`).value.trim();
-            if(inputPin !== realPin) return alert("ভুল ভেরিফিকেশন কোড! আবার ট্রাই করুন।");
-
-            claimTaskReward(key, amount);
-        }
-
-        // অ্যাপ এবং ওয়েবসাইট ভিজিটের জন্য টাইমার মেকানিজম
-        window.openSurveyOne = function(key, link) {
-            window.open(link, '_blank');
-            let sec = 60;
-            const btn1 = document.getElementById(`btn1_${key}`);
-            btn1.disabled = true;
-            
-            const timer = setInterval(() => {
-                sec--;
-                btn1.innerText = `${sec}s অপেক্ষা করুন`;
-                if(sec <= 0) {
-                    clearInterval(timer);
-                    btn1.innerText = "১ম লিংক কমপ্লিট";
-                    const btn2 = document.getElementById(`btn2_${key}`);
-                    btn2.disabled = false;
-                    btn2.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-emerald-500 transition";
-                    btn2.innerText = "২য় লিংক (৭০ সেকেন্ড)";
-                }
-            }, 1000);
-        }
-
-        window.openSurveyTwo = function(key, link, amount) {
-            window.open(link, '_blank');
-            let sec = 70;
-            const btn2 = document.getElementById(`btn2_${key}`);
-            btn2.disabled = true;
-            
-            const timer = setInterval(() => {
-                sec--;
-                btn2.innerText = `${sec}s অপেক্ষা করুন`;
-                if(sec <= 0) {
-                    clearInterval(timer);
-                    btn2.innerText = "২য় লিংক কমপ্লিট";
-                    claimTaskReward(key, amount);
-                }
-            }, 1000);
-        }
-
-        function claimTaskReward(taskKey, amount) {
-            const userRef = ref(db, 'users/' + currentUserDbKey);
-            runTransaction(userRef, (currentData) => {
-                if (currentData) {
-                    if (!currentData.history) currentData.history = {};
-                    if (!currentData.history[taskKey]) {
-                        currentData.history[taskKey] = true;
-                        currentData.balance = (currentData.balance || 0) + amount;
-                        currentData.completedJobsCount = (currentData.completedJobsCount || 0) + 1;
+                    // Sign up workflow: Validate refer code if supplied
+                    let finalRefer = "";
+                    if(inputRefer !== "") {
+                        if(!allUsers[inputRefer]) {
+                            alert("Invalid Referral Code! Leave it blank if you don't have one.");
+                            return;
+                        }
+                        finalRefer = inputRefer;
                     }
-                }
-                return currentData;
-            }).then(() => {
-                alert(`অভিনন্দন! আপনার অ্যাকাউন্টে ৳${amount} যোগ করা হয়েছে।`);
-            });
-        }
 
-        // --- উইথড্রল সেকশন লজিক ---
-        window.openWithdrawModal = function() {
-            document.getElementById('withdrawModal').classList.remove('hidden');
-        }
-        window.closeWithdrawModal = function() {
-            document.getElementById('withdrawModal').classList.add('hidden');
-        }
-
-        window.submitWithdraw = function() {
-            const num = document.getElementById('wdNumber').value.trim();
-            const amt = parseFloat(document.getElementById('wdAmount').value) || 0;
-
-            if(!num || amt < 100) return alert("সঠিক নগদ নম্বর দিন এবং মিনিমাম ১০০ টাকা উইথড্র করুন!");
-
-            const userRef = ref(db, 'users/' + currentUserDbKey);
-            
-            // রিয়েল-টাইম ট্রানজেকশন ব্যালেন্স লক এবং ডেবিট চেক
-            runTransaction(userRef, (user) => {
-                if(user) {
-                    if((user.balance || 0) < amt) {
-                        return; // ব্যালেন্স কম থাকলে ট্রানজেকশন ক্যানসেল হবে
-                    }
-                    user.balance = user.balance - amt;
-                }
-                return user;
-            }).then((result) => {
-                if(!result.committed) return alert("ইনভ্যালিড অ্যামাউন্ট এরর: আপনার অ্যাকাউন্টে পর্যাপ্ত টাকা নেই!");
-
-                const wdId = "wd_" + Date.now();
-                get(userRef).then(s => {
-                    set(ref(db, 'withdrawals/' + wdId), {
-                        id: wdId,
-                        userKey: currentUserDbKey,
-                        userUid: s.val().uid,
-                        amount: amt,
-                        method: "Nogod",
-                        number: num,
-                        status: "pending",
-                        timestamp: Date.now()
-                    }).then(() => {
-                        alert("আপনার উইথড্র রিকোয়েস্ট পেন্ডিংয়ে পাঠানো হয়েছে!");
-                        closeWithdrawModal();
+                    // Create Fresh Account
+                    const newUID = Math.floor(100000 + Math.random() * 900000).toString(); 
+                    const newUserObj = {
+                        phone: phone,
+                        balance: 0.00,
+                        tasksCount: 0,
+                        withdrawCount: 0,
+                        isBanned: false,
+                        referredBy: finalRefer,
+                        isReferPaid: false, // Tracks if 10 TK bonus is already processed
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    set(ref(db, `users/${newUID}`), newUserObj).then(() => {
+                        launchDashboard(newUID);
                     });
+                }
+            });
+        }
+
+        // Live Dashboard Synchronization
+        function launchDashboard(uid) {
+            currentUID = uid;
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            document.getElementById('displayUID').innerText = uid;
+
+            // Stream User Records Real-time
+            onValue(ref(db, `users/${uid}`), (snapshot) => {
+                const user = snapshot.val();
+                if(!user) return;
+                
+                // Real-time Ban Monitor Enforcement
+                if(user.isBanned) {
+                    document.getElementById('appScreen').style.display = 'none';
+                    document.getElementById('withdrawModal').style.display = 'none';
+                    document.getElementById('blockScreen').style.display = 'flex';
+                    return;
+                } else {
+                    document.getElementById('blockScreen').style.display = 'none';
+                    document.getElementById('appScreen').style.display = 'block';
+                }
+
+                currentUser = user;
+                document.getElementById('userBalance').innerText = parseFloat(user.balance).toFixed(2);
+            });
+
+            // Stream Withdraw Statements Real-time
+            onValue(ref(db, 'withdraws'), (snapshot) => {
+                const data = snapshot.val() || {};
+                const container = document.getElementById('withdrawHistoryContainer');
+                container.innerHTML = '';
+                
+                Object.keys(data).forEach(wId => {
+                    const req = data[wId];
+                    if(req.uid === currentUID) {
+                        const hItem = document.createElement('div');
+                        hItem.className = 'h-item';
+                        hItem.innerHTML = `
+                            <span>Bkash payout - Tk ${req.amount}</span>
+                            <span class="status status-${req.status.toLowerCase()}">${req.status}</span>
+                        `;
+                        container.appendChild(hItem);
+                    }
                 });
             });
         }
-    </script>
-</body>
-</html>
+
+        // Countdown Timer Engine
+        window.triggerTask = function() {
+            let timerValue = 60;
+            const circle = document.getElementById('countdownCircle');
+            const btn = document.getElementById('startTaskBtn');
+            
+            btn.disabled = true;
+
+            const interval = setInterval(() => {
+                timerValue--;
+                circle.innerText = timerValue + "s";
+                
+                if(timerValue <= 0) {
+                    clearInterval(interval);
+                    circle.innerText = "60s";
+                    btn.disabled = false;
+                    
+                    // Reward Calculation
+                    const newBal = parseFloat(currentUser.balance) + 0.01;
+                    const newTasks = (currentUser.tasksCount || 0) + 1;
+                    
+                    // Update current user progress
+                    update(ref(db, `users/${currentUID}`), {
+                        balance: newBal,
+                        tasksCount: newTasks
+                    }).then(() => {
+                        // REFERRAL RULE ENGINE: Check if user completed 20 tasks and has a valid referrer
+                        if(newTasks >= 20 && currentUser.referredBy && !currentUser.isReferPaid) {
+                            const refUID = currentUser.referredBy;
+                            
+                            // Get Referrer's current balance safely
+                            get(ref(db, `users/${refUID}`)).then((refSnapshot) => {
+                                if(refSnapshot.exists()) {
+                                    const refUserData = refSnapshot.val();
+                                    const refCurrentBalance = parseFloat(refUserData.balance || 0);
+                                    
+                                    // Inject 10 TK into referrer wallet
+                                    update(ref(db, `users/${refUID}`), {
+                                        balance: refCurrentBalance + 10.00
+                                    });
+                                }
+                            });
+
+                            // Mark as paid so bonus isn't triggered repeatedly
+                            update(ref(db, `users/${currentUID}`), { isReferPaid: true });
+                        }
+                    });
+
+                    console.log("Task finished. Ready for Ad Integration.");
+                    alert("Congratulations! 0.01 TK added to your balance.");
+                }
+            }, 1000);
+        }
+
+        // Cashout Verification Gateways
+        window.openWithdrawModal = function() {
+            const lockUntil = localStorage.getItem(`withdraw_lock_${currentUID}`);
+            if (lockUntil && Date.now() < parseInt(lockUntil)) {
+                const remainingMin = Math.ceil((parseInt(lockUntil) - Date.now()) / 60000);
+                alert(`You tried too many invalid attempts. Please wait ${remainingMin} minutes before trying again.`);
+                return;
+            }
+            document.getElementById('withdrawModal').style.display = 'flex';
+        }
+
+        window.closeWithdrawModal = function() {
+            document.getElementById('withdrawModal').style.display = 'none';
+        }
+
+        window.submitWithdraw = function() {
+            const bPhone = document.getElementById('bkashNumber').value.trim();
+            if(bPhone.length !== 11 || !/^\d+$/.test(bPhone)) {
+                alert("Provide a correct 11 digit Bkash account number.");
+                return;
+            }
+
+            const totalCharge = 110.00; 
+            
+            if(parseFloat(currentUser.balance) < totalCharge) {
+                let failedAttempts = parseInt(localStorage.getItem(`failed_wd_${currentUID}`) || "0");
+                failedAttempts++;
+                localStorage.setItem(`failed_wd_${currentUID}`, failedAttempts);
+                
+                if(failedAttempts >= 2) {
+                    const lockTime = Date.now() + (60 * 60 * 1000);
+                    localStorage.setItem(`withdraw_lock_${currentUID}`, lockTime);
+                    localStorage.setItem(`failed_wd_${currentUID}`, "0"); 
+                    alert("Insufficient Balance! This feature is locked for 1 hour due to multiple failed attempts.");
+                    closeWithdrawModal();
+                    return;
+                }
+                
+                alert("You don't have sufficient balance! Minimum total 110 TK is required (with 10% fee).");
+                return;
+            }
+
+            const remainingBalance = parseFloat(currentUser.balance) - totalCharge;
+            con
