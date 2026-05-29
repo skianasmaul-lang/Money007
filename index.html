@@ -1,270 +1,350 @@
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONEY 007 - Earn Real Cash</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f7f9fc; color: #333; }
+        
+        /* Auth Screen (Login) */
+        #authScreen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #fff; }
+        .login-card { width: 90%; max-width: 400px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; background: #fff; border-top: 5px solid #ffcc00; }
+        .login-card h2 { font-size: 28px; font-weight: bold; margin-bottom: 8px; color: #111; }
+        .login-card p { font-size: 14px; color: #666; margin-bottom: 25px; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 15px; color: #888; }
+        .input-group input { width: 100%; padding: 14px 14px 14px 45px; border: 1px solid #e0e0e0; background: #f9f9f9; border-radius: 8px; outline: none; font-size: 16px; transition: 0.3s; }
+        .input-group input:focus { border-color: #ffcc00; background: #fff; }
+        .btn-login { width: 100%; padding: 14px; background: #ffcc00; color: #111; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-login:hover { background: #e6b800; }
 
-import {
-    getDatabase,
-    ref,
-    get,
-    set,
-    onValue,
-    update,
-    push,
-    runTransaction
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        /* Main App Screen */
+        #appScreen { display: none; max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 80px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        
+        /* Header Dashboard */
+        .app-header { background: #ffcc00; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; display: flex; justify-content: space-between; align-items: center; color: #111; box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2); }
+        .app-header h1 { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+        .header-btns { display: flex; gap: 10px; }
+        .btn-header-action { background: rgba(255,255,255,0.3); border: 1px solid rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-header-action:hover { background: #fff; }
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
-    authDomain: "new-app-98e52.firebaseapp.com",
-    databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
-    projectId: "new-app-98e52",
-    storageBucket: "new-app-98e52.firebasestorage.app",
-    messagingSenderId: "402991418185",
-    appId: "1:402991418185:web:5dabc70d4404dce1902898",
-    measurementId: "G-BE3YXPV3P8"
-};
+        /* Main Content Container */
+        .container { padding: 20px; }
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+        /* Timer Counter UI */
+        .timer-box { text-align: center; margin: 30px 0; }
+        .circle-timer { width: 130px; height: 130px; border-radius: 50%; border: 6px solid #f0f0f0; border-top-color: #28a745; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: bold; color: #28a745; transition: 0.3s; }
+        .btn-start-task { background: #28a745; color: #fff; border: none; padding: 15px 45px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3); transition: 0.3s; }
+        .btn-start-task:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
-let currentUserPhone = null;
-let isTaskRunning = false;
+        /* History Segment */
+        .history-section { margin-top: 30px; }
+        .history-section h3 { font-size: 16px; margin-bottom: 12px; color: #444; display: flex; align-items: center; gap: 8px; }
+        .history-list { max-height: 200px; overflow-y: auto; }
+        .h-item { display: flex; justify-content: space-between; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #ffcc00; font-size: 13px; }
+        .h-item .status { font-weight: bold; }
+        .status-pending { color: #f0ad4e; }
+        .status-approved { color: #28a745; }
+        .status-refunded { color: #d9534f; }
 
-function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-}
+        /* Footer Info & Customer Service */
+        .app-footer { background: #f9f9f9; border-top: 1px solid #eee; padding: 15px; position: absolute; bottom: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: #666; }
+        .copy-row { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #111; background: #fff; padding: 6px 12px; border-radius: 20px; border: 1px dashed #ccc; }
+        .copy-btn { color: #28a745; cursor: pointer; }
+        .support-mail { display: flex; align-items: center; gap: 5px; color: #666; text-decoration: none; }
 
-window.handleAuth = async function () {
+        /* Custom Popup Overlay */
+        .pop-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 2000; }
+        .pop-box { background: #fff; padding: 25px; width: 85%; max-width: 360px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        .pop-box h3 { font-size: 18px; margin-bottom: 10px; color: #111; }
+        .pop-box p { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5; }
+        .pop-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; text-align: center; margin-bottom: 15px; font-size: 16px; }
+        .pop-box button { width: 100%; padding: 12px; background: #28a745; border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .close-pop { position: absolute; top: 12px; right: 12px; font-size: 18px; color: #888; cursor: pointer; }
 
-    const phone = document.getElementById("loginPhone").value.trim();
+        /* Block Screen */
+        .block-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        .block-screen i { font-size: 60px; color: #d9534f; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
 
-    if (phone.length !== 11 || !phone.startsWith("01")) {
-        alert("সঠিক ফোন নাম্বার দিন");
-        return;
-    }
-
-    currentUserPhone = phone;
-
-    try {
-
-        const userRef = ref(db, `users/${phone}`);
-        const snapshot = await get(userRef);
-
-        if (snapshot.exists()) {
-
-            initUserRealtimeSession();
-
-        } else {
-
-            const uid = Math.floor(
-                100000 + Math.random() * 900000
-            ).toString();
-
-            const refBy = getQueryParam("ref") || "";
-
-            await set(userRef, {
-                phone: phone,
-                uid: uid,
-                balance: 0,
-                tasksCompleted: 0,
-                referralCount: 0,
-                referredBy: refBy,
-                isBanned: false,
-                createdAt: Date.now()
-            });
-
-            initUserRealtimeSession();
-        }
-
-    } catch (err) {
-        console.log(err);
-        alert("Firebase Error: " + err.message);
-    }
-};
-
-function initUserRealtimeSession() {
-
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("homePage").classList.remove("hidden");
-
-    const userRef = ref(db, `users/${currentUserPhone}`);
-
-    onValue(userRef, (snapshot) => {
-
-        const user = snapshot.val();
-
-        if (!user) return;
-
-        if (user.isBanned) {
-            alert("আপনার আইডি ব্যান করা হয়েছে");
-            return;
-        }
-
-        document.getElementById("uBalance").innerText =
-            Number(user.balance || 0).toFixed(2);
-
-        document.getElementById("uTasksCount").innerText =
-            `${user.tasksCompleted || 0} টি`;
-
-        document.getElementById("uReferCount").innerText =
-            `${user.referralCount || 0} জন`;
-
-        document.getElementById("uUIDLabel").innerText =
-            user.uid || "------";
-
-        renderLogsHistory(user);
-    });
-}
-
-function renderLogsHistory(user) {
-
-    let html = "";
-
-    if (user.withdraws) {
-
-        Object.keys(user.withdraws).forEach(key => {
-
-            const item = user.withdraws[key];
-
-            html += `
-            <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-                <div>
-                    <span class="font-bold block text-slate-800">
-                        বিকাশ উইথড্র (৳${item.amount})
-                    </span>
-                </div>
-
-                <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-bold">
-                    ${item.status}
-                </span>
+    <div id="authScreen">
+        <div class="login-card">
+            <h2>MONEY 007</h2>
+            <p>Enter your phone number to login or signup</p>
+            <div class="input-group">
+                <i class="fa-solid fa-phone"></i>
+                <input type="tel" id="authPhone" placeholder="017XXXXXXXX" maxlength="11">
             </div>
-            `;
-        });
-    }
+            <button class="btn-login" onclick="processAuth()">Verify Account</button>
+        </div>
+    </div>
 
-    if (html === "") {
-        html = `
-        <p class="text-gray-400 text-center py-10">
-            কোন হিস্ট্রি ডাটা এখনো তৈরি হয়নি
-        </p>
-        `;
-    }
+    <div id="blockScreen" class="block-screen">
+        <i class="fa-solid fa-user-slash"></i>
+        <h2>Your Account has been Suspended!</h2>
+        <p style="color: #666; margin-top: 10px;">Please contact support for more information regarding your account status.</p>
+    </div>
 
-    document.getElementById("historyLogsContainer").innerHTML = html;
-}
+    <div id="appScreen">
+        <div class="app-header">
+            <button class="btn-header-action" onclick="openWithdrawModal()"><i class="fa-solid fa-wallet"></i> Withdraw</button>
+            <h1>MONEY 007</h1>
+            <button class="btn-header-action" style="background:#fff;"><i class="fa-solid fa-coins" style="color:#e6b800"></i> <span id="userBalance">0.00</span> ৳</button>
+        </div>
 
-window.triggerTaskMining = function () {
+        <div class="container">
+            <div class="timer-box">
+                <div class="circle-timer" id="countdownCircle">60s</div>
+                <button class="btn-start-task" id="startTaskBtn" onclick="triggerTask()">START TASK</button>
+            </div>
 
-    if (isTaskRunning) return;
+            <div class="history-section">
+                <h3><i class="fa-solid fa-clock-history"></i> Withdrawal History</h3>
+                <div class="history-list" id="withdrawHistoryContainer">
+                    </div>
+            </div>
+        </div>
 
-    isTaskRunning = true;
+        <div class="app-footer">
+            <div class="copy-row">
+                <span>UID: <span id="displayUID">------</span></span>
+                <i class="fa-regular fa-copy copy-btn" onclick="copyUID()"></i>
+            </div>
+            <a href="mailto:skian01321755056@gmail.com" class="support-mail">
+                <i class="fa-regular fa-envelope"></i> skian01321755056@gmail.com
+            </a>
+        </div>
+    </div>
 
-    const btn = document.getElementById("startTaskBtn");
-    const timer = document.getElementById("timerDisplay");
+    <div class="pop-overlay" id="withdrawModal">
+        <div class="pop-box">
+            <i class="fa-solid fa-xmark close-pop" onclick="closeWithdrawModal()"></i>
+            <h3>Bkash Instant Cashout</h3>
+            <p style="color: #ff3333; font-weight: bold; margin-bottom: 5px;">Fixed amount: 100 TK</p>
+            <p>10% Service Fee applies. Total cost will be 110 TK from your main account balance.</p>
+            <input type="tel" id="bkashNumber" placeholder="Enter Bkash Number" maxlength="11">
+            <button onclick="submitWithdraw()">Submit Cashout</button>
+        </div>
+    </div>
 
-    btn.disabled = true;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, child, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    let timeLeft = 60;
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
+            authDomain: "new-app-98e52.firebaseapp.com",
+            databaseURL: "https://new-app-98e52-default-rtdb.firebaseio.com",
+            projectId: "new-app-98e52",
+            storageBucket: "new-app-98e52.firebasestorage.app",
+            messagingSenderId: "402991418185",
+            appId: "1:402991418185:web:5dabc70d4404dce1902898",
+            measurementId: "G-BE3YXPV3P8"
+        };
 
-    const interval = setInterval(async () => {
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        timeLeft--;
+        let currentUser = null;
+        let currentUID = null;
 
-        timer.innerText =
-            `00:${timeLeft < 10 ? "0" + timeLeft : timeLeft}`;
+        // Authentication Routine
+        window.processAuth = function() {
+            const phone = document.getElementById('authPhone').value.trim();
+            if(phone.length !== 11 || !/^\d+$/.test(phone)) {
+                alert("Please type a valid 11 digit phone number!");
+                return;
+            }
 
-        if (timeLeft <= 0) {
+            // Check db for existing profile
+            get(ref(db, 'users')).then((snapshot) => {
+                let foundUID = null;
+                if(snapshot.exists()){
+                    const data = snapshot.val();
+                    for(let uid in data) {
+                        if(data[uid].phone === phone) {
+                            foundUID = uid;
+                            break;
+                        }
+                    }
+                }
 
-            clearInterval(interval);
-
-            const balanceRef =
-                ref(db, `users/${currentUserPhone}/balance`);
-
-            const taskRef =
-                ref(db, `users/${currentUserPhone}/tasksCompleted`);
-
-            await runTransaction(balanceRef, (current) => {
-                return (current || 0) + 0.01;
+                if(foundUID) {
+                    launchDashboard(foundUID);
+                } else {
+                    // Create Fresh Account
+                    const newUID = Math.floor(100000 + Math.random() * 900000).toString(); // Generate unique 6-digit ID
+                    const newUserObj = {
+                        phone: phone,
+                        balance: 0.00,
+                        tasksCount: 0,
+                        withdrawCount: 0,
+                        isBanned: false,
+                        createdAt: new Date().toISOString()
+                    };
+                    set(ref(db, `users/${newUID}`), newUserObj).then(() => {
+                        launchDashboard(newUID);
+                    });
+                }
             });
-
-            await runTransaction(taskRef, (current) => {
-                return (current || 0) + 1;
-            });
-
-            timer.innerText = "00:00";
-
-            btn.disabled = false;
-
-            isTaskRunning = false;
-
-            alert("টাস্ক সফল হয়েছে");
         }
 
-    }, 1000);
-};
+        // Live Dashboard Synchronization
+        function launchDashboard(uid) {
+            currentUID = uid;
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            document.getElementById('displayUID').innerText = uid;
 
-window.openWithdrawModal = function () {
-    document.getElementById("withdrawModal")
-        .classList.remove("hidden");
-};
+            // Stream User Records Real-time
+            onValue(ref(db, `users/${uid}`), (snapshot) => {
+                const user = snapshot.val();
+                if(!user) return;
+                
+                // Real-time Ban Monitor Enforcement
+                if(user.isBanned) {
+                    document.getElementById('appScreen').style.display = 'none';
+                    document.getElementById('withdrawModal').style.display = 'none';
+                    document.getElementById('blockScreen').style.display = 'flex';
+                    return;
+                } else {
+                    document.getElementById('blockScreen').style.display = 'none';
+                    document.getElementById('appScreen').style.display = 'block';
+                }
 
-window.closeWithdrawModal = function () {
-    document.getElementById("withdrawModal")
-        .classList.add("hidden");
-};
+                currentUser = user;
+                document.getElementById('userBalance').innerText = parseFloat(user.balance).toFixed(2);
+            });
 
-window.submitWithdrawRequest = async function () {
+            // Stream Withdraw Statements Real-time
+            onValue(ref(db, 'withdraws'), (snapshot) => {
+                const data = snapshot.val() || {};
+                const container = document.getElementById('withdrawHistoryContainer');
+                container.innerHTML = '';
+                
+                Object.keys(data).forEach(wId => {
+                    const req = data[wId];
+                    if(req.uid === currentUID) {
+                        const hItem = document.createElement('div');
+                        hItem.className = 'h-item';
+                        hItem.innerHTML = `
+                            <span>Bkash payout - Tk ${req.amount}</span>
+                            <span class="status status-${req.status.toLowerCase()}">${req.status}</span>
+                        `;
+                        container.appendChild(hItem);
+                    }
+                });
+            });
+        }
 
-    const bkash =
-        document.getElementById("bkashNumber").value.trim();
+        // Countdown Timer Engine
+        window.triggerTask = function() {
+            let timerValue = 60;
+            const circle = document.getElementById('countdownCircle');
+            const btn = document.getElementById('startTaskBtn');
+            
+            btn.disabled = true;
 
-    if (bkash.length !== 11) {
-        alert("সঠিক বিকাশ নাম্বার দিন");
-        return;
-    }
+            const interval = setInterval(() => {
+                timerValue--;
+                circle.innerText = timerValue + "s";
+                
+                if(timerValue <= 0) {
+                    clearInterval(interval);
+                    circle.innerText = "60s";
+                    btn.disabled = false;
+                    
+                    // Reward Transaction Process
+                    const newBal = parseFloat(currentUser.balance) + 0.01;
+                    const newTasks = (currentUser.tasksCount || 0) + 1;
+                    
+                    update(ref(db, `users/${currentUID}`), {
+                        balance: newBal,
+                        tasksCount: newTasks
+                    });
 
-    const userRef = ref(db, `users/${currentUserPhone}`);
-    const snapshot = await get(userRef);
+                    // এখানে পরবর্তীতে অ্যাড শো করার জন্য কোড বসাতে পারবেন
+                    console.log("Task finished. Ready for Ad Integration.");
+                    alert("Congratulations! 0.01 TK added to your balance.");
+                }
+            }, 1000);
+        }
 
-    const user = snapshot.val();
+        // Cashout Verification Gateways
+        window.openWithdrawModal = function() {
+            // Check lockout rule
+            const lockUntil = localStorage.getItem(`withdraw_lock_${currentUID}`);
+            if (lockUntil && Date.now() < parseInt(lockUntil)) {
+                const remainingMin = Math.ceil((parseInt(lockUntil) - Date.now()) / 60000);
+                alert(`You tried too many invalid attempts. Please wait ${remainingMin} minutes before trying again.`);
+                return;
+            }
+            document.getElementById('withdrawModal').style.display = 'flex';
+        }
 
-    if ((user.balance || 0) < 110) {
-        alert("পর্যাপ্ত ব্যালেন্স নেই");
-        return;
-    }
+        window.closeWithdrawModal = function() {
+            document.getElementById('withdrawModal').style.display = 'none';
+        }
 
-    const withdrawRef =
-        ref(db, `users/${currentUserPhone}/withdraws`);
+        window.submitWithdraw = function() {
+            const bPhone = document.getElementById('bkashNumber').value.trim();
+            if(bPhone.length !== 11 || !/^\d+$/.test(bPhone)) {
+                alert("Provide a correct 11 digit Bkash account number.");
+                return;
+            }
 
-    const newWithdraw = push(withdrawRef);
+            const totalCharge = 110.00; // 100 Tk withdraw + 10% (10 Tk) fee
+            
+            if(parseFloat(currentUser.balance) < totalCharge) {
+                // Track unsuccessful attempts
+                let failedAttempts = parseInt(localStorage.getItem(`failed_wd_${currentUID}`) || "0");
+                failedAttempts++;
+                localStorage.setItem(`failed_wd_${currentUID}`, failedAttempts);
+                
+                if(failedAttempts >= 2) {
+                    // Lock out feature for 1 Hour
+                    const lockTime = Date.now() + (60 * 60 * 1000);
+                    localStorage.setItem(`withdraw_lock_${currentUID}`, lockTime);
+                    localStorage.setItem(`failed_wd_${currentUID}`, "0"); // Reset count
+                    alert("Insufficient Balance! This feature is locked for 1 hour due to multiple failed attempts.");
+                    closeWithdrawModal();
+                    return;
+                }
+                
+                alert("You don't have sufficient balance! Minimum total 110 TK is required (with 10% fee).");
+                return;
+            }
 
-    await set(newWithdraw, {
-        number: bkash,
-        amount: 100,
-        status: "pending",
-        time: new Date().toLocaleString()
-    });
+            // Deduct instantly and push request payload to db
+            const remainingBalance = parseFloat(currentUser.balance) - totalCharge;
+            const withdrawId = "WID" + Math.floor(100000 + Math.random() * 900000);
 
-    await update(userRef, {
-        balance: (user.balance || 0) - 110
-    });
+            update(ref(db, `users/${currentUID}`), { balance: remainingBalance }).then(() => {
+                const reqPayload = {
+                    uid: currentUID,
+                    phone: bPhone,
+                    amount: 100,
+                    method: "Bkash",
+                    status: "Pending",
+                    time: new Date().toLocaleTimeString()
+                };
+                set(ref(db, `withdraws/${withdrawId}`), reqPayload).then(() => {
+                    localStorage.setItem(`failed_wd_${currentUID}`, "0"); // Reset on success
+                    alert("Congratulations! Your transaction is completed. The money will reach your account shortly.");
+                    closeWithdrawModal();
+                });
+            });
+        }
 
-    alert("Withdraw request sent");
-
-    closeWithdrawModal();
-};
-
-window.copyReferralLink = function () {
-
-    const uid =
-        document.getElementById("uUIDLabel").innerText;
-
-    const link =
-        `${window.location.origin}${window.location.pathname}?ref=${uid}`;
-
-    navigator.clipboard.writeText(link);
-
-    alert("Referral link copied");
-};
-
-</script>
+        window.copyUID = function() {
+            navigator.clipboard.writeText(currentUID);
+            alert("Unique ID copied: " + currentUID);
+        }
+    </script>
+</body>
+</html>
