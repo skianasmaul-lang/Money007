@@ -3,150 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MONEY 007 - Earn Real Cash</title>
+    <title>Money 007 - Premium Earning App</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #f7f9fc; color: #333; }
-        
-        /* Auth Screen (Login) */
-        #authScreen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #fff; }
-        .login-card { width: 90%; max-width: 400px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; background: #fff; border-top: 5px solid #ffcc00; }
-        .login-card h2 { font-size: 28px; font-weight: bold; margin-bottom: 8px; color: #111; }
-        .login-card p { font-size: 14px; color: #666; margin-bottom: 25px; }
-        .input-group { position: relative; margin-bottom: 15px; }
-        .input-group i { position: absolute; left: 15px; top: 15px; color: #888; }
-        .input-group input { width: 100%; padding: 14px 14px 14px 45px; border: 1px solid #e0e0e0; background: #f9f9f9; border-radius: 8px; outline: none; font-size: 16px; transition: 0.3s; }
-        .input-group input:focus { border-color: #ffcc00; background: #fff; }
-        .btn-login { width: 100%; padding: 14px; background: #ffcc00; color: #111; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-login:hover { background: #e6b800; }
-
-        /* Main App Screen */
-        #appScreen { display: none; max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 90px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
-        
-        /* Header Dashboard */
-        .app-header { background: #ffcc00; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; display: flex; justify-content: space-between; align-items: center; color: #111; box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2); }
-        .app-header h1 { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
-        .header-btns { display: flex; gap: 10px; }
-        .btn-header-action { background: rgba(255,255,255,0.3); border: 1px solid rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .btn-header-action:hover { background: #fff; }
-
-        /* Main Content Container */
-        .container { padding: 20px; }
-
-        /* Timer Counter UI */
-        .timer-box { text-align: center; margin: 30px 0; }
-        .circle-timer { width: 130px; height: 130px; border-radius: 50%; border: 6px solid #f0f0f0; border-top-color: #28a745; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: bold; color: #28a745; transition: 0.3s; }
-        .btn-start-task { background: #28a745; color: #fff; border: none; padding: 15px 45px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3); transition: 0.3s; }
-        .btn-start-task:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
-
-        /* History Segment */
-        .history-section { margin-top: 30px; }
-        .history-section h3 { font-size: 16px; margin-bottom: 12px; color: #444; display: flex; align-items: center; gap: 8px; }
-        .history-list { max-height: 200px; overflow-y: auto; }
-        .h-item { display: flex; justify-content: space-between; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #ffcc00; font-size: 13px; }
-        .h-item .status { font-weight: bold; }
-        .status-pending { color: #f0ad4e; }
-        .status-approved { color: #28a745; }
-        .status-refunded { color: #d9534f; }
-
-        /* Footer Info & Customer Service */
-        .app-footer { background: #f9f9f9; border-top: 1px solid #eee; padding: 15px; position: absolute; bottom: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: #666; }
-        .footer-share-box { display: flex; gap: 10px; align-items: center; }
-        .copy-row { display: flex; align-items: center; gap: 8px; font-weight: bold; color: #111; background: #fff; padding: 6px 12px; border-radius: 20px; border: 1px dashed #ccc; }
-        .copy-btn { color: #28a745; cursor: pointer; }
-        .share-btn { background: #ffcc00; color: #111; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .share-btn:hover { background: #e6b800; }
-        .support-mail { display: flex; align-items: center; gap: 5px; color: #666; text-decoration: none; margin-top: 2px; }
-
-        /* Custom Popup Overlay */
-        .pop-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 2000; }
-        .pop-box { background: #fff; padding: 25px; width: 85%; max-width: 360px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
-        .pop-box h3 { font-size: 18px; margin-bottom: 10px; color: #111; }
-        .pop-box p { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5; }
-        .pop-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; text-align: center; margin-bottom: 15px; font-size: 16px; }
-        .pop-box button { width: 100%; padding: 12px; background: #28a745; border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .close-pop { position: absolute; top: 12px; right: 12px; font-size: 18px; color: #888; cursor: pointer; }
-
-        /* Block Screen */
-        .block-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
-        .block-screen i { font-size: 60px; color: #d9534f; margin-bottom: 20px; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f7f9fa; color: #1e293b; }
+        .premium-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center bg-gray-100 p-0 sm:p-4">
 
-    <div id="authScreen">
-        <div class="login-card">
-            <h2>MONEY 007</h2>
-            <p>Enter details to enter the dashboard</p>
-            <div class="input-group">
-                <i class="fa-solid fa-phone"></i>
-                <input type="tel" id="authPhone" placeholder="Mobile Number (11 Digit)" maxlength="11">
-            </div>
-            <div class="input-group">
-                <i class="fa-solid fa-gift"></i>
-                <input type="text" id="authRefer" placeholder="Refer Code (Optional)" maxlength="6">
-            </div>
-            <button class="btn-login" onclick="processAuth()">Verify & Enter</button>
-        </div>
-    </div>
-
-    <div id="blockScreen" class="block-screen">
-        <i class="fa-solid fa-user-slash"></i>
-        <h2>Your Account has been Suspended!</h2>
-        <p style="color: #666; margin-top: 10px;">Please contact support for more information regarding your account status.</p>
-    </div>
-
-    <div id="appScreen">
-        <div class="app-header">
-            <button class="btn-header-action" onclick="openWithdrawModal()"><i class="fa-solid fa-wallet"></i> Withdraw</button>
-            <h1>MONEY 007</h1>
-            <button class="btn-header-action" style="background:#fff;"><i class="fa-solid fa-coins" style="color:#e6b800"></i> <span id="userBalance">0.00</span> ৳</button>
-        </div>
-
-        <div class="container">
-            <div class="timer-box">
-                <div class="circle-timer" id="countdownCircle">60s</div>
-                <button class="btn-start-task" id="startTaskBtn" onclick="triggerTask()">START TASK</button>
-            </div>
-
-            <div class="history-section">
-                <h3><i class="fa-solid fa-clock-history"></i> Withdrawal History</h3>
-                <div class="history-list" id="withdrawHistoryContainer">
-                    </div>
-            </div>
-        </div>
-
-        <div class="app-footer">
-            <div class="footer-share-box">
-                <div class="copy-row">
-                    <span>UID: <span id="displayUID">------</span></span>
-                    <i class="fa-regular fa-copy copy-btn" onclick="copyUID()"></i>
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-gray-200">
+        
+        <div id="loginPage" class="flex-1 flex flex-col justify-center px-8 py-12 bg-white">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-yellow-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-yellow-400/30 mb-4 animate-bounce">
+                    <i class="fa-solid fa-money-bill-trend-up text-3xl text-slate-900"></i>
                 </div>
-                <button class="share-btn" onclick="copyShareLink()" title="Copy Share Link"><i class="fa-solid fa-share-nodes"></i></button>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">MONEY 007</h2>
+                <p class="text-sm text-gray-500 mt-1 font-medium">সবচেয়ে বিশ্বস্ত রিয়েল-টাইম আর্নিং প্ল্যাটফর্ম</p>
             </div>
-            <a href="mailto:skian01321755056@gmail.com" class="support-mail">
-                <i class="fa-regular fa-envelope"></i> skian01321755056@gmail.com
-            </a>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">আপনার মোবাইল নম্বর দিন</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 font-semibold text-sm">+88</span>
+                        <input type="tel" id="loginPhone" placeholder="01XXXXXXXXX" maxlength="11" class="w-full bg-gray-50 text-slate-900 font-bold tracking-widest text-lg border border-gray-200 rounded-2xl pl-14 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all">
+                    </div>
+                </div>
+
+                <button onclick="handleAuth()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold text-base py-4 rounded-2xl shadow-lg shadow-yellow-400/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    লগইন / অ্যাকাউন্ট তৈরি করুন <i class="fa-solid fa-arrow-right-long"></i>
+                </button>
+            </div>
         </div>
+
+        <div id="homePage" class="hidden flex-1 flex flex-col">
+            
+            <header class="premium-card text-white px-5 py-4 flex justify-between items-center shadow-md">
+                <button onclick="openWithdrawModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm shadow-emerald-900/30 transition-all cursor-pointer">
+                    <i class="fa-solid fa-wallet text-sm text-yellow-300"></i> উইথড্র
+                </button>
+                
+                <h1 class="text-xl font-black text-yellow-400 tracking-wider font-[Poppins]">MONEY 007</h1>
+                
+                <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-3 py-1.5 text-right min-w-[90px]">
+                    <p class="text-[9px] text-gray-300 font-medium uppercase tracking-wider">ব্যালেন্স</p>
+                    <p class="text-sm font-bold text-yellow-300">৳<span id="uBalance">0.00</span></p>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar pb-24">
+                
+                <div id="banAlertNotice" class="hidden bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-center font-medium text-sm space-y-1">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 block mb-1"></i>
+                    আপনার অ্যাকাউন্টটি অ্যাডমিন দ্বারা সাময়িকভাবে ব্যান করা হয়েছে!
+                </div>
+
+                <div id="mainWorkBox" class="bg-white border border-gray-100 rounded-3xl p-6 text-center shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-yellow-400 via-emerald-500 to-yellow-400"></div>
+                    
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">টাস্ক ইঞ্জিন</p>
+                    <div id="timerDisplay" class="text-4xl font-black text-slate-800 tracking-tight my-2">00:00</div>
+                    <p class="text-xs text-gray-400 mb-5">প্রতিটি ক্লিকের টাস্ক পূর্ণ হলে পাবেন <span class="text-emerald-600 font-bold">৳০.০১</span> টাকা</p>
+                    
+                    <button id="startTaskBtn" onclick="triggerTaskMining()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold text-lg py-4 rounded-2xl shadow-md shadow-yellow-400/10 active:scale-[0.98] transition-all cursor-pointer">
+                        <i class="fa-solid fa-circle-play mr-1"></i> স্টার্ট বাটন
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
+                        <h4 class="text-xs text-gray-400 font-bold uppercase"><i class="fa-solid fa-chart-line text-yellow-500 mr-1"></i> সম্পন্ন টাস্ক</h4>
+                        <p id="uTasksCount" class="text-xl font-bold text-slate-800 mt-1">০ টি</p>
+                    </div>
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
+                        <h4 class="text-xs text-gray-400 font-bold uppercase"><i class="fa-solid fa-circle-nodes text-emerald-500 mr-1"></i> মোট রেফার</h4>
+                        <p id="uReferCount" class="text-xl font-bold text-slate-800 mt-1">০ জন</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> উত্তোলন ও কাজের হিস্ট্রি</h3>
+                    <div id="historyLogsContainer" class="bg-white border border-gray-100 rounded-2xl p-4 min-h-[150px] max-h-[220px] overflow-y-auto custom-scrollbar space-y-2 text-xs">
+                        <p class="text-gray-400 text-center py-10">কোন হিস্ট্রি ডাটা এখনো তৈরি হয়নি</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <footer class="absolute bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
+                <div class="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
+                    <div class="text-xs">
+                        <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider">আপনার ইউনিক রেফারেল কোড</span>
+                        <span id="uUIDLabel" class="font-mono font-bold text-slate-800 text-sm tracking-widest">------</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="copyReferralLink()" class="bg-slate-900 text-white text-xs font-bold p-2.5 rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer" title="কপি করুন">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                        <button onclick="copyReferralLink()" class="bg-yellow-400 text-slate-900 text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-yellow-500 transition-colors flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-share-nodes"></i> শেয়ার
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-[10px] text-gray-400 font-medium px-1">
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-envelope text-slate-400"></i> skian01321755056@gmail.com</span>
+                    <span>Link: money007.shop</span>
+                </div>
+            </footer>
+        </div>
+
+        <div id="withdrawModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border border-gray-100 transform scale-100 transition-all">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">বিকাশ লাইভ উইথড্র</h3>
+                        <p class="text-[10px] text-red-500 font-bold uppercase tracking-wide mt-0.5"><i class="fa-solid fa-circle-exclamation"></i> মিনিমাম ১০০ টাকা উইথড্র | ফি ১০%</p>
+                    </div>
+                    <button onclick="closeWithdrawModal()" class="text-gray-400 hover:text-red-500 text-lg cursor-pointer"><i class="fa-solid fa-circle-xmark"></i></button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">আপনার বিকাশ নম্বর দিন</label>
+                        <input type="tel" id="bkashNumber" placeholder="01XXXXXXXXX" maxlength="11" class="w-full bg-gray-50 border border-gray-200 text-slate-900 font-bold tracking-widest px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-3 rounded-xl border border-yellow-100/60 text-xs text-yellow-800 space-y-1">
+                        <div class="flex justify-between"><span>উত্তোলন অ্যামাউন্ট:</span> <span class="font-bold">৳১০০.০০</span></div>
+                        <div class="flex justify-between"><span>১০% এডমিন প্রসেসিং ফি:</span> <span class="font-bold text-red-600">৳১০.০০</span></div>
+                        <div class="flex justify-between border-t border-yellow-200 pt-1 font-bold"><span>ব্যালেন্স থেকে কাটা হবে:</span> <span>৳১১০.০০</span></div>
+                    </div>
+
+                    <button onclick="submitWithdrawRequest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/10 transition-all cursor-pointer">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> উইথড্র রিকোয়েস্ট পাঠান
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <div class="pop-overlay" id="withdrawModal">
-        <div class="pop-box">
-            <i class="fa-solid fa-xmark close-pop" onclick="closeWithdrawModal()"></i>
-            <h3>Bkash Instant Cashout</h3>
-            <p style="color: #ff3333; font-weight: bold; margin-bottom: 5px;">Fixed amount: 100 TK</p>
-            <p>10% Service Fee applies. Total cost will be 110 TK from your main account balance.</p>
-            <input type="tel" id="bkashNumber" placeholder="Enter Bkash Number" maxlength="11">
-            <button onclick="submitWithdraw()">Submit Cashout</button>
-        </div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // এখানে ফিক্স করা হয়েছে: get ইম্পোর্ট করা হয়েছে
+        import { getDatabase, ref, get, set, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-    <script>
-        // Your Firebase configuration
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDnwN7NCyF-qSm0Aa9m1FRi8t64VpxeXcA",
             authDomain: "new-app-98e52.firebaseapp.com",
@@ -158,219 +167,187 @@
             measurementId: "G-BE3YXPV3P8"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // Initialize App Instance
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        let currentUser = null;
-        let currentUID = null;
+        // System state variables
+        let currentUserPhone = null;
+        let isTaskRunning = false;
 
-        // Authentication Routine
-        window.processAuth = function() {
-            const phone = document.getElementById('authPhone').value.trim();
-            const inputRefer = document.getElementById('authRefer').value.trim();
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
 
-            if(phone.length !== 11 || !/^\d+$/.test(phone)) {
-                alert("Please type a valid 11 digit phone number!");
+        // Authentication Controller
+        window.handleAuth = async function() {
+            const phone = document.getElementById('loginPhone').value.trim();
+            if(phone.length !== 11 || !phone.startsWith("01")) {
+                alert("দয়া করে সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন!");
                 return;
             }
 
-            // Check db for existing profile
-            db.ref('users').once('value').then((snapshot) => {
-                let foundUID = null;
-                let allUsers = snapshot.exists() ? snapshot.val() : {};
-                
-                for(let uid in allUsers) {
-                    if(allUsers[uid].phone === phone) {
-                        foundUID = uid;
-                        break;
-                    }
-                }
-
-                if(foundUID) {
-                    launchDashboard(foundUID);
+            currentUserPhone = phone;
+            const userRef = ref(db, `users/${phone}`);
+            
+            try {
+                const snapshot = await get(userRef);
+                if(snapshot.exists()) {
+                    initUserRealtimeSession();
                 } else {
-                    // Sign up workflow: Validate refer code if supplied
-                    let finalRefer = "";
-                    if(inputRefer !== "") {
-                        if(!allUsers[inputRefer]) {
-                            alert("Invalid Referral Code! Leave it blank if you don't have one.");
-                            return;
-                        }
-                        finalRefer = inputRefer;
-                    }
+                    const randomUID = Math.floor(100000 + Math.random() * 900000).toString();
+                    const refBy = getQueryParam('ref') || "";
 
-                    // Create Fresh Account
-                    const newUID = Math.floor(100000 + Math.random() * 900000).toString(); 
-                    const newUserObj = {
+                    const newProfilePayload = {
                         phone: phone,
-                        balance: 0.00,
-                        tasksCount: 0,
-                        withdrawCount: 0,
+                        uid: randomUID,
+                        balance: 0.0000,
+                        tasksCompleted: 0,
+                        referralCount: 0,
+                        referredBy: refBy,
                         isBanned: false,
-                        referredBy: finalRefer,
-                        isReferPaid: false, // Tracks if 10 TK bonus is already processed
                         createdAt: new Date().toISOString()
                     };
+
+                    await set(userRef, newProfilePayload);
                     
-                    db.ref(`users/${newUID}`).set(newUserObj).then(() => {
-                        launchDashboard(newUID);
-                    });
-                }
-            });
-        }
-
-        // Live Dashboard Synchronization
-        function launchDashboard(uid) {
-            currentUID = uid;
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            document.getElementById('displayUID').innerText = uid;
-
-            // Stream User Records Real-time
-            db.ref(`users/${uid}`).on('value', (snapshot) => {
-                const user = snapshot.val();
-                if(!user) return;
-                
-                // Real-time Ban Monitor Enforcement
-                if(user.isBanned) {
-                    document.getElementById('appScreen').style.display = 'none';
-                    document.getElementById('withdrawModal').style.display = 'none';
-                    document.getElementById('blockScreen').style.display = 'flex';
-                    return;
-                } else {
-                    document.getElementById('blockScreen').style.display = 'none';
-                    document.getElementById('appScreen').style.display = 'block';
-                }
-
-                currentUser = user;
-                document.getElementById('userBalance').innerText = parseFloat(user.balance).toFixed(2);
-            });
-
-            // Stream Withdraw Statements Real-time
-            db.ref('withdraws').on('value', (snapshot) => {
-                const data = snapshot.val() || {};
-                const container = document.getElementById('withdrawHistoryContainer');
-                container.innerHTML = '';
-                
-                Object.keys(data).forEach(wId => {
-                    const req = data[wId];
-                    if(req.uid === currentUID) {
-                        const hItem = document.createElement('div');
-                        hItem.className = 'h-item';
-                        hItem.innerHTML = `
-                            <span>Bkash payout - Tk ${req.amount}</span>
-                            <span class="status status-${req.status.toLowerCase()}">${req.status}</span>
-                        `;
-                        container.appendChild(hItem);
+                    if(refBy && refBy.length === 6) {
+                        processReferralCredit(refBy);
                     }
-                });
-            });
+
+                    initUserRealtimeSession();
+                }
+            } catch(err) {
+                alert("সার্ভার কানেকশন এরর: " + err.message);
+            }
         }
 
-        // Countdown Timer Engine
-        window.triggerTask = function() {
-            let timerValue = 60;
-            const circle = document.getElementById('countdownCircle');
-            const btn = document.getElementById('startTaskBtn');
-            
-            btn.disabled = true;
-
-            const interval = setInterval(() => {
-                timerValue--;
-                circle.innerText = timerValue + "s";
-                
-                if(timerValue <= 0) {
-                    clearInterval(interval);
-                    circle.innerText = "60s";
-                    btn.disabled = false;
-                    
-                    // Reward Calculation
-                    const newBal = parseFloat(currentUser.balance) + 0.01;
-                    const newTasks = (currentUser.tasksCount || 0) + 1;
-                    
-                    // Update current user progress
-                    db.ref(`users/${currentUID}`).update({
-                        balance: newBal,
-                        tasksCount: newTasks
-                    }).then(() => {
-                        // REFERRAL RULE ENGINE: Check if user completed 20 tasks and has a valid referrer
-                        if(newTasks >= 20 && currentUser.referredBy && !currentUser.isReferPaid) {
-                            const refUID = currentUser.referredBy;
-                            
-                            // Get Referrer's current balance safely
-                            db.ref(`users/${refUID}`).once('value').then((refSnapshot) => {
-                                if(refSnapshot.exists()) {
-                                    const refUserData = refSnapshot.val();
-                                    const refCurrentBalance = parseFloat(refUserData.balance || 0);
-                                    
-                                    // Inject 10 TK into referrer wallet
-                                    db.ref(`users/${refUID}`).update({
-                                        balance: refCurrentBalance + 10.00
-                                    });
-                                }
-                            });
-
-                            // Mark as paid so bonus isn't triggered repeatedly
-                            db.ref(`users/${currentUID}`).update({ isReferPaid: true });
+        function processReferralCredit(targetUID) {
+            get(ref(db, 'users')).then(snapshot => {
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(pKey => {
+                        if(data[pKey].uid === targetUID) {
+                            const refCountRef = ref(db, `users/${pKey}/referralCount`);
+                            runTransaction(refCountRef, (current) => (current || 0) + 1);
                         }
                     });
+                }
+            });
+        }
 
-                    console.log("Task finished. Ready for Ad Integration.");
-                    alert("Congratulations! 0.01 TK added to your balance.");
+        function initUserRealtimeSession() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('homePage').classList.remove('hidden');
+
+            const userRef = ref(db, `users/${currentUserPhone}`);
+            onValue(userRef, (snapshot) => {
+                const user = snapshot.val();
+                if(!user) return;
+
+                if(user.isBanned) {
+                    document.getElementById('banAlertNotice').classList.remove('hidden');
+                    document.getElementById('mainWorkBox').classList.add('pointer-events-none', 'opacity-30');
+                    document.getElementById('uBalance').innerText = "0.00";
+                    alert("আপনার অ্যাকাউন্টটি ব্যান করা হয়েছে!");
+                    window.location.reload(); 
+                    return;
+                } else {
+                    document.getElementById('banAlertNotice').classList.add('hidden');
+                    document.getElementById('mainWorkBox').classList.remove('pointer-events-none', 'opacity-30');
+                }
+
+                document.getElementById('uBalance').innerText = user.balance.toFixed(2);
+                document.getElementById('uTasksCount').innerText = `${user.tasksCompleted || 0} টি`;
+                document.getElementById('uReferCount').innerText = `${user.referralCount || 0} জন`;
+                document.getElementById('uUIDLabel').innerText = user.uid;
+
+                renderLogsHistory(user);
+            });
+        }
+
+        function renderLogsHistory(user) {
+            let logsHTML = '';
+            if(user.withdraws) {
+                Object.keys(user.withdraws).forEach(wKey => {
+                    const w = user.withdraws[wKey];
+                    let badgeColor = "bg-yellow-100 text-yellow-700";
+                    let statusTxt = "পেন্ডিং";
+                    
+                    if(w.status === 'approved') { badgeColor = "bg-green-100 text-green-700"; statusTxt = "সফল"; }
+                    if(w.status === 'refunded') { badgeColor = "bg-red-100 text-red-700"; statusTxt = "রিফান্ডেড"; }
+
+                    logsHTML += `
+                        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                            <div>
+                                <span class="font-bold block text-slate-800">বিকাশ উইথড্র (৳${w.amount})</span>
+                                <span class="text-[10px] text-gray-400">${w.time}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-md font-bold ${badgeColor}">${statusTxt}</span>
+                        </div>`;
+                });
+            }
+
+            if(logsHTML === '') {
+                logsHTML = `<p class="text-gray-400 text-center py-10">কোন হিস্ট্রি ডাটা এখনো তৈরি হয়নি</p>`;
+            }
+            document.getElementById('historyLogsContainer').innerHTML = logsHTML;
+        }
+
+        window.triggerTaskMining = function() {
+            if(isTaskRunning) return;
+            isTaskRunning = true;
+
+            const startBtn = document.getElementById('startTaskBtn');
+            const timerLabel = document.getElementById('timerDisplay');
+            
+            startBtn.disabled = true;
+            startBtn.className = "w-full bg-gray-200 text-gray-400 font-extrabold text-lg py-4 rounded-2xl cursor-not-allowed";
+            
+            let timeLeft = 60;
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                let secondsStr = timeLeft < 10 ? "0" + timeLeft : timeLeft;
+                timerLabel.innerText = `00:${secondsStr}`;
+
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    
+                    const balanceRef = ref(db, `users/${currentUserPhone}/balance`);
+                    runTransaction(balanceRef, (currentBalance) => (currentBalance || 0) + 0.01);
+
+                    const taskCounterRef = ref(db, `users/${currentUserPhone}/tasksCompleted`);
+                    runTransaction(taskCounterRef, (currentCount) => (currentCount || 0) + 1);
+
+                    alert("অভিনন্দন! আপনার ৬০ সেকেন্ডের টাস্ক সফলভাবে সম্পন্ন হয়েছে।");
+
+                    isTaskRunning = false;
+                    timerLabel.innerText = "00:00";
+                    startBtn.disabled = false;
+                    startBtn.className = "w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold text-lg py-4 rounded-2xl shadow-md shadow-yellow-400/10 active:scale-[0.98] transition-all cursor-pointer";
                 }
             }, 1000);
         }
 
-        // Cashout Verification Gateways
         window.openWithdrawModal = function() {
-            const lockUntil = localStorage.getItem(`withdraw_lock_${currentUID}`);
-            if (lockUntil && Date.now() < parseInt(lockUntil)) {
-                const remainingMin = Math.ceil((parseInt(lockUntil) - Date.now()) / 60000);
-                alert(`You tried too many invalid attempts. Please wait ${remainingMin} minutes before trying again.`);
-                return;
-            }
-            document.getElementById('withdrawModal').style.display = 'flex';
+            document.getElementById('withdrawModal').classList.remove('hidden');
         }
-
         window.closeWithdrawModal = function() {
-            document.getElementById('withdrawModal').style.display = 'none';
+            document.getElementById('withdrawModal').classList.add('hidden');
         }
 
-        window.submitWithdraw = function() {
-            const bPhone = document.getElementById('bkashNumber').value.trim();
-            if(bPhone.length !== 11 || !/^\d+$/.test(bPhone)) {
-                alert("Provide a correct 11 digit Bkash account number.");
+        window.submitWithdrawRequest = async function() {
+            const bkashNum = document.getElementById('bkashNumber').value.trim();
+            if(bkashNum.length !== 11 || !bkashNum.startsWith("01")) {
+                alert("দয়া করে সঠিক ১১ ডিজিটের বিকাশ নম্বর দিন!");
                 return;
             }
 
-            const totalCharge = 110.00; 
-            
-            if(parseFloat(currentUser.balance) < totalCharge) {
-                let failedAttempts = parseInt(localStorage.getItem(`failed_wd_${currentUID}`) || "0");
-                failedAttempts++;
-                localStorage.setItem(`failed_wd_${currentUID}`, failedAttempts);
+            const userRef = ref(db, `users/${currentUserPhone}`);
+            try {
+                const snapshot = await get(userRef);
+                const user = snapshot.val();
                 
-                if(failedAttempts >= 2) {
-                    const lockTime = Date.now() + (60 * 60 * 1000);
-                    localStorage.setItem(`withdraw_lock_${currentUID}`, lockTime);
-                    localStorage.setItem(`failed_wd_${currentUID}`, "0"); 
-                    alert("Insufficient Balance! This feature is locked for 1 hour due to multiple failed attempts.");
-                    closeWithdrawModal();
-                    return;
-                }
-                
-                alert("You don't have sufficient balance! Minimum total 110 TK is required (with 10% fee).");
-                return;
-            }
-
-            const remainingBalance = parseFloat(currentUser.balance) - totalCharge;
-            
-            // Generate a fresh unique withdrawal request ID
-            const newWithdrawID = "WID" + Math.floor(100000 + Math.random() * 900000).toString();
-            
-            const withdrawData = {
-                uid: currentUID,
-                phone: currentUser.phone,
-                bkash: bPhone,
-                amount: 100.00
+                if(user.withdrawLockUntil) {
+    
