@@ -25,6 +25,15 @@
         .info-card span { font-size: 13px; color: #aaa; }
         .info-card strong { font-size: 16px; color: #fff; }
         
+        /* 🎁 New Reward Card Styling */
+        .reward-card { background: #1e1e1e; border-radius: 12px; padding: 16px; margin-bottom: 15px; text-align: left; border-left: 4px solid #ef4444; }
+        .reward-header { display: flex; justify-content: space-between; align-items: center; }
+        .reward-title { font-size: 14px; color: #fff; font-weight: bold; }
+        .reward-amount { font-size: 18px; color: #10b981; font-weight: bold; margin-top: 4px; }
+        .btn-claim { background: #ff0000; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .btn-claim:hover { background: #cc0000; }
+        .reward-note { font-size: 11px; color: #aaa; margin-top: 10px; display: block; }
+
         /* Password Reset Section */
         .password-box { background: #1e1e1e; border-radius: 12px; padding: 16px; margin-bottom: 15px; text-align: left; border-left: 4px solid #3b82f6; }
         .password-box label { display: block; font-size: 13px; color: #aaa; margin-bottom: 8px; }
@@ -57,13 +66,11 @@
 </div>
 
 <div class="main-content">
-    <!-- Profile Picture Area -->
     <div class="avatar-box" id="avatarBox">👤</div>
     
     <div class="user-phone" id="profilePhone">01XXXXXXXXX</div>
     <div class="user-uid">রেফার কোড: <span id="profileReferCode">------</span></div>
     
-    <!-- Profile Info Details -->
     <div class="info-card">
         <span>আমার মোট ব্যালেন্স</span>
         <strong style="color: #10b981;">৳ <span id="infoBalance">0.00</span></strong>
@@ -74,7 +81,17 @@
         <strong id="infoDate">--/--/----</strong>
     </div>
 
-    <!-- 🔐 পাসওয়ার্ড রিসেট করার ফিচার (রিয়েল-টাইম) -->
+    <div class="reward-card">
+        <div class="reward-header">
+            <div>
+                <span class="reward-title">ইউটিউব সাবস্ক্রিপশন রিওয়ার্ড</span>
+                <div class="reward-amount">৳ ১০.০০</div>
+            </div>
+            <button class="btn-claim" id="youtubeClaimBtn" onclick="handleYoutubeClaim()">ক্লেম</button>
+        </div>
+        <span class="reward-note">👉 এটি পেতে হলে চ্যানেলটি সাবস্ক্রাইব করুন।</span>
+    </div>
+
     <div class="password-box">
         <label for="passInput">অ্যাকাউন্ট পাসওয়ার্ড (পরিবর্তন করতে পারেন)</label>
         <div class="password-input-group">
@@ -83,7 +100,6 @@
         </div>
     </div>
 
-    <!-- ✉️ কাস্টমার সাপোর্ট সেকশন -->
     <div class="support-card">
         <div class="support-icon">✉️</div>
         <div class="support-info">
@@ -92,7 +108,6 @@
         </div>
     </div>
 
-    <!-- 🚪 লগআউট বাটন -->
     <button class="btn-logout" onclick="handleLogout()">🚪 Log Out Account</button>
 </div>
 
@@ -122,14 +137,18 @@
     // ইউজার সেশন না থাকলে লগইন পেজে ব্যাক পাঠাবে
     if(!userPhone) { window.location.href = 'index.html'; }
 
+    let currentFirebaseBalance = 0; // গ্লোবাল ব্যালেন্স ট্র্যাকিং এর জন্য
+
     // রিয়েল-টাইম ডাটাবেস থেকে ডাটা লোড
     db.ref('users/' + userPhone).on('value', (snapshot) => {
         if(snapshot.exists()) {
             const userData = snapshot.val();
             
+            currentFirebaseBalance = userData.balance || 0; // ব্যালেন্স স্টোর করা হলো
+            
             // ডাটা রেন্ডারিং
-            document.getElementById('userBalance').innerText = (userData.balance || 0).toFixed(2);
-            document.getElementById('infoBalance').innerText = (userData.balance || 0).toFixed(2);
+            document.getElementById('userBalance').innerText = currentFirebaseBalance.toFixed(2);
+            document.getElementById('infoBalance').innerText = currentFirebaseBalance.toFixed(2);
             document.getElementById('profilePhone').innerText = userData.phone;
             document.getElementById('profileReferCode').innerText = userData.referCode || 'N/A';
             document.getElementById('infoDate').innerText = userData.accountCreatedDate || 'N/A';
@@ -140,8 +159,66 @@
             if(userData.profilePic) {
                 document.getElementById('avatarBox').innerHTML = `<img src="${userData.profilePic}" alt="Profile">`;
             }
+
+            // যদি ইউজার ইতিমধ্যে এই বোনাসটি নিয়ে থাকে, তবে বাটন ক্লাইমেড করে দেওয়া হবে
+            if(userData.youtubeBonusClaimed === true) {
+                const claimBtn = document.getElementById('youtubeClaimBtn');
+                claimBtn.disabled = true;
+                claimBtn.style.backgroundColor = "#555";
+                claimBtn.innerText = "ক্লেমড";
+            }
         }
     });
+
+    // 🎁 ইউটিউব রিওয়ার্ড হ্যান্ডলার (২ মিনিটের টাইমার ও ফায়ারবেস আপডেট)
+    let isTimerRunning = false;
+    let countdownTime = 120; // ১২০ সেকেন্ড = ২ মিনিট
+    let timerInterval;
+
+    function handleYoutubeClaim() {
+        const claimBtn = document.getElementById('youtubeClaimBtn');
+
+        // আপনার ইউটিউব চ্যানেলের লিংক (এটি সরাসরি ইউটিউব অ্যাপ ওপেন করবে)
+        // নোট: 'YOUR_CHANNEL_ID' এর জায়গায় আপনার অরজিনাল ইউটিউব চ্যানেল আইডি বসিয়ে দেবেন
+        const youtubeIntentUrl = "intent://www.youtube.com/channel/YOUR_CHANNEL_ID/#Intent;package=com.google.android.youtube;scheme=https;end";
+
+        // ১ম ধাপ: টাইমার চালু না থাকলে ইউটিউবে নিয়ে যাবে এবং ব্যাকএন্ড টাইমার শুরু করবে
+        if (!isTimerRunning) {
+            window.location.href = youtubeIntentUrl;
+            
+            isTimerRunning = true;
+            claimBtn.disabled = true; // হুট করে যেন আবার ক্লিক না করতে পারে
+            claimBtn.style.backgroundColor = "#ff9900";
+            claimBtn.innerText = "অপেক্ষা করুন...";
+
+            timerInterval = setInterval(() => {
+                countdownTime--;
+                
+                if (countdownTime <= 0) {
+                    clearInterval(timerInterval);
+                    claimBtn.disabled = false;
+                    claimBtn.style.backgroundColor = "#10b981"; // বাটন সবুজ হবে
+                    claimBtn.innerText = "টাকা নিন";
+                }
+            }, 1000);
+
+        } else if (countdownTime <= 0) {
+            // ২য় ধাপ: ২ মিনিট পার হওয়ার পর যখন ইউজার আবার ক্লিক করবে
+            const newBalance = currentFirebaseBalance + 10; // ১০ টাকা যোগ হবে
+
+            db.ref('users/' + userPhone).update({
+                balance: newBalance,
+                youtubeBonusClaimed: true // পুনরায় যেন ক্লেইম না করতে পারে তার রেকর্ড
+            }).then(() => {
+                Swal.fire('অভিনন্দন!', '৳ ১০.০০ আপনার অ্যাকাউন্টে সফলভাবে যোগ করা হয়েছে।', 'success');
+                claimBtn.disabled = true;
+                claimBtn.style.backgroundColor = "#555";
+                claimBtn.innerText = "ক্লেমড";
+            }).catch((error) => {
+                Swal.fire('দুঃখিত!', 'ডাটাবেস আপডেটে সমস্যা হয়েছে: ' + error.message, 'error');
+            });
+        }
+    }
 
     // 🔐 পাসওয়ার্ড আপডেট করার লজিক
     function updatePassword() {
