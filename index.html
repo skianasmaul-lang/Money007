@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money007 - Premium Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-container { width: 100%; max-width: 450px; background: linear-gradient(145deg, #1e1e1e, #151515); border: 2px solid #ffcc00; padding: 40px 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(255,204,0,0.15); }
+        h1 { color: #ffcc00; font-size: 36px; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; }
+        .subtitle { color: #aaa; font-size: 14px; margin-bottom: 30px; }
+        .input-group { position: relative; margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; color: #ffcc00; margin-bottom: 6px; margin-left: 5px; }
+        input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #222; color: #fff; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #ffcc00; background: #2a2a2a; outline: none; box-shadow: 0 0 10px rgba(255,204,0,0.2); }
+        .captcha-row { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 25px; }
+        .captcha-box { background: #ffcc00; color: #000; font-weight: bold; padding: 14px; border-radius: 10px; font-size: 20px; letter-spacing: 6px; width: 45%; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); user-select: none; }
+        .btn { background: #ffcc00; color: #000; border: none; padding: 16px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; letter-spacing: 0.5px; box-shadow: 0 5px 15px rgba(255,204,0,0.2); }
+        .btn:hover { background: #cca300; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1>Money 007</h1>
+    <div class="subtitle">টাস্ক কমপ্লিট করুন ও আর্নিং শুরু করুন</div>
+    
+    <div class="input-group">
+        <label>মোবাইল নম্বর</label>
+        <input type="tel" id="phone" placeholder="আপনার মোবাইল নম্বরটি দিন">
+    </div>
+    
+    <div class="input-group">
+        <label>পাসওয়ার্ড (৮ অক্ষরের নিচে)</label>
+        <input type="password" id="password" placeholder="পাসওয়ার্ড দিন">
+    </div>
+    
+    <div class="input-group">
+        <label>সিকিউরিটি ক্যাপচা কোড</label>
+        <div class="captcha-row">
+            <div class="captcha-box" id="captchaCode">0000</div>
+            <input type="text" id="captchaInput" placeholder="কোডটি লিখুন" style="margin: 0;">
+        </div>
+    </div>
+
+    <button class="btn" id="loginBtn" onclick="handleAuth()">Login / Register</button>
+</div>
+
+<script>
+    // আপনার ফায়ারবেস কনফিগারেশন
+    const firebaseConfig = {
+        apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+        authDomain: "index-html-75ded.firebaseapp.com",
+        databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+        projectId: "index-html-75ded",
+        storageBucket: "index-html-75ded.firebasestorage.app",
+        messagingSenderId: "833678381856",
+        appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ⚡ ফিচার: অটো-লগইন চেক (ইউজার একবার লগইন করলে বারবার লগইন করতে হবে না)
+    window.onload = function() {
+        const savedUser = localStorage.getItem('loggedInUser');
+        if (savedUser) {
+            // ডাটাবেস থেকে চেক করে নেওয়া ইউজার ব্যান আছে কিনা
+            db.ref('users/' + savedUser).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.isBanned === true) {
+                        localStorage.removeItem('loggedInUser'); // ব্যান থাকলে সেশন ডিলিট
+                        Swal.fire('অ্যাকাউন্ট ব্লকড!', 'আপনার অ্যাকাউন্টটি অ্যাডমিন দ্বারা ব্যান করা হয়েছে!', 'error');
+                    } else {
+                        // ব্যান না থাকলে সরাসরি হোম পেজে রিডাইরেক্ট করবে
+                        window.location.href = 'home.html';
+                    }
+                }
+            });
+        }
+    };
+
+    // ক্যাপচা জেনারেটর
+    function generateCaptcha() {
+        let code = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('captchaCode').innerText = code;
+    }
+    generateCaptcha();
+
+    // লগইন ও রেজিস্ট্রেশন লজিক
+    function handleAuth() {
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const captchaInput = document.getElementById('captchaInput').value.trim();
+        const captchaCode = document.getElementById('captchaCode').innerText;
+        const btn = document.getElementById('loginBtn');
+
+        if(!phone || !password || !captchaInput) {
+            Swal.fire('দুঃখিত!', 'সবগুলো ঘর সঠিকভাবে পূরণ করুন', 'error');
+            return;
+        }
+        if(password.length >= 8) {
+            Swal.fire('ভুল পাসওয়ার্ড!', 'পাসওয়ার্ড অবশ্যই ৮ অক্ষরের নিচে হতে হবে', 'error');
+            return;
+        }
+        if(captchaInput !== captchaCode) {
+            Swal.fire('ক্যাপচা মেলেনি!', 'سঠিক ক্যাপচা কোডটি বসান', 'error');
+            generateCaptcha();
+            return;
+        }
+
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        const userRef = db.ref('users/' + phone);
+        
+        userRef.once('value').then((snapshot) => {
+            if(snapshot.exists()) {
+                const userData = snapshot.val();
+
+                // ⚡ সিকিউরিটি চেক ১: অ্যাকাউন্ট ব্যান করা আছে কিনা
+                if(userData.isBanned === true) {
+                    Swal.fire('অ্যাকাউন্ট ব্লকড!', 'দুঃখিত, এই অ্যাকাউন্টটি অ্যাডমিন কর্তৃক ব্যান করা হয়েছে!', 'error');
+                    btn.innerText = "Login / Register";
+                    btn.disabled = false;
+                    generateCaptcha();
+                    return;
+                }
+
+                if(userData.password === password) {
+                    localStorage.setItem('loggedInUser', phone); // ব্রাউজারে সেশন সেভ
+                    window.location.href = 'home.html';
+                } else {
+                    Swal.fire('ভুল তথ্য!', 'এই নম্বরে অন্য পাসওয়ার্ড দিয়ে অ্যাকাউন্ট আছে!', 'error');
+                    btn.innerText = "Login / Register";
+                    btn.disabled = false;
+                    generateCaptcha();
+                }
+            } else {
+                // সম্পূর্ণ নতুন অ্যাকাউন্ট তৈরি
+                const randomCode = Math.floor(100000 + Math.random() * 900000);
+                const newUser = {
+                    phone: phone,
+                    password: password,
+                    balance: 0,
+                    referCode: randomCode,
+                    hasClaimedBonus: false,
+                    isBanned: false, // ডিফল্টভাবে নতুন ইউজার ব্যান থাকবে না
+                    accountCreatedDate: new Date().toLocaleDateString(), // অ্যাকাউন্ট তৈরির তারিখ
+                    job1Time: 0,
+                    job2Time: 0,
+                    job3Time: 0
+                };
+                userRef.set(newUser).then(() => {
+                    localStorage.setItem('loggedInUser', phone); // ব্রাউজারে সেশন সেভ
+                    Swal.fire('সফল রেজিস্ট্রেশন!', 'আপনার ফ্রেশ অ্যাকাউন্ট তৈরি হয়েছে!', 'success').then(() => {
+                        window.location.href = 'home.html';
+                    });
+                });
+            }
+        }).catch((error) => {
+            Swal.fire('Error!', error.message, 'error');
+            btn.innerText = "Login / Register";
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>

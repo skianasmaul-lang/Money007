@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money007 - Premium Home</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #121212; color: #fff; padding-bottom: 80px; }
+        .header { background: #1e1e1e; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffcc00; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 22px; font-weight: bold; color: #ffcc00; text-decoration: none; cursor: pointer; letter-spacing: 0.5px; }
+        .balance-box { background: #2a2a2a; padding: 8px 18px; border-radius: 20px; border: 1px solid #ffcc00; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .profile-icon { width: 38px; height: 38px; background: #ffcc00; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #000; font-weight: bold; text-decoration: none; box-shadow: 0 0 10px rgba(255,204,0,0.3); }
+        
+        .main-content { padding: 20px; max-width: 500px; margin: auto; }
+        .welcome-msg { font-size: 13px; color: #aaa; text-align: center; margin-bottom: 20px; }
+        
+        .job-list-title { font-size: 16px; color: #ffcc00; margin-bottom: 15px; font-weight: bold; padding-left: 5px; }
+        .job-card { background: #1e1e1e; border-radius: 15px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #ffcc00; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .job-info h3 { font-size: 15px; margin-bottom: 5px; color: #fff; }
+        .job-info p { font-size: 12px; color: #aaa; }
+        .open-btn { background: #ffcc00; color: #000; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .open-btn:hover { background: #cca300; }
+
+        /* Bottom Nav */
+        .bottom-nav { background: #1e1e1e; position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid #ffcc00; }
+        .nav-item { color: #aaa; text-decoration: none; font-size: 12px; text-align: center; }
+        .nav-item.active { color: #ffcc00; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="home.html" class="logo">money 007</a>
+    <div class="balance-box">৳ <span id="userBalance">0.00</span></div>
+    <a href="profile.html" class="profile-icon">P</a>
+</div>
+
+<div class="main-content">
+    <div class="welcome-msg">প্রিমিয়াম ড্যাশবোর্ডে আপনাকে স্বাগতম! নিচে থেকে আপনার ডেইলি টাস্ক সম্পন্ন করুন।</div>
+    
+    <div class="job-list-title">উপলব্ধ কাজের তালিকা (Daily Tasks)</div>
+
+    <div class="job-card">
+        <div class="job-info">
+            <h3>Job 1: অংক করুন</h3>
+            <p>ফাইল: job1.html • রিওয়ার্ড: ১ টাকা পর্যন্ত</p>
+        </div>
+        <button class="open-btn" onclick="checkAndRedirect(1, 'job1.html')">Open</button>
+    </div>
+
+    <div class="job-card">
+        <div class="job-info">
+            <h3>Job 2: কুইজ খেলুন</h3>
+            <p>ফাইল: job2.html • রিওয়ার্ড: ১ টাকা পর্যন্ত</p>
+        </div>
+        <button class="open-btn" onclick="checkAndRedirect(2, 'job2.html')">Open</button>
+    </div>
+
+    <div class="job-card">
+        <div class="job-info">
+            <h3>Job 3: সঠিক লেখা টাইপ</h3>
+            <p>ফাইল: job3.html • রিওয়ার্ড: ১ টাকা পর্যন্ত</p>
+        </div>
+        <button class="open-btn" onclick="checkAndRedirect(3, 'job3.html')">Open</button>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="home.html" class="nav-item active">🏠<br>হোম</a>
+    <a href="history.html" class="nav-item">📋<br>হিস্টরি</a>
+    <a href="withdraw.html" class="nav-item">💰<br>উত্তোলন</a>
+    <a href="refer.html" class="nav-item">👥<br>রেফার</a>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+        authDomain: "index-html-75ded.firebaseapp.com",
+        databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+        projectId: "index-html-75ded",
+        storageBucket: "index-html-75ded.firebasestorage.app",
+        messagingSenderId: "833678381856",
+        appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userPhone = localStorage.getItem('loggedInUser');
+
+    if(!userPhone) { window.location.href = 'index.html'; }
+
+    let userData = {};
+
+    // ব্যালেন্স রিয়েলটাইম আপডেট শো
+    db.ref('users/' + userPhone).on('value', (snapshot) => {
+        if(snapshot.exists()) {
+            userData = snapshot.val();
+            document.getElementById('userBalance').innerText = (userData.balance || 0).toFixed(2);
+        }
+    });
+
+    // ৩ মিনিটের লক চেক করে রিডাইরেক্ট করার ফাংশন
+    function checkAndRedirect(jobNum, targetFile) {
+        const now = Date.now();
+        const lastTime = userData['job' + jobNum + 'Time'] || 0;
+        
+        if (now - lastTime < 3 * 60 * 1000) {
+            Swal.fire('দুঃখিত!', 'এই কাজটি আগামী ৩ মিনিটের জন্য লক রয়েছে!', 'warning');
+        } else {
+            window.location.href = targetFile;
+        }
+    }
+</script>
+</body>
+</html>
