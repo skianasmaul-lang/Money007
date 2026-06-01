@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job 1 - Math Challenger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f2f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
+        .phone-container { background: #ffffff; width: 100%; max-width: 410px; height: 840px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; position: relative; border: 8px solid #222; }
+        .app-header { background: #ffffff; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef0fa; }
+        .logo-link { text-decoration: none; font-size: 18px; font-weight: 700; color: #635bff; }
+        .balance-container { background: linear-gradient(135deg, #635bff, #4b43d3); padding: 6px 14px; border-radius: 20px; color: white; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .main-content { flex: 1; padding: 25px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .stats-bar { width: 100%; display: flex; justify-content: space-between; margin-bottom: 30px; font-weight: 600; font-size: 15px; background: #eef0fa; padding: 10px 15px; border-radius: 15px; }
+        .timer-box { color: #ff4a5a; } .counter-box { color: #635bff; }
+        .game-card { background: #fcfcff; border: 2px solid #eef0fa; border-radius: 24px; width: 100%; padding: 40px 20px; text-align: center; box-shadow: 0 8px 20px rgba(99,91,255,0.02); margin-bottom: 30px; }
+        .question-text { font-size: 36px; font-weight: 700; color: #333; margin-bottom: 10px; letter-spacing: 1px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+        .option-btn { background: #ffffff; border: 2px solid #eef0fa; padding: 15px; border-radius: 18px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #444; }
+        .option-btn:hover { border-color: #635bff; background: rgba(99,91,255,0.05); }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-card { background: #ffffff; border-radius: 30px; width: 100%; max-width: 320px; padding: 30px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .modal-icon { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px auto; background: #eafaf1; color: #2ecc71; }
+        .modal-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #333; }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500; padding: 0 10px; }
+        .reward-highlight { font-size: 18px; font-weight: 700; color: #2ecc71; margin-top: 15px; border-top: 1px dashed #eef0fa; padding-top: 15px; }
+        .modal-btn { background: #635bff; color: white; border: none; padding: 12px 35px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; width: 100%; transition: background 0.2s; }
+        .modal-btn:hover { background: #4b43d3; }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <header class="app-header">
+            <a href="homepage.html" class="logo-link"><i class="fa-solid fa-chevron-left"></i> Job 1</a>
+            <div class="balance-container"><i class="fa-solid fa-wallet"></i> <span id="userBalance">৳ 0.00</span></div>
+        </header>
+        <main class="main-content">
+            <div class="stats-bar">
+                <div class="timer-box"><i class="fa-solid fa-clock"></i> <span id="timerTxt">5s</span></div>
+                <div class="counter-box">Completed: <span id="countTxt">0/15</span></div>
+            </div>
+            <div class="game-card">
+                <div class="question-text" id="qText">0 + 0</div>
+            </div>
+            <div class="options-grid" id="optionsBox">
+                <button class="option-btn">0</button>
+                <button class="option-btn">0</button>
+                <button class="option-btn">0</button>
+                <button class="option-btn">0</button>
+            </div>
+        </main>
+        <div class="modal-overlay" id="resultModal">
+            <div class="modal-card">
+                <div class="modal-icon"><i class="fa-solid fa-gift"></i></div>
+                <h3>Task Completed!</h3>
+                <div class="result-row"><span>Correct Answers:</span><span id="resCorrect" style="color:#2ecc71;">0</span></div>
+                <div class="result-row"><span>Wrong/Missed:</span><span id="resWrong" style="color:#ff4a5a;">0</span></div>
+                <div class="reward-highlight">Earned: <span id="resReward">৳ 0.00</span></div>
+                <button class="modal-btn" onclick="location.href='homepage.html'">Claim & Exit</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyDCcEN0rhBMrPo8UK8RPXsnAkG7CPGSDDg", authDomain: "ludo-tournament-apps-45eb5.firebaseapp.com", databaseURL: "https://ludo-tournament-apps-45eb5-default-rtdb.firebaseio.com", projectId: "ludo-tournament-apps-45eb5", storageBucket: "ludo-tournament-apps-45eb5.firebasestorage.app", messagingSenderId: "1013047099500", appId: "1:1013047099500:web:a1c53f941f405c2f29d849", measurementId: "G-MZDSZ0CYKH" };
+        firebase.initializeApp(firebaseConfig); const db = firebase.database();
+        let loggedInUserPhone = localStorage.getItem('userPhone') || "01700000000";
+        let currentBalance = 0, completedTasksCount = 0, currentRound = 0, correctCount = 0, wrongCount = 0, timerInterval, timeLeft = 5, correctAnswer = 0;
+
+        db.ref('users/' + loggedInUserPhone).on('value', (snap) => {
+            if (snap.exists()) {
+                currentBalance = parseFloat(snap.val().balance || 0);
+                completedTasksCount = parseInt(snap.val().completedTasks || 0);
+                document.getElementById('userBalance').textContent = "৳ " + currentBalance.toFixed(2);
+            }
+        });
+
+        function generateQuestion() {
+            if (currentRound >= 15) { endGame(); return; }
+            timeLeft = 5; document.getElementById('timerTxt').textContent = timeLeft + "s";
+            document.getElementById('countTxt').textContent = currentRound + "/15";
+            let num1 = Math.floor(Math.random() * 20) + 1, num2 = Math.floor(Math.random() * 10) + 1;
+            let ops = ['+', '-', '*'], op = ops[Math.floor(Math.random() * ops.length)];
+            if(op === '+') correctAnswer = num1 + num2;
+            else if(op === '-') { if(num1 < num2) { let t = num1; num1 = num2; num2 = t; } correctAnswer = num1 - num2; }
+            else correctAnswer = num1 * num2;
+            document.getElementById('qText').textContent = `${num1} ${op} ${num2}`;
+            let options = [correctAnswer];
+            while(options.length < 4) {
+                let wrongOpt = correctAnswer + (Math.floor(Math.random() * 10) - 5);
+                if(!options.includes(wrongOpt) && wrongOpt >= 0) options.push(wrongOpt);
+            }
+            options.sort(() => Math.random() - 0.5);
+            let btnHtml = '';
+            options.forEach(opt => { btnHtml += `<button class="option-btn" onclick="checkAnswer(${opt})">${opt}</button>`; });
+            document.getElementById('optionsBox').innerHTML = btnHtml;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--; document.getElementById('timerTxt').textContent = timeLeft + "s";
+                if(timeLeft <= 0) { clearInterval(timerInterval); wrongCount++; currentRound++; generateQuestion(); }
+            }, 1000);
+        }
+
+        function checkAnswer(selected) {
+            clearInterval(timerInterval);
+            if(selected === correctAnswer) correctCount++; else wrongCount++;
+            currentRound++; generateQuestion();
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            let earned = (correctCount / 15) * 0.50; if(earned < 0) earned = 0;
+            let finalBalance = currentBalance + earned;
+            let finalTasks = completedTasksCount + 1;
+            db.ref('users/' + loggedInUserPhone).update({ balance: finalBalance, completedTasks: finalTasks }).then(() => {
+                document.getElementById('resCorrect').textContent = correctCount;
+                document.getElementById('resWrong').textContent = wrongCount;
+                document.getElementById('resReward').textContent = "৳ " + earned.toFixed(2);
+                document.getElementById('resultModal').style.display = 'flex';
+            });
+        }
+        generateQuestion();
+    </script>
+</body>
+</html>

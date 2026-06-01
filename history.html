@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Dashboard - History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Firebase Standard Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f2f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
+        .phone-container { background: #fcfcff; width: 100%; max-width: 410px; height: 840px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; position: relative; border: 8px solid #222; }
+        .app-header { background: #ffffff; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef0fa; }
+        .logo-link { text-decoration: none; font-size: 18px; font-weight: 700; color: #635bff; }
+        .balance-container { background: linear-gradient(135deg, #635bff, #4b43d3); padding: 6px 14px; border-radius: 20px; color: white; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .profile-avatar-link { width: 38px; height: 38px; background: #eef0fa; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; color: #635bff; border: 2px solid #635bff; }
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 90px; }
+        .tabs-header { display: flex; background: #eef0fa; padding: 5px; border-radius: 16px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; font-size: 14px; font-weight: 600; color: #a0a5ba; cursor: pointer; border-radius: 12px; transition: all 0.3s ease; }
+        .tab-btn.active { background: #ffffff; color: #635bff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
+        .history-container { display: none; flex-direction: column; gap: 15px; }
+        .history-container.active { display: flex; }
+        .history-card { background: #ffffff; border: 2px solid #eef0fa; border-radius: 20px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .card-left { display: flex; align-items: center; gap: 12px; }
+        .icon-box { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .task-icon { background: #eef0fa; color: #635bff; }
+        .withdraw-icon { background: #fff0f2; color: #ff4a5a; }
+        .info-title { font-size: 14px; font-weight: 600; }
+        .info-date { font-size: 11px; color: #a0a5ba; }
+        .amount-text { font-size: 15px; font-weight: 700; }
+        .plus { color: #2ecc71; } .minus { color: #ff4a5a; }
+        .status-badge { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 12px; text-transform: capitalize; }
+        .pending { background: #fff9e6; color: #f1c40f; }
+        .approved { background: #eafaf1; color: #2ecc71; }
+        .rejected { background: #fff0f2; color: #ff4a5a; }
+        .no-data { text-align: center; color: #a0a5ba; margin-top: 40px; }
+        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; background: #ffffff; height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #eef0fa; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #a0a5ba; gap: 5px; flex: 1; }
+        .nav-item.active { color: #635bff; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <header class="app-header">
+            <a href="homepage.html" class="logo-link">money007</a>
+            <div class="balance-container">
+                <i class="fa-solid fa-wallet"></i>
+                <span id="userBalance">৳ 0.00</span>
+            </div>
+            <a href="profile.html" class="profile-avatar-link"><i class="fa-solid fa-user"></i></a>
+        </header>
+
+        <main class="main-content">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('task-history', this)">কাজের হিস্টরি</button>
+                <button class="tab-btn" onclick="switchTab('withdraw-history', this)">উত্তোলন হিস্টরি</button>
+            </div>
+            
+            <div id="task-history" class="history-container active"></div>
+            <div id="withdraw-history" class="history-container"></div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="homepage.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোমপেজ</span></a>
+            <a href="history.html" class="nav-item active"><i class="fa-solid fa-clock-rotate-left"></i><span>হিস্টরি</span></a>
+            <a href="withdraw.html" class="nav-item"><i class="fa-solid fa-money-bill-transfer"></i><span>উত্তোলন</span></a>
+            <a href="refer.html" class="nav-item"><i class="fa-solid fa-user-plus"></i><span>রেফার</span></a>
+        </nav>
+    </div>
+
+    <script>
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.history-container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCcEN0rhBMrPo8UK8RPXsnAkG7CPGSDDg",
+            authDomain: "ludo-tournament-apps-45eb5.firebaseapp.com",
+            databaseURL: "https://ludo-tournament-apps-45eb5-default-rtdb.firebaseio.com",
+            projectId: "ludo-tournament-apps-45eb5",
+            storageBucket: "ludo-tournament-apps-45eb5.firebasestorage.app",
+            messagingSenderId: "1013047099500",
+            appId: "1:1013047099500:web:a1c53f941f405c2f29d849",
+            measurementId: "G-MZDSZ0CYKH"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let phone = localStorage.getItem('userPhone');
+        const taskDiv = document.getElementById('task-history');
+        const withdrawDiv = document.getElementById('withdraw-history');
+
+        if (phone) {
+            db.ref('users/' + phone).on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+
+                document.getElementById('userBalance').textContent = "৳ " + parseFloat(data.balance || 0).toFixed(2);
+
+                // Load Tasks
+                taskDiv.innerHTML = data.tasks ? '' : '<div class="no-data">কোনো কাজের হিস্টরি নেই</div>';
+                if(data.tasks) {
+                    Object.values(data.tasks).forEach(t => {
+                        taskDiv.innerHTML += `<div class="history-card"><div class="card-left"><div class="icon-box task-icon"><i class="fa-brands fa-youtube"></i></div><div><div class="info-title">${t.title}</div><div class="info-date">${t.date}</div></div></div><div class="amount-text plus">+৳ ${parseFloat(t.reward).toFixed(2)}</div></div>`;
+                    });
+                }
+
+                // Load Withdraws
+                withdrawDiv.innerHTML = data.withdraws ? '' : '<div class="no-data">কোনো উত্তোলনের হিস্টরি নেই</div>';
+                if(data.withdraws) {
+                    Object.values(data.withdraws).forEach(w => {
+                        withdrawDiv.innerHTML += `<div class="history-card"><div class="card-left"><div class="icon-box withdraw-icon"><i class="fa-solid fa-money-bill-transfer"></i></div><div><div class="info-title">${w.method}</div><div class="info-date">${w.date}</div></div></div><div style="text-align:right"><div class="amount-text minus">-৳ ${parseFloat(w.amount).toFixed(2)}</div><div class="status-badge ${w.status}">${w.status}</div></div></div>`;
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

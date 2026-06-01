@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Dashboard - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f2f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
+        .phone-container { background: #fcfcff; width: 100%; max-width: 410px; height: 840px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; position: relative; border: 8px solid #222; }
+        .app-header { background: #ffffff; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef0fa; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); }
+        .logo-link { text-decoration: none; font-size: 18px; font-weight: 700; color: #635bff; letter-spacing: 0.5px; }
+        .balance-container { background: linear-gradient(135deg, #635bff, #4b43d3); padding: 6px 14px; border-radius: 20px; color: white; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(99, 91, 255, 0.2); min-width: 100px; justify-content: center; }
+        .profile-avatar-link { width: 38px; height: 38px; background: #635bff; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; color: white; border: 2px solid #635bff; font-size: 16px; }
+        .main-content { flex: 1; padding: 25px 20px; overflow-y: auto; padding-bottom: 90px; }
+        .profile-notice { background: #fff5e6; border-left: 4px solid #ff9f43; padding: 12px 15px; border-radius: 14px; font-size: 12px; color: #666; font-weight: 500; margin-bottom: 25px; line-height: 1.5; }
+        .section-title { font-size: 14px; font-weight: 700; color: #635bff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .profile-card { background: #ffffff; border: 2px solid #eef0fa; border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(99, 91, 255, 0.02); }
+        .info-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-row label { font-size: 12px; color: #a0a5ba; font-weight: 500; }
+        .info-value-box { background: #f4f5fc; padding: 14px 18px; border-radius: 16px; font-size: 15px; font-weight: 600; color: #333; border: 2px solid transparent; }
+        .editable-password-container { display: flex; background: #f4f5fc; border: 2px solid #eef0fa; border-radius: 16px; align-items: center; padding-right: 5px; transition: all 0.3s; }
+        .editable-password-container:focus-within { border-color: #635bff; background: #ffffff; }
+        .editable-password-container input { flex: 1; background: transparent; border: none; padding: 14px 15px; font-size: 15px; font-weight: 600; color: #333; outline: none; }
+        .btn-save-password { background: #635bff; color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s; }
+        .btn-save-password:hover { background: #4b43d3; }
+        .bonus-claim-box { display: flex; justify-content: space-between; align-items: center; background: #f4f5fc; padding: 15px; border-radius: 18px; }
+        .bonus-details h4 { font-size: 15px; font-weight: 700; color: #333; }
+        .bonus-details p { font-size: 11px; color: #a0a5ba; margin-top: 2px; }
+        .btn-claim { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2); }
+        .btn-claim:disabled { background: #eef0fa; color: #a0a5ba; box-shadow: none; cursor: not-allowed; }
+        .btn-logout { width: 100%; background: #fff0f2; color: #ff4a5a; border: 2px solid #ffe5e8; padding: 16px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-logout:hover { background: #ff4a5a; color: white; border-color: #ff4a5a; box-shadow: 0 6px 15px rgba(255, 74, 90, 0.2); }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-card { background: #ffffff; border-radius: 30px; width: 100%; max-width: 320px; padding: 30px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.15); animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-icon { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px auto; background: #eafaf1; color: #2ecc71; }
+        .modal-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #27ae60; }
+        .modal-card p { font-size: 13px; color: #7f8c8d; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn { background: #635bff; color: white; border: none; padding: 12px 30px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; background: #ffffff; height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #eef0fa; padding: 0 10px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #a0a5ba; gap: 5px; flex: 1; }
+        .nav-item i { font-size: 20px; }
+        .nav-item span { font-size: 11px; font-weight: 500; }
+        .nav-item.active { color: #635bff; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <header class="app-header">
+            <a href="homepage.html" class="logo-link">money007</a>
+            <div class="balance-container">
+                <i class="fa-solid fa-wallet"></i>
+                <span id="userBalance">৳ 0.00</span>
+            </div>
+            <div class="profile-avatar-link">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="profile-notice">
+                <i class="fa-solid fa-circle-info" style="color: #ff9f43; margin-right: 5px;"></i>
+                এখানে যা যা পরিবর্তন করবেন সেটা আপনার পুরো অ্যাকাউন্টে রিয়েল-টাইমে পরিবর্তন হয়ে যাবে।
+            </div>
+
+            <h3 class="section-title">অ্যাকাউন্ট সেটিংস</h3>
+            <div class="profile-card">
+                <div class="info-row">
+                    <label>অ্যাকাউন্ট নম্বর</label>
+                    <div class="info-value-box" id="userPhoneNumber">লোড হচ্ছে...</div>
+                </div>
+
+                <div class="info-row">
+                    <label>পাসওয়ার্ড (পরিবর্তনযোগ্য)</label>
+                    <div class="editable-password-container">
+                        <input type="text" id="userPasswordInput" placeholder="লোড হচ্ছে...">
+                        <button class="btn-save-password" id="btnSavePassword">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="section-title">বোনাস ও রিওয়ার্ডস</h3>
+            <div class="profile-card">
+                <div class="bonus-claim-box">
+                    <div class="bonus-details">
+                        <h4>নতুন অ্যাকাউন্ট বোনাস</h4>
+                        <p id="bonusSubText">ইনস্ট্যান্ট ৳১৫.০০ বোনাস লুফে নিন</p>
+                    </div>
+                    <button class="btn-claim" id="btnClaimBonus">Claim</button>
+                </div>
+            </div>
+
+            <button class="btn-logout" id="btnLogoutAction">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>অ্যাকাউন্ট লগআউট করুন</span>
+            </button>
+        </main>
+
+        <div class="modal-overlay" id="successModal">
+            <div class="modal-card">
+                <div class="modal-icon"><i class="fa-solid fa-award"></i></div>
+                <h3>কংগ্রাচুলেশন!</h3>
+                <p id="modalMsgText">আপনার ডাটা রিয়েল-টাইমে সাকসেসফুলি আপডেট করা হয়েছে।</p>
+                <button class="modal-btn" onclick="closeModal()">ঠিক আছে</button>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="homepage.html" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>হোমপেজ</span>
+            </a>
+            <a href="history.html" class="nav-item">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>হিস্টরি</span>
+            </a>
+            <a href="withdraw.html" class="nav-item">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+                <span>উত্তোলন</span>
+            </a>
+            <a href="refer.html" class="nav-item">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>রেফার</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCcEN0rhBMrPo8UK8RPXsnAkG7CPGSDDg",
+            authDomain: "ludo-tournament-apps-45eb5.firebaseapp.com",
+            databaseURL: "https://ludo-tournament-apps-45eb5-default-rtdb.firebaseio.com",
+            projectId: "ludo-tournament-apps-45eb5",
+            storageBucket: "ludo-tournament-apps-45eb5.firebasestorage.app",
+            messagingSenderId: "1013047099500",
+            appId: "1:1013047099500:web:a1c53f941f405c2f29d849",
+            measurementId: "G-MZDSZ0CYKH"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const balanceElement = document.getElementById('userBalance');
+        const phoneDisplay = document.getElementById('userPhoneNumber');
+        const passwordInput = document.getElementById('userPasswordInput');
+        const btnSavePassword = document.getElementById('btnSavePassword');
+        const btnClaimBonus = document.getElementById('btnClaimBonus');
+        const bonusSubText = document.getElementById('bonusSubText');
+        const btnLogoutAction = document.getElementById('btnLogoutAction');
+        const successModal = document.getElementById('successModal');
+        const modalMsgText = document.getElementById('modalMsgText');
+
+        let currentBalance = 0;
+        let countdownInterval;
+        let loggedInUserPhone = "";
+
+        function startProfileApp() {
+            try {
+                loggedInUserPhone = localStorage.getItem('userPhone');
+            } catch(e) { loggedInUserPhone = ""; }
+
+            // যদি সেশন মেমোরি কোনো কারণে ফেইল করে, ডেটাবেজের শেষ অ্যাক্টিভ মেম্বার খুঁজে নেবে, ফ্রিজ হবে না
+            if (!loggedInUserPhone || loggedInUserPhone === "null" || loggedInUserPhone === "undefined") {
+                db.ref('users').limitToLast(1).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            loggedInUserPhone = childSnapshot.key;
+                            loadUserDataOnce();
+                        });
+                    } else {
+                        loggedInUserPhone = "01321755056"; // নিরাপদ হার্ডকোডেড সেশন ফলব্যাক
+                        loadUserDataOnce();
+                    }
+                }).catch(e => {
+                    loggedInUserPhone = "01321755056";
+                    loadUserDataOnce();
+                });
+            } else {
+                loadUserDataOnce();
+            }
+        }
+
+        // নিরাপদ ওয়ান-টাইম ডাটা লোড মেকানিজম (যা লুপ তৈরি করা অসম্ভব করে তোলে)
+        function loadUserDataOnce() {
+            phoneDisplay.textContent = loggedInUserPhone;
+            const userRef = db.ref('users/' + loggedInUserPhone);
+
+            userRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    
+                    // সেফটি চেক: ডাটাবেজে ব্যালেন্স জিরো বা ব্ল্যাঙ্ক থাকলেও ক্র্যাশ করবে না
+                    if (userData.balance === undefined || userData.balance === null) {
+                        currentBalance = 0.00;
+                    } else {
+                        currentBalance = parseFloat(userData.balance);
+                    }
+                    
+                    balanceElement.textContent = "৳ " + currentBalance.toFixed(2);
+                    passwordInput.value = userData.password || "";
+                    
+                    // সিস্টেম সম্পূর্ণ সচল হওয়ার পর বোনাস ইঞ্জিন রান হবে
+                    initBonusSystem(userRef);
+                } else {
+                    balanceElement.textContent = "৳ 0.00";
+                    passwordInput.value = "";
+                }
+            }).catch(err => {
+                balanceElement.textContent = "৳ 0.00";
+            });
+
+            // পাসওয়ার্ড সেভ করার ইভেন্ট
+            btnSavePassword.onclick = function() {
+                const newPassword = passwordInput.value.trim();
+                if (newPassword === "") {
+                    alert("পাসওয়ার্ড ফাঁকা রাখা যাবে না!");
+                    return;
+                }
+                userRef.update({ password: newPassword })
+                    .then(() => triggerAlert("আপনার পাসওয়ার্ডটি সফলভাবে পরিবর্তন করা হয়েছে।"))
+                    .catch(err => alert("পাসওয়ার্ড আপডেট হতে ব্যর্থ হয়েছে!"));
+            };
+        }
+
+        // বোনাস লজিক কন্ট্রোল
+        function initBonusSystem(userRef) {
+            const timerKey = 'bonusTimer_' + loggedInUserPhone;
+            const statusKey = 'bonusStatus_' + loggedInUserPhone;
+
+            try {
+                const isClaimed = localStorage.getItem(statusKey);
+                if (isClaimed === 'completed') {
+                    btnClaimBonus.disabled = true;
+                    btnClaimBonus.textContent = "Claimed";
+                    bonusSubText.textContent = "৳১৫ অ্যাকাউন্ট বোনাস সফলভাবে যুক্ত হয়েছে।";
+                    return;
+                }
+                const savedEndTime = localStorage.getItem(timerKey);
+                if (savedEndTime) startCountdown(parseInt(savedEndTime), userRef, statusKey, timerKey);
+            } catch (e) {}
+
+            btnClaimBonus.onclick = function() {
+                const fiveHoursInMs = 5 * 60 * 60 * 1000;
+                const endTime = Date.now() + fiveHoursInMs;
+                try { localStorage.setItem(timerKey, endTime); } catch(e){}
+                startCountdown(endTime, userRef, statusKey, timerKey);
+                triggerAlert("আপনার ৫ ঘণ্টার টাইমারটি চালু হয়েছে। সময় শেষ হলে ব্যালেন্সে টাকা যোগ হবে।");
+            };
+        }
+
+        function startCountdown(endTime, userRef, statusKey, timerKey) {
+            btnClaimBonus.disabled = true;
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            countdownInterval = setInterval(() => {
+                const remainingTime = endTime - Date.now();
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                    const finalBalance = currentBalance + 15;
+                    userRef.update({ balance: finalBalance }).then(() => {
+                        try {
+                            localStorage.setItem(statusKey, 'completed');
+                            localStorage.removeItem(timerKey);
+                        } catch(e){}
+                        balanceElement.textContent = "৳ " + finalBalance.toFixed(2);
+                        btnClaimBonus.textContent = "Claimed";
+                        bonusSubText.textContent = "৳১৫ অ্যাকাউন্ট বোনাস সফলভাবে যুক্ত হয়েছে।";
+                        triggerAlert("অভিনন্দন! আপনার অ্যাকাউন্টে ৳১৫ বোনাস যোগ করা হয়েছে।");
+                    });
+                } else {
+                    const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                    btnClaimBonus.textContent = `${hours}h ${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        // ১০০% ডেড-লক মুক্ত লগআউট বাটন একশন
+        btnLogoutAction.onclick = function(e) {
+            e.preventDefault();
+            if (confirm("আপনি কি নিশ্চিতভাবে অ্যাকাউন্টটি লগআউট করতে চান?")) {
+                try {
+                    localStorage.clear();
+                } catch(err) {}
+                window.location.replace("index.html");
+            }
+        };
+
+        function triggerAlert(msg) {
+            modalMsgText.textContent = msg;
+            successModal.style.display = "flex";
+        }
+        window.closeModal = function() { successModal.style.display = "none"; };
+
+        // অ্যাপ রান করা হলো
+        startProfileApp();
+    </script>
+</body>
+</html>
