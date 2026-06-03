@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Premium Live Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f5f5f5; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+        
+        .phone-container { 
+            background: #fcfcfc; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; 
+            position: relative; padding-bottom: 100px; overflow-y: auto; overflow-x: hidden; 
+        }
+
+        /* Top Header Dashboard */
+        .top-header { 
+            background: #4CAF50; padding: 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; 
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(76, 175, 80, 0.2); 
+            position: sticky; top: 0; z-index: 100; 
+        }
+        .profile-section { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background: #ffffff; border: 2px solid rgba(255, 255, 255, 0.6); display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-meta h3 { color: #ffffff; font-size: 16px; font-weight: 600; text-transform: capitalize; }
+        .user-meta p { color: #e8f5e9; font-size: 12px; opacity: 0.9; }
+        .balance-container { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); padding: 8px 14px 8px 18px; border-radius: 50px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 255, 255, 0.25); }
+        .balance-amount { color: #ffffff; font-size: 16px; font-weight: 700; }
+        .add-funds-btn { background: #ffffff; color: #4CAF50; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+
+        /* Headings & Layouts */
+        .section-title { font-size: 14px; font-weight: 700; color: #2e7d32; padding: 20px 16px 10px 16px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .live-section { background: #fff3e0; border-top: 2px dashed #ff9800; border-bottom: 2px dashed #ff9800; padding-bottom: 15px; margin-top: 10px; }
+        .live-title { color: #e65100; font-size: 15px; }
+        .games-list { padding: 0 16px; display: flex; flex-direction: column; gap: 14px; width: 100%; }
+
+        /* Card System */
+        .game-card { background: #ffffff; border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); border: 1px solid #eeeeeeb3; position: relative; }
+        .live-card { border: 1px solid #ffb74d; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1); }
+        .game-info-left { display: flex; flex-direction: column; gap: 4px; }
+        .prize-pool { font-size: 19px; font-weight: 700; color: #1b3a1e; }
+        .entry-fee { font-size: 12px; font-weight: 600; background: #e8f5e9; color: #2e7d32; padding: 2px 10px; border-radius: 20px; display: inline-block; width: max-content; }
+        .live-card .entry-fee { background: #fff3e0; color: #e65100; }
+        
+        .game-tags { margin-top: 6px; display: flex; align-items: center; gap: 12px; font-size: 11px; color: #777777; font-weight: 500; }
+        .game-tags span { display: flex; align-items: center; gap: 4px; }
+        .timer-badge { color: #ff5722 !important; font-weight: 700; }
+
+        /* Buttons Styling */
+        .join-btn { background: #4CAF50; color: #ffffff; border: none; padding: 10px 24px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2); }
+        .join-btn.open-state { background: #2196F3; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.2); }
+        .join-btn.disabled-btn { background: #9e9e9e; box-shadow: none; cursor: not-allowed; }
+
+        /* Toast & Loader */
+        .notification-toast { position: fixed; top: 90px; left: 20px; right: 20px; background: #323232; color: #ffffff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 500; text-align: center; z-index: 1000; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        .spinner { width: 44px; height: 44px; border: 4px solid #e8f5e9; border-top: 4px solid #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+        
+        /* Bottom Nav */
+        .bottom-navigation { position: fixed; bottom: 0; left: 0; width: 100vw; height: 75px; background: #ffffff; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; z-index: 500; border-top: 1px solid #f0f0f0; }
+        .nav-item { display: flex; justify-content: center; align-items: center; width: 60px; height: 60px; border-radius: 50%; color: #888888; }
+        .nav-item.active { color: #4CAF50; background: #e8f5e9; }
+        .nav-item .material-icons-round { font-size: 32px; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingScreen">
+        <div class="spinner"></div>
+        <div style="font-size: 14px; color: #2e7d32; font-weight:600;">Syncing Live Rooms...</div>
+    </div>
+
+    <div class="phone-container">
+        <div class="notification-toast" id="toastMessage"></div>
+
+        <div class="top-header">
+            <div class="profile-section" onclick="navigateTo('profile.html')">
+                <div class="profile-avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile"></div>
+                <div class="user-meta"><h3 id="displayUsername">Loading...</h3><p>Player Account</p></div>
+            </div>
+            <div class="balance-container">
+                <span class="balance-amount" id="displayBalance">৳ 0.00</span>
+                <div class="add-funds-btn" onclick="navigateTo('payment.html')"><span class="material-icons-round">add</span></div>
+            </div>
+        </div>
+
+        <div class="live-section">
+            <div class="section-title live-title">
+                <span class="material-icons-round" style="color:#ff9800; animation: spin 4s linear infinite;">wb_sunny</span> Active Live Rooms (Realtime)
+            </div>
+            <div class="games-list" id="liveRoomsContainer"></div>
+        </div>
+
+        <div class="section-title">
+            <span class="material-icons-round">looks_two</span> 2 Players Master List (Infinity)
+        </div>
+        <div class="games-list" id="twoPlayerContainer"></div>
+
+        <div class="section-title">
+            <span class="material-icons-round">looks_4</span> 4 Players Master List (Infinity)
+        </div>
+        <div class="games-list" id="fourPlayerContainer"></div>
+
+        <div class="bottom-navigation">
+            <div class="nav-item active"><span class="material-icons-round">home</span></div>
+            <div class="nav-item" onclick="navigateTo('withdraw.html')"><span class="material-icons-round">account_balance_wallet</span></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, push, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45",
+            measurementId: "G-4704LVRXSH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let loggedInUser = localStorage.getItem("currentLoggedUser") || "asmaul00";
+        document.getElementById('displayUsername').textContent = loggedInUser;
+
+        let userBalance = 0.00;
+        let masterGames = [];
+        let liveGames = {};
+
+        // 1. Realtime Balance Sync & Auto-Fix Node Setup
+        onValue(ref(db, `users/${loggedInUser}`), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                userBalance = data.balance !== undefined ? parseFloat(data.balance) : 0.00;
+                document.getElementById('displayBalance').textContent = `৳ ${userBalance.toFixed(2)}`;
+            }
+            document.getElementById('loadingScreen').style.display = 'none';
+        });
+
+        function triggerToast(text) {
+            const toast = document.getElementById('toastMessage');
+            toast.textContent = text; toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+        }
+
+        // 2. Generate 20 Infinite Fixed Master Data Lists
+        function setupMasterData() {
+            let tiers = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+            tiers.forEach((fee, idx) => {
+                masterGames.push({ id: `M_2P_${idx+1}`, prize: fee * 2.0, fee: fee, totalSlots: 2, type: '2P' });
+            });
+            tiers.forEach((fee, idx) => {
+                masterGames.push({ id: `M_4P_${idx+11}`, prize: fee * 3.5, fee: fee, totalSlots: 4, type: '4P' });
+            });
+        }
+
+        // 3. Render Infinite Master Templates (টাইমার অফ, জয়েনড কাউন্ট ০ থাকবে সবসময়)
+        function renderMasterLists() {
+            const container2P = document.getElementById('twoPlayerContainer');
+            const container4P = document.getElementById('fourPlayerContainer');
+            container2P.innerHTML = ""; container4P.innerHTML = "";
+
+            masterGames.forEach((game) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `
+                    <div class="game-info-left">
+                        <div class="prize-pool">Winning Prize: ৳${game.prize}</div>
+                        <div class="entry-fee">Entry Fee: ৳${game.fee}</div>
+                        <div class="game-tags">
+                            <span><i class="material-icons-round icon-small">groups</i> ${game.totalSlots} Players Match</span>
+                            <span><i class="material-icons-round icon-small">person</i> 0/${game.totalSlots} Joined</span>
+                            <span><i class="material-icons-round icon-small">timer_off</i> Infinite List</span>
+                        </div>
+                    </div>
+                    <div><button class="join-btn" id="btn_master_${game.id}">JOIN</button></div>
+                `;
+                if (game.type === '2P') container2P.appendChild(card);
+                else container4P.appendChild(card);
+
+                document.getElementById(`btn_master_${game.id}`).addEventListener('click', () => {
+                    createNewLiveRoom(game);
+                });
+            });
+        }
+
+        // 4. ক্রিয়েট এ নিউ লাইভ রুম মেকানিজম (Firebase Live Storage Trigger)
+        function createNewLiveRoom(game) {
+            if (userBalance < game.fee) {
+                triggerToast("ব্যালেন্স নেই! প্রথমে টাকা ডিপোজিট করুন।");
+                return;
+            }
+
+            // Wallet Deduction Handling
+            update(ref(db, `users/${loggedInUser}`), { balance: userBalance - game.fee }).then(() => {
+                const liveRoomsRef = ref(db, 'live_rooms');
+                const newRoomData = {
+                    prize: game.prize,
+                    fee: game.fee,
+                    totalSlots: game.totalSlots,
+                    players: { [loggedInUser]: true },
+                    playerCount: 1,
+                    timeLeft: 1200, // ২০ মিনিট (১২০০ সেকেন্ড) কাউন্টডাউন শুরু
+                    isFull: false,
+                    matchStarted: false
+                };
+                push(liveRoomsRef, newRoomData).then(() => {
+                    triggerToast("নতুন লাইভ গেম তৈরি হয়েছে এবং টপে অ্যাড হয়েছে!");
+                });
+            });
+        }
+
+        // 5. রিয়েল-টাইম ফায়ারবেস লিসেনার (সব ইউজারের স্ক্রিনে লাইভ রুম আপডেট করার জন্য)
+        onValue(ref(db, 'live_rooms'), (snapshot) => {
+            const liveContainer = document.getElementById('liveRoomsContainer');
+            liveContainer.innerHTML = "";
+            
+            if(!snapshot.exists()) {
+                liveContainer.innerHTML = `<div style="text-align:center;font-size:12px;color:#aaa;padding:10px;">কোনো লাইভ ম্যাচ নেই। নিচের লিস্ট থেকে তৈরি করুন!</div>`;
+                return;
+            }
+
+            liveGames = snapshot.val();
+            
+            Object.keys(liveGames).forEach((roomId) => {
+                const room = liveGames[roomId];
+                const card = document.createElement('div');
+                card.className = 'game-card live-card';
+
+                let userInRoom = room.players && room.players[loggedInUser];
+                let btnText = "JOIN MATCH";
+                let btnClass = "join-btn";
+
+                if (userInRoom) {
+                    btnText = "OPEN";
+                    btnClass = "join-btn open-state";
+                } else if (room.isFull) {
+                    btnText = "ROOM FULL";
+                    btnClass = "join-btn disabled-btn";
+                }
+
+                card.innerHTML = `
+                    <div class="game-info-left">
+                        <div class="prize-pool" style="color:#e65100">Winning Prize: ৳${room.prize}</div>
+                        <div class="entry-fee">Entry Fee: ৳${room.fee}</div>
+                        <div class="game-tags">
+                            <span><i class="material-icons-round icon-small">groups</i> ${room.totalSlots} Players</span>
+                            <span style="color:#2e7d32; font-weight:700;"><i class="material-icons-round icon-small">person</i> ${room.playerCount}/${room.totalSlots} Joined</span>
+                            <span class="timer-badge"><i class="material-icons-round icon-small">schedule</i> <b>${formatTime(room.timeLeft)}</b></span>
+                        </div>
+                    </div>
+                    <div><button class="${btnClass}" id="btn_live_${roomId}">${btnText}</button></div>
+                `;
+                liveContainer.appendChild(card);
+
+                document.getElementById(`btn_live_${roomId}`).addEventListener('click', () => {
+                    handleLiveRoomAction(roomId, room);
+                });
+            });
+        });
+
+        // 6. লাইভ রুমের ভেতর জয়েন বা ওপেন করার লজিক ভেরিফিকেশন
+        function handleLiveRoomAction(roomId, room) {
+            let userInRoom = room.players && room.players[loggedInUser];
+
+            if (userInRoom) {
+                // প্লেয়ার ফুল হলে তবেই ওপেন এক্সেস পাবে
+                if (room.playerCount < room.totalSlots) {
+                    triggerToast("সবাই এখনো জয়েন করেনি, কিছুক্ষণ অপেক্ষা করুন!");
+                } else {
+                    // গেম শুরু করার ফ্ল্যাগ ডাটাবেসে আপডেট
+                    if (!room.matchStarted) {
+                        update(ref(db, `live_rooms/${roomId}`), { matchStarted: true, timeLeft: 1200 }); // ফুল হওয়ার পর নতুন করে আবার ২০ মিনিট কাউন্টডাউন শুরু
+                    }
+                    navigateTo('game.html');
+                }
+                return;
+            }
+
+            if (room.isFull) return;
+
+            if (userBalance < room.fee) {
+                triggerToast("টাকা নেই! আগে ডিপোজিট কমপ্লিট করুন।");
+                return;
+            }
+
+            // রিয়েলটাইম সেফ মাল্টি-প্লেয়ার জয়েনিং ট্রানজেকশন লুপ
+            const roomRef = ref(db, `live_rooms/${roomId}`);
+            runTransaction(roomRef, (currentRoom) => {
+                if (currentRoom) {
+                    if (!currentRoom.players) currentRoom.players = {};
+                    if (currentRoom.players[loggedInUser]) return; // Already inside
+                    
+                    if (currentRoom.playerCount < currentRoom.totalSlots) {
+                        currentRoom.players[loggedInUser] = true;
+                        currentRoom.playerCount++;
+                        if (currentRoom.playerCount === currentRoom.totalSlots) {
+                            currentRoom.isFull = true;
+                        }
+                    }
+                }
+                return currentRoom;
+            }).then((result) => {
+                if(result.committed) {
+                    update(ref(db, `users/${loggedInUser}`), { balance: userBalance - room.fee });
+                    triggerToast("লাইভ রুমে সফলভাবে স্পট বুক করেছেন!");
+                }
+            });
+        }
+
+        // 7. ব্যাকগ্রাউন্ড গ্লোবাল টাইমার এবং অটো ডিলিট/রিফান্ড ইঞ্জিন লুপ
+        setInterval(() => {
+            if (!liveGames) return;
+            
+            Object.keys(liveGames).forEach((roomId) => {
+                const room = liveGames[roomId];
+                if (room.timeLeft > 0) {
+                    let newTime = room.timeLeft - 1;
+                    update(ref(db, `live_rooms/${roomId}`), { timeLeft: newTime });
+
+                    // টাইম শেষ হওয়ার ডেডলক কন্ডিশন ফিক্সড
+                    if (newTime === 0) {
+                        if (!room.isFull) {
+                            // ১. ২০ মিনিট শেষ কিন্তু ফুল হয়নি -> রিফান্ড প্রোসেস
+                            if (room.players) {
+                                Object.keys(room.players).forEach((player) => {
+                                    // প্রতিটি জয়েন করা প্লেয়ারের একাউন্টে টাকা ফেরত পাঠানো হচ্ছে
+                                    const pRef = ref(db, `users/${player}/balance`);
+                                    runTransaction(pRef, (currentBal) => {
+                                        return (currentBal || 0) + room.fee;
+                                    });
+                                });
+                            }
+                            remove(ref(db, `live_rooms/${roomId}`)); // রুম ডিলিট
+                        } else {
+                            // ২. ম্যাচ ফুল হয়ে ২০ মিনিট খেলা হয়ে গেছে -> রুম ক্লোজ ও ডিলিট
+                            remove(ref(db, `live_rooms/${roomId}`));
+                        }
+                    }
+                }
+            });
+        }, 1000);
+
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60).toString().padStart(2, '0');
+            let sec = (seconds % 60).toString().padStart(2, '0');
+            return `${min}:${sec}`;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupMasterData();
+            renderMasterLists();
+        });
+    </script>
+    <script>
+        function navigateTo(targetUrl) { window.location.href = targetUrl; }
+    </script>
+</body>
+</html>
