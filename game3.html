@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Battle Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .green-header { background-color: #3ca745; }
+        .match-card { background-color: #e6f9ed; border: 1px solid #ccebd3; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <div class="green-header text-white px-4 pt-6 pb-6 rounded-b-[20px] shadow-lg">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="text-center">
+                    <p id="myUserName" class="font-bold text-sm">Loading...</p>
+                    <span id="myStatus" class="text-[9px] bg-green-700 px-2 rounded-full">ONLINE</span>
+                </div>
+            </div>
+            
+            <button onclick="location.reload()" class="bg-white/20 p-2 rounded-full hover:bg-white/30 transition">
+                <i class="fa fa-sync"></i>
+            </button>
+
+            <div class="text-center">
+                <p id="oppName" class="font-bold text-sm">Opponent</p>
+                <span id="oppStatus" class="text-[9px] bg-red-600 px-2 rounded-full">OFFLINE</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4">
+        <div id="turnDisplay" class="text-center font-bold text-emerald-800 mb-4 text-lg animate-pulse">Waiting...</div>
+        
+        <div class="match-card p-6 rounded-2xl shadow-sm text-center mb-6">
+            <h2 id="questionText" class="text-xl font-bold text-gray-800">প্রশ্ন এখানে লোড হচ্ছে...</h2>
+        </div>
+
+        <div id="optionsGrid" class="grid grid-cols-2 gap-4">
+            </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const currentUser = localStorage.getItem('currentUser');
+        const matchId = localStorage.getItem('currentMatchId');
+
+        // ১. ইউজারের নাম সেট করা
+        db.ref('users/' + currentUser).once('value', snap => {
+            document.getElementById('myUserName').innerText = snap.val().username;
+        });
+
+        // ২. ডেটাবেস থেকে ম্যাচের রিয়েল-টাইম আপডেট (অনলাইন/অফলাইন ও টার্ন)
+        db.ref('matches/' + matchId).on('value', snap => {
+            const m = snap.val();
+            if(!m) return;
+
+            // অপনেন্টের নাম ও স্ট্যাটাস
+            const opp = (m.creator === currentUser) ? m.joinedUser : m.creator;
+            document.getElementById('oppName').innerText = opp || "Waiting...";
+            document.getElementById('oppStatus').innerText = opp ? "ONLINE" : "OFFLINE";
+            document.getElementById('oppStatus').className = opp ? "text-[9px] bg-green-700 px-2 rounded-full" : "text-[9px] bg-red-600 px-2 rounded-full";
+
+            // টার্ন ডিসপ্লে
+            document.getElementById('turnDisplay').innerText = (m.currentTurn === currentUser) ? "আপনার পালা" : "অপনেন্টের পালা";
+        });
+
+        // ৩. ৬টি অপশন রেন্ডার
+        function renderOptions() {
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            for(let i=1; i<=6; i++) {
+                grid.innerHTML += `<button onclick="submitAnswer(${i})" class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm font-bold text-emerald-700 hover:bg-emerald-50">Option ${i}</button>`;
+            }
+        }
+
+        renderOptions();
+    </script>
+</body>
+</html>
