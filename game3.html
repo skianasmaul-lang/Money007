@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting Lobby</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: sans-serif; }
+        .green-header { background-color: #3ca745; }
+    </style>
+</head>
+<body class="max-w-md mx-auto bg-gray-100 min-h-screen">
+
+    <div class="green-header text-white px-4 pt-6 pb-6 shadow-lg flex justify-between items-center">
+        <div class="text-center w-24">
+            <p id="myUserName" class="font-bold text-xs truncate">Loading...</p>
+            <span class="text-[10px] bg-green-700 px-2 rounded-full">YOU</span>
+        </div>
+        <button onclick="location.reload()" class="bg-white text-emerald-600 rounded-full w-12 h-12 flex items-center justify-center shadow-md">
+            <i class="fa fa-sync text-lg"></i>
+        </button>
+        <div class="text-center w-24">
+            <p id="oppName" class="font-bold text-xs truncate">Waiting...</p>
+            <span id="oppStatus" class="text-[10px] bg-red-600 px-2 rounded-full">OFFLINE</span>
+        </div>
+    </div>
+
+    <div class="p-4">
+        <div class="bg-white p-6 rounded-2xl shadow-sm text-center border border-gray-200">
+            <h2 class="text-gray-500 text-xs font-bold mb-2">MATCH TIME REMAINING</h2>
+            <div id="timerDisplay" class="text-4xl font-bold text-emerald-900 mb-6">--:--</div>
+            
+            <div class="text-left text-xs text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                <p class="font-bold mb-1">⚠️ ডিসক্লেইমার:</p>
+                <ul class="list-disc pl-4 space-y-1">
+                    <li>একজন না আসলে ৫০% রিফান্ড পাবেন।</li>
+                    <li>দুইজন না আসলে ম্যাচ বাতিল হবে।</li>
+                </ul>
+            </div>
+
+            <button id="startBtn" onclick="checkStart()" class="w-full bg-yellow-500 text-white font-bold py-4 rounded-xl shadow-lg">
+                অপেক্ষা করুন...
+            </button>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mt-4">
+            <h3 class="text-xs font-bold text-gray-500 mb-2 uppercase">Active Players</h3>
+            <div class="flex justify-between text-sm font-bold text-emerald-800">
+                <span id="listP1" class="bg-gray-100 px-3 py-1 rounded-lg">P1: -</span>
+                <span id="listP2" class="bg-gray-100 px-3 py-1 rounded-lg">P2: -</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const currentUser = localStorage.getItem('currentUser');
+        const matchId = localStorage.getItem('currentMatchId');
+
+        if(matchId) {
+            const matchRef = ref(db, 'matches/' + matchId);
+            onValue(matchRef, (snapshot) => {
+                const data = snapshot.val();
+                if(!data) return;
+
+                document.getElementById('myUserName').innerText = currentUser || "User";
+                const opp = (data.creator === currentUser) ? data.joinedUser : data.creator;
+                document.getElementById('oppName').innerText = opp || "Waiting...";
+                
+                document.getElementById('listP1').innerText = "P1: " + (data.creator || "-");
+                document.getElementById('listP2').innerText = "P2: " + (data.joinedUser || "Waiting...");
+
+                if(data.joinedUser) {
+                    document.getElementById('oppStatus').innerText = "ONLINE";
+                    document.getElementById('oppStatus').className = "text-[10px] bg-green-700 px-2 rounded-full";
+                    document.getElementById('startBtn').innerText = "গেম স্টার্ট করুন";
+                    document.getElementById('startBtn').className = "w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg";
+                }
+
+                const now = Date.now();
+                const diff = Math.floor((data.expiresAt - now) / 1000);
+                document.getElementById('timerDisplay').innerText = diff > 0 ? 
+                    `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2, '0')}` : "00:00";
+            });
+        }
+
+        window.checkStart = function() {
+            if(document.getElementById('startBtn').innerText === "গেম স্টার্ট করুন") {
+                window.location.href = 'livegames.html';
+            } else {
+                alert("অন্য প্লেয়ার এখনো জয়েন করেনি!");
+            }
+        }
+    </script>
+</body>
+</html>

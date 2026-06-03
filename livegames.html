@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz Battle Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #1a1a1a; color: white; font-family: sans-serif; }
+        .game-header { background: linear-gradient(to right, #1f2937, #b91c1c); }
+        .card-bg { background-color: #2d2d2d; border: 1px solid #444; }
+        .green-btn { background-color: #15803d; }
+        .disabled-grid { pointer-events: none; opacity: 0.4; }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-6">
+
+    <div>
+        <div class="game-header p-4 shadow-lg flex justify-between items-center rounded-b-2xl">
+            <div class="text-center w-28">
+                <p id="myName" class="font-bold text-sm truncate">লোড হচ্ছে...</p>
+                <span id="myLife" class="bg-red-600 px-2 rounded text-[9px]">OFFLINE</span>
+                <p id="myTurns" class="text-[9px] mt-1 text-gray-300">চান্স: 0/10</p>
+            </div>
+            <div class="text-xl font-bold italic text-yellow-500">VS</div>
+            <div class="text-center w-28">
+                <p id="oppName" class="font-bold text-sm truncate">অপেক্ষা করুন...</p>
+                <span id="oppLife" class="bg-red-600 px-2 rounded text-[9px]">OFFLINE</span>
+                <p id="oppTurns" class="text-[9px] mt-1 text-gray-300">চান্স: 0/10</p>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <div id="statusMsg" class="text-center text-yellow-400 font-bold mb-4 text-sm">প্লেয়ারদের উপস্থিতি চেক করা হচ্ছে...</div>
+            
+            <div class="card-bg p-6 rounded-2xl text-center mb-6 min-h-[100px] flex items-center justify-center shadow-inner">
+                <h2 id="questionText" class="text-base font-medium text-gray-100">গেম শুরু হলে প্রশ্ন এখানে প্রদর্শিত হবে।</h2>
+            </div>
+
+            <div id="optionsGrid" class="grid grid-cols-2 gap-3 disabled-grid">
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 w-full">
+        <button id="startBtn" onclick="pressStart()" class="w-full bg-gray-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all" disabled>
+            প্লেয়ারদের জন্য অপেক্ষা করা হচ্ছে...
+        </button>
+    </div>
+
+    <div id="resultModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="card-bg p-6 rounded-2xl text-center w-full max-w-sm border-2 border-yellow-500">
+            <h2 id="resultTitle" class="text-2xl font-bold mb-2 text-yellow-400">ম্যাচ সমাপ্ত!</h2>
+            <div id="resultDesc" class="text-sm space-y-2 my-4 text-gray-300">
+                </div>
+            <button onclick="window.location.href='home.html'" class="w-full green-btn text-white font-bold py-3 rounded-xl mt-2 shadow-md">
+                হোমপেজে ফিরে যান
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        const currentUser = localStorage.getItem('currentUser') || "Player";
+        const matchId = localStorage.getItem('currentMatchId');
+
+        // স্থানীয় প্রশ্ন ব্যাংক (ডাটাবেস ফাঁকা থাকলেও গেম নিরবচ্ছিন্নভাবে চলবে)
+        const quizQuestions = [
+            { q: "বাংলাদেশের রাজধানী কোথায়?", o: ["ঢাকা", "চট্টগ্রাম", "সিলেট", "খুলনা", "রাজশাহী", "বরিশাল"], a: "ঢাকা" },
+            { q: "কোনটি একটি প্রোগ্রামিং ভাষা?", o: ["HTML", "CSS", "Python", "JPEG", "MP4", "SQL-Lite"], a: "Python" },
+            { q: "কম্পিউটারের মগজ বলা হয় কোনটিকে?", o: ["RAM", "ROM", "CPU", "SSD", "UPS", "GPU"], a: "CPU" },
+            { q: "ইন্টারনেটের জনক কে?", o: ["বিল গেটস", "স্টিভ জবস", "ভিন্ট সার্ফ", "মার্ক জাকারবার্গ", "চার্লস ব্যাবেজ", "এলন মাস্ক"], a: "ভিন্ট সার্ফ" },
+            { q: "নিচের কোনটি ডেটাবেস সিস্টেম?", o: ["MySQL", "NodeJS", "React", "Python", "Bootstrap", "Tailwind"], a: "MySQL" }
+        ];
+
+        let opponentName = "";
+        let isGameStarted = false;
+
+        // ১. কারেন্ট পেজ ট্র্যাকিং লাইভ সেট করা
+        if(currentUser) {
+            update(ref(db, 'users/' + currentUser), { currentPage: 'livegames.html' });
+            // পেজ ত্যাগ করলে অফলাইন করার হ্যান্ডলার
+            window.addEventListener('beforeunload', () => {
+                update(ref(db, 'users/' + currentUser), { currentPage: 'away' });
+            });
+        }
+
+        if(matchId) {
+            // ম্যাচের ডেটা লাইভ সিঙ্ক লুপ
+            onValue(ref(db, 'matches/' + matchId), (snapshot) => {
+                const match = snapshot.val();
+                if(!match) return;
+
+                opponentName = (match.creator === currentUser) ? match.joinedUser : match.creator;
+                
+                document.getElementById('myName').innerText = currentUser;
+                document.getElementById('oppName').innerText = opponentName || "অপেক্ষা করুন...";
+
+                // ২. প্রেজেন্স ট্র্যাকিং লজিক (উভয় প্লেয়ার এই নির্দিষ্ট পেজে ফিজিক্যালি আছে কি না)
+                document.getElementById('myLife').className = "bg-green-600 px-2 rounded text-[9px]";
+                document.getElementById('myLife').innerText = "LIVE";
+
+                if(opponentName) {
+                    onValue(ref(db, 'users/' + opponentName), (userSnap) => {
+                        const u = userSnap.val();
+                        const oppLifeEl = document.getElementById('oppLife');
+                        const startBtnEl = document.getElementById('startBtn');
+                        
+                        if(u && u.currentPage === 'livegames.html') {
+                            oppLifeEl.className = "bg-green-600 px-2 rounded text-[9px]";
+                            oppLifeEl.innerText = "LIVE";
+
+                            if(!match.gameStarted) {
+                                document.getElementById('statusMsg').innerText = "উভয় প্লেয়ার উপস্থিত! গেম শুরু করতে পারবেন।";
+                                startBtnEl.disabled = false;
+                                startBtnEl.className = "w-full green-btn text-white font-bold py-4 rounded-xl shadow-lg";
+                                startBtnEl.innerText = "গেম শুরু করুন";
+                            }
+                        } else {
+                            oppLifeEl.className = "bg-red-600 px-2 rounded text-[9px]";
+                            oppLifeEl.innerText = "OFFLINE";
+                            if(!match.gameStarted) {
+                                document.getElementById('statusMsg').innerText = "অপোনেন্ট এখনো লাইভ গেমে প্রবেশ করেনি।";
+                                startBtnEl.disabled = true;
+                                startBtnEl.className = "w-full bg-gray-600 text-white font-bold py-4 rounded-xl shadow-lg";
+                                startBtnEl.innerText = "অপেক্ষা করুন...";
+                            }
+                        }
+                    }, { onlyOnce: false });
+                }
+
+                // ৩. টার্ন ও প্রশ্ন লজিক সিঙ্ক
+                if(match.gameStarted) {
+                    isGameStarted = true;
+                    document.getElementById('startBtn').style.display = 'none'; // গেম চললে স্টার্ট বাটন হাইড
+
+                    // চান্স এবং স্কোরবোর্ড সিঙ্ক
+                    const myKey = (match.creator === currentUser) ? 'p1' : 'p2';
+                    const oppKey = (myKey === 'p1') ? 'p2' : 'p1';
+
+                    const myChances = match[myKey + 'Chances'] || 0;
+                    const oppChances = match[oppKey + 'Chances'] || 0;
+
+                    document.getElementById('myTurns').innerText = `চান্স: ${myChances}/10`;
+                    document.getElementById('oppTurns').innerText = `চান্স: ${oppChances}/10`;
+
+                    // টার্ন ওনার নোটিফিকেশন মেসেজ
+                    if(match.turnOwner === currentUser) {
+                        document.getElementById('statusMsg').innerText = "আপনার চান্স! সঠিক উত্তরটি সিলেক্ট করুন।";
+                        document.getElementById('statusMsg').className = "text-center text-green-400 font-bold mb-4 text-sm";
+                        document.getElementById('optionsGrid').classList.remove('disabled-grid');
+                    } else {
+                        document.getElementById('statusMsg').innerText = `${opponentName} এর চান্স। অপেক্ষা করুন...`;
+                        document.getElementById('statusMsg').className = "text-center text-red-400 font-bold mb-4 text-sm";
+                        document.getElementById('optionsGrid').classList.add('disabled-grid');
+                    }
+
+                    // কারেন্ট প্রশ্ন রেন্ডার করা
+                    const qIdx = match.questionIndex || 0;
+                    if(quizQuestions[qIdx]) {
+                        document.getElementById('questionText').innerText = quizQuestions[qIdx].q;
+                        renderOptions(quizQuestions[qIdx].o, quizQuestions[qIdx].a, myKey, qIdx, match);
+                    }
+
+                    // ৪. গেম ওভার কন্ডিশন (দুজনই ১০ বার করে মোট ২০ বার খেলে ফেললে)
+                    if((match.p1Chances >= 10 && match.p2Chances >= 10) || match.totalTurns >= 20) {
+                        handleGameOver(match, myKey, oppKey);
+                    }
+                }
+            });
+        }
+
+        // ৬টি অপশন রেন্ডার করার ফাংশন
+        function renderOptions(options, correctAnswer, myKey, qIdx, match) {
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "card-bg p-3 rounded-xl text-xs font-medium border border-gray-700 active:scale-95 transition-all text-gray-200 hover:border-gray-500 text-left pl-4";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    submitAnswer(opt, correctAnswer, myKey, qIdx, match);
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        // উত্তর সাবমিট করার প্রসেস ও টার্ন শিফটিং লজিক
+        function submitAnswer(selected, correct, myKey, qIdx, match) {
+            document.getElementById('optionsGrid').classList.add('disabled-grid');
+            
+            const isCorrect = (selected === correct);
+            const currentScore = match[myKey + 'Score'] || 0;
+            const currentChances = match[myKey + 'Chances'] || 0;
+            const currentWrong = match[myKey + 'Wrong'] || 0;
+            const totalTurns = match.totalTurns || 0;
+
+            const updates = {};
+            updates[`matches/${matchId}/${myKey}Chances`] = currentChances + 1;
+            updates[`matches/${matchId}/totalTurns`] = totalTurns + 1;
+            
+            if(isCorrect) {
+                updates[`matches/${matchId}/${myKey}Score`] = currentScore + 1;
+            } else {
+                updates[`matches/${matchId}/${myKey}Wrong`] = currentWrong + 1;
+            }
+
+            // পরবর্তী প্রশ্ন ইনডেক্স রোটেশন
+            updates[`matches/${matchId}/questionIndex`] = (qIdx + 1) % quizQuestions.length;
+            // টার্ন অপোনেন্টকে ট্রান্সফার করা
+            updates[`matches/${matchId}/turnOwner`] = opponentName;
+
+            update(ref(db), updates);
+        }
+
+        // স্টার্ট বাটন ক্লিক লজিক (র‍্যান্ডমলি প্রথম চান্স ডিস্ট্রিবিউশন)
+        window.pressStart = function() {
+            if(!opponentName) return;
+            const randFirst = Math.random() > 0.5 ? currentUser : opponentName;
+            
+            update(ref(db, 'matches/' + matchId), {
+                gameStarted: true,
+                turnOwner: randFirst,
+                questionIndex: 0,
+                totalTurns: 0,
+                p1Chances: 0,
+                p2Chances: 0,
+                p1Score: 0,
+                p2Score: 0,
+                p1Wrong: 0,
+                p2Wrong: 0
+            });
+        }
+
+        // গেম সমাপ্তি এবং ব্যালেন্স ট্রানজ্যাকশন হ্যান্ডলিং
+        function handleGameOver(match, myKey, oppKey) {
+            const myScore = match[myKey + 'Score'] || 0;
+            const oppScore = match[oppKey + 'Score'] || 0;
+            const myWrong = match[myKey + 'Wrong'] || 0;
+            const oppWrong = match[oppKey + 'Wrong'] || 0;
+            
+            const modal = document.getElementById('resultModal');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            
+            modal.classList.remove('hidden');
+            
+            let winText = "";
+            if(myScore > oppScore) {
+                title.innerText = "🏆 আপনি জিতেছেন! 🎉";
+                title.className = "text-2xl font-bold mb-2 text-green-400";
+                winText = `উইনিং প্রাইজ আপনার একাউন্টে যোগ করে দেওয়া হয়েছে।`;
+                
+                // উইনারের ওয়ালেট আপডেট ট্রানজ্যাকশন (১ বার এক্সিকিউট হবে)
+                if(!match.prizeDistributed) {
+                    update(ref(db, `matches/${matchId}`), { prizeDistributed: true });
+                    const prize = parseFloat(match.winningPrice || 0);
+                    if(prize > 0) {
+                        runTransaction(ref(db, `users/${currentUser}/balance`), (currentBal) => {
+                            return (currentBal || 0) + prize;
+                        });
+                    }
+                }
+            } else if(myScore < oppScore) {
+                title.innerText = "😭 আপনি হেরে গেছেন!";
+                title.className = "text-2xl font-bold mb-2 text-red-500";
+                winText = `ভালোভাবে চেষ্টা করুন পরবর্তী ম্যাচের জন্য।`;
+            } else {
+                title.innerText = "🤝 ম্যাচ ড্র হয়েছে!";
+                title.className = "text-2xl font-bold mb-2 text-yellow-400";
+                winText = `দুজনই সমান স্কোর করেছেন।`;
+            }
+
+            desc.innerHTML = `
+                <div class="bg-gray-800 p-3 rounded-xl space-y-1 text-left border border-gray-700">
+                    <p class="text-xs"><span class="text-green-400 font-bold">আপনার সঠিক উত্তর:</span> ${myScore} টি</p>
+                    <p class="text-xs"><span class="text-red-400">আপনার ভুল উত্তর:</span> ${myWrong} টি</p>
+                    <hr class="border-gray-700 my-1">
+                    <p class="text-xs"><span class="text-green-400 font-bold">অপোনেন্টের সঠিক:</span> ${oppScore} টি</p>
+                    <p class="text-xs"><span class="text-red-400">অপোনেন্টের ভুল:</span> ${oppWrong} টি</p>
+                </div>
+                <p class="text-xs mt-3 text-yellow-500 font-medium">${winText}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
