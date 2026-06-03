@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Room - Live Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: sans-serif; }
+        .green-bg { background-color: #3ca745; }
+    </style>
+</head>
+<body class="max-w-md mx-auto bg-white min-h-screen flex flex-col justify-between shadow-xl">
+
+    <div class="green-bg text-white px-4 py-5 rounded-b-[30px] shadow-md flex items-center justify-between">
+        <button onclick="leaveRoomAndGoBack()" class="text-xl hover:scale-110 transition-transform">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h1 class="text-xl font-bold tracking-wide">গেম রুম</h1>
+        <div class="w-6"></div> </div>
+
+    <div class="p-4 flex-1 space-y-4">
+        
+        <div class="bg-red-50 border border-red-300 text-red-700 p-4 rounded-2xl text-xs font-semibold space-y-1.5 shadow-sm">
+            <p class="text-sm font-bold flex items-center gap-1.5 text-red-600"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i> সতর্কতা নোটিশ বোর্ড (WARNING):</p>
+            <p class="leading-relaxed">নিচে থাকা টাইমারটি শেষ হওয়ার আগে গেম প্লে করুন। তা না হলে দুইজনকে এলিমিনেট করে দেওয়া হবে এবং এন্ট্রি ফি ব্যাক দেওয়া হবে না।</p>
+            <p class="leading-relaxed text-emerald-700">যদি একজন প্লেয়ার এসে থাকে আর একজন প্লেয়ার সময়মতো না আসে, তবে প্রথম প্লেয়ারকে বিজয়ী ঘোষণা করে উইনিং প্রাইস থেকে ৫০% দেওয়া হবে। সাবধান!</p>
+        </div>
+
+        <div class="bg-slate-900 text-white rounded-2xl p-6 text-center border border-slate-800 shadow-inner">
+            <span class="text-xs text-gray-400 block uppercase tracking-wider font-bold mb-1">অবশিষ্ট সময় (Time Left)</span>
+            <div id="liveCountdownClock" class="text-4xl font-mono font-black tracking-widest text-amber-400">10:00</div>
+        </div>
+
+        <div class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm">
+            <div class="flex justify-between items-center border-b pb-2 mb-3">
+                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-user-group text-emerald-600"></i> ম্যাচ প্লেয়ার্স লাইভ উপস্থিতি</h3>
+                <button onclick="refreshRoomData()" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center hover:bg-emerald-100 active:rotate-180 transition-all shadow-sm">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2.5">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Player 1 (Host)</span>
+                        <span id="player1Name" class="font-mono font-bold text-slate-700 text-sm">Loading...</span>
+                    </div>
+                    <span id="player1Status" class="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-200 text-gray-500">Offline</span>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Player 2 (Rival)</span>
+                        <span id="player2Name" class="font-mono font-bold text-slate-700 text-sm">Waiting for rival...</span>
+                    </div>
+                    <span id="player2Status" class="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-200 text-gray-500">Offline</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 border-t bg-gray-50 rounded-t-[25px]">
+        <button id="gameStartBtn" onclick="launchLiveGameEngine()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl text-lg shadow-md tracking-wide active:scale-95 transition-transform flex items-center justify-center gap-2">
+            <i class="fa-solid fa-gamepad"></i> GAME START NOW
+        </button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const currentUser = localStorage.getItem('currentUser');
+        const matchId = localStorage.getItem('currentMatchId');
+
+        if(!currentUser) window.location.href = 'index.html';
+        if(!matchId) window.location.href = 'home.html';
+
+        // --- REALTIME PRESENCE ENGINE (প্লেয়ার পেজে আছে কি না তা ট্র্যাকিং) ---
+        const myPresenceRef = database.ref(`room_presence/${matchId}/${currentUser}`);
+        
+        database.ref('.info/connected').on('value', snapshot => {
+            if (snapshot.val() === true) {
+                // ইউজার পেজে ঢুকলে অনলাইন হবে, পেজ কেটে দিলে বা ডিসকানেক্ট হলে অটোমেটিক রিমুভ (Offline) হবে
+                myPresenceRef.onDisconnect().remove();
+                myPresenceRef.set("Online");
+            }
+        });
+
+        // ব্যাক বাটন চেপে বের হয়ে যাওয়ার হ্যান্ডলার
+        function leaveRoomAndGoBack() {
+            myPresenceRef.remove().then(() => {
+                window.location.href = 'home.html';
+            });
+        }
+
+        // ব্রাউজার ট্যাব ক্লোজ বা রিলোড করলে উপস্থিতি মুছে ফেলার ব্যাকআপ
+        window.addEventListener('beforeunload', () => {
+            myPresenceRef.remove();
+        });
+
+        // --- REALTIME SYNCHRONIZER (টাইমার এবং প্লেয়ার ডাটা লিসেনার) ---
+        let hostPlayer = "";
+        let rivalPlayer = "";
+
+        database.ref('matches/' + matchId).on('value', snapshot => {
+            if(!snapshot.exists()) {
+                window.location.href = 'home.html';
+                return;
+            }
+            const match = snapshot.val();
+            hostPlayer = match.creator;
+            rivalPlayer = match.joinedUser || "";
+
+            // ১. রিয়েল-টাইম স্ক্রিন টাইমার আপডেট (আটকে থাকবে না)
+            const mins = Math.floor(match.timer / 60);
+            const secs = match.timer % 60;
+            document.getElementById('liveCountdownClock').innerText = `${mins}:${secs < 10 ? '0':''}${secs}`;
+
+            // ২. প্লেয়ারদের নাম সেট করা
+            document.getElementById('player1Name').innerText = "@" + hostPlayer;
+            if(rivalPlayer) {
+                document.getElementById('player2Name').innerText = "@" + rivalPlayer;
+            } else {
+                document.getElementById('player2Name').innerText = "Waiting for rival...";
+            }
+
+            // নাম সেট হওয়ার পর সাথে সাথে অ্যাক্টিভিটি চেক করা
+            checkLivePresence();
+        });
+
+        // --- PRESENCE STATUS CHECKER (অনলাইন/অফলাইন চেকার) ---
+        function checkLivePresence() {
+            database.ref(`room_presence/${matchId}`).once('value', snapshot => {
+                const presenceData = snapshot.val() || {};
+
+                // হোস্ট প্লেয়ারের স্ট্যাটাস ভেরিফিকেশন
+                const p1StatusBtn = document.getElementById('player1Status');
+                if (presenceData[hostPlayer] === "Online") {
+                    p1StatusBtn.innerText = "Online";
+                    p1StatusBtn.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700 border border-green-300 animate-pulse";
+                } else {
+                    p1StatusBtn.innerText = "Offline";
+                    p1StatusBtn.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400 border";
+                }
+
+                // রাইভাল প্লেয়ারের স্ট্যাটাস ভেরিফিকেশন
+                const p2StatusBtn = document.getElementById('player2Status');
+                if (rivalPlayer && presenceData[rivalPlayer] === "Online") {
+                    p2StatusBtn.innerText = "Online";
+                    p2StatusBtn.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700 border border-green-300 animate-pulse";
+                } else {
+                    p2StatusBtn.innerText = "Offline";
+                    p2StatusBtn.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400 border";
+                }
+            });
+        }
+
+        // রিফ্রেশ বাটনে ক্লিক করলে ডাটাবেস থেকে ফোর্স পুশ হয়ে পেজ আপডেট হবে
+        function refreshRoomData() {
+            checkLivePresence();
+        }
+
+        // গেম লঞ্চ বা স্টার্ট ইঞ্জিন লজিক
+        function launchLiveGameEngine() {
+            database.ref('matches/' + matchId).once('value', snapshot => {
+                if(snapshot.exists()) {
+                    const match = snapshot.val();
+                    if(!match.joinedUser) {
+                        alert("আরেকজন প্লেয়ার বাকি আছে! সে জয়েন না করা পর্যন্ত গেম স্টার্ট করা যাবে না।");
+                    } else {
+                        window.location.href = 'live_game.html';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

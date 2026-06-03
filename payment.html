@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Deposit & Withdraw</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: sans-serif; }
+        .green-bg { background-color: #3ca745; }
+    </style>
+</head>
+<body class="max-w-md mx-auto bg-white min-h-screen flex flex-col justify-between shadow-xl pb-20">
+
+    <div class="green-bg text-white px-4 pt-6 pb-6 rounded-b-[35px] shadow-md flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png" class="w-12 h-12 rounded-full border-2 border-white bg-white">
+            <div>
+                <h2 id="payUser" class="font-bold text-lg">...</h2>
+                <span class="text-xs opacity-80">Player Account</span>
+            </div>
+        </div>
+        <div class="bg-emerald-800/40 rounded-full px-5 py-2">
+            <span class="font-bold text-lg">৳ <span id="payBal">0.00</span></span>
+        </div>
+    </div>
+
+    <div class="mx-4 mt-4 bg-gray-200 p-1.5 rounded-full flex justify-between gap-1 shadow-inner">
+        <button onclick="toggleMode('deposit')" id="mode-deposit" class="flex-1 text-center py-2 rounded-full font-bold text-sm bg-white text-emerald-700 shadow">ডিপোজিট</button>
+        <button onclick="toggleMode('withdraw')" id="mode-withdraw" class="flex-1 text-center py-2 rounded-full font-bold text-sm text-gray-600">উত্তোলন</button>
+    </div>
+
+    <div class="p-4 flex-1 overflow-y-auto">
+        
+        <div id="depositArea" class="space-y-4">
+            <div class="bg-white border rounded-2xl p-4 shadow-sm">
+                <h3 class="text-emerald-800 font-bold border-b pb-1 mb-2 text-sm">ধাপসমূহ (STEP BY STEP)</h3>
+                <ul class="text-xs space-y-1.5 text-gray-700 font-medium">
+                    <li><span class="text-emerald-600 font-bold">স্টেপ ১:</span> আপনার বিকাশ অথবা নগদ অ্যাপটি খুলুন।</li>
+                    <li><span class="text-emerald-600 font-bold">স্টেপ ২:</span> "সেন্ড মানি" অপশনে ক্লিক করুন।</li>
+                    <li><span class="text-emerald-600 font-bold">স্টেপ ৩:</span> নিচে দেওয়া আমাদের নম্বরটি কপি করুন।</li>
+                    <li><span class="text-emerald-600 font-bold">স্টেপ ৪:</span> সেই নম্বরে সেন্ড মানি করুন। [মিনিমাম ২০ টাকা]</li>
+                    <li><span class="text-emerald-600 font-bold">স্টেপ ৫:</span> টাকা পাঠানোর পর ট্রানজেকশন আইডি (TrxID) কপি করুন।</li>
+                </ul>
+            </div>
+
+            <div class="flex gap-2">
+                <label class="flex-1 border p-3 rounded-xl flex items-center justify-between bg-pink-50/50 border-pink-300 font-bold text-pink-700 cursor-pointer">
+                    <span>বিকাশ</span> <input type="radio" name="method" value="Bkash" checked class="accent-pink-600">
+                </label>
+                <label class="flex-1 border p-3 rounded-xl flex items-center justify-between bg-orange-50/50 border-orange-300 font-bold text-orange-700 cursor-pointer">
+                    <span>নগদ</span> <input type="radio" name="method" value="Nagad" class="accent-orange-600">
+                </label>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase block mb-1">আমাদের পার্সোনাল নম্বর</label>
+                <div class="bg-gray-100 border p-3 rounded-xl flex justify-between items-center font-mono font-bold text-gray-800">
+                    <span>01321755056</span>
+                    <button onclick="navigator.clipboard.writeText('01321755056'); alert('নম্বর কপি হয়েছে!');" class="text-emerald-600"><i class="fa-solid fa-copy"></i></button>
+                </div>
+            </div>
+
+            <input id="depNum" type="text" placeholder="আপনার ফোন নম্বর" class="w-full border p-3 rounded-xl outline-none focus:border-emerald-500 font-semibold">
+            <input id="depAmount" type="number" placeholder="টাকার পরিমাণ (Amount)" class="w-full border p-3 rounded-xl outline-none focus:border-emerald-500 font-semibold">
+            <input id="depTrx" type="text" placeholder="ট্রানজেকশন আইডি (TrxID)" class="w-full border p-3 rounded-xl outline-none focus:border-emerald-500 font-mono font-semibold">
+            
+            <button onclick="submitDeposit()" class="w-full green-bg text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition-transform">সাবমিট করুন</button>
+        </div>
+
+
+        <div id="withdrawArea" class="hidden space-y-4">
+            <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 text-xs font-semibold leading-relaxed">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> ভুল নম্বর দিলে এই ক্ষেত্রে এডমিন কোন দায়ী থাকবে না। মিনিমাম ১০০ টাকা উত্তোলন করবেন। আমরা শুধু নগদ মেথড ব্যবহার করি উত্তোলনের জন্য।
+            </div>
+
+            <div class="bg-orange-50 border border-orange-200 p-4 rounded-xl flex justify-between items-center">
+                <span class="font-bold text-orange-800">ফিক্সড উইথড্র অ্যামাউন্ট:</span>
+                <span class="bg-orange-600 text-white font-mono font-bold px-4 py-1 rounded-full text-lg">৳ ১০০.০০</span>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase block mb-1">আপনার নগদ নম্বর দিন</label>
+                <input id="witNum" type="text" placeholder="01XXXXXXXXX" class="w-full border p-3 rounded-xl outline-none focus:border-orange-500 font-semibold font-mono">
+            </div>
+
+            <button onclick="submitWithdraw()" class="w-full bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition-transform">উত্তোলন রিকোয়েস্ট পাঠান</button>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 max-w-md w-full bg-white border-t flex justify-around py-3 shadow-lg z-50">
+        <button onclick="window.location.href='home.html'" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-house text-xl"></i></button>
+        <button onclick="window.location.href='wallet.html'" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-wallet text-xl"></i></button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const currentUser = localStorage.getItem('currentUser');
+        let currentMode = "deposit";
+
+        if(!currentUser) window.location.href = 'index.html';
+
+        database.ref('users/' + currentUser).on('value', snapshot => {
+            if(snapshot.exists()){
+                document.getElementById('payUser').innerText = snapshot.val().username;
+                document.getElementById('payBal').innerText = parseFloat(snapshot.val().balance).toFixed(2);
+            }
+        });
+
+        function toggleMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('[id^="mode-"]').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-emerald-700', 'shadow');
+                btn.classList.add('text-gray-600');
+            });
+            
+            if(mode === 'deposit') {
+                document.getElementById('mode-deposit').addClass = document.getElementById('mode-deposit').classList.add('bg-white', 'text-emerald-700', 'shadow');
+                document.getElementById('depositArea').classList.remove('hidden');
+                document.getElementById('withdrawArea').classList.add('hidden');
+            } else {
+                document.getElementById('mode-withdraw').classList.add('bg-white', 'text-emerald-700', 'shadow');
+                document.getElementById('depositArea').classList.add('hidden');
+                document.getElementById('withdrawArea').classList.remove('hidden');
+            }
+        }
+
+        function submitDeposit() {
+            const num = document.getElementById('depNum').value.trim();
+            const amt = parseFloat(document.getElementById('depAmount').value);
+            const trx = document.getElementById('depTrx').value.trim();
+            const method = document.querySelector('input[name="method"]:checked').value;
+
+            if(!num || !amt || !trx) return alert("সব তথ্য সঠিকভাবে পূরণ করুন!");
+            if(amt < 20) return alert("মিনিমাম ডিপোজিট ২০ টাকা!");
+
+            const reqId = 'dep_' + Date.now();
+            database.ref('depositRequests/' + reqId).set({
+                id: reqId,
+                username: currentUser,
+                number: num,
+                amount: amt,
+                trxid: trx,
+                method: method,
+                status: "Pending"
+            }).then(() => {
+                alert("আপনার রিকোয়েস্টটি এডমিনের কাছে গেছে। ১ থেকে ৫ মিনিটের ভিতরে টাকা আপনার অ্যাকাউন্টে অ্যাড হয়ে যাবে।");
+                window.location.href = 'home.html';
+            });
+        }
+
+        function submitWithdraw() {
+            const num = document.getElementById('witNum').value.trim();
+            if(!num) return alert("আপনার নগদ মোবাইল নম্বরটি প্রবেশ করান!");
+
+            database.ref('users/' + currentUser).once('value', snapshot => {
+                const currentBalance = snapshot.val().balance;
+                if(currentBalance < 100) {
+                    return alert("আপনার অ্যাকাউন্টে পর্যাপ্ত পরিমাণে ব্যালেন্স নেই!");
+                }
+
+                // Deduct Balance Immediately
+                database.ref('users/' + currentUser + '/balance').set(currentBalance - 100);
+
+                const reqId = 'wit_' + Date.now();
+                database.ref('withdrawRequests/' + reqId).set({
+                    id: reqId,
+                    username: currentUser,
+                    number: num,
+                    amount: 100,
+                    method: "Nagad",
+                    status: "Pending"
+                }).then(() => {
+                    alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
+                    window.location.href = 'home.html';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

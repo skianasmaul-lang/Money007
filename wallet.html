@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - Game, Withdraw & Deposit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: sans-serif; }
+        .green-bg { background-color: #3ca745; }
+    </style>
+</head>
+<body class="max-w-md mx-auto bg-white min-h-screen flex flex-col justify-between shadow-xl pb-20">
+
+    <div class="green-bg text-white px-4 pt-6 pb-6 rounded-b-[35px] shadow-md">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png" class="w-12 h-12 rounded-full border-2 border-white bg-white">
+                <div>
+                    <h2 id="displayUser" class="font-bold text-lg">Asmaul007</h2>
+                    <span class="text-xs opacity-80">Player Account</span>
+                </div>
+            </div>
+            <div class="bg-emerald-800/40 rounded-full px-5 py-2">
+                <span class="font-bold text-lg">৳ <span id="displayBalance">0.00</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mx-4 mt-4 bg-gray-200 p-1.5 rounded-full flex justify-between gap-1 shadow-inner">
+        <button onclick="switchTab('game')" id="tab-game" class="flex-1 text-center py-2 rounded-full font-bold text-sm bg-white text-emerald-700 shadow">গেম</button>
+        <button onclick="switchTab('withdraw')" id="tab-withdraw" class="flex-1 text-center py-2 rounded-full font-bold text-sm text-gray-600">উত্তোলন</button>
+        <button onclick="switchTab('deposit')" id="tab-deposit" class="flex-1 text-center py-2 rounded-full font-bold text-sm text-gray-600">ডিপোজিট</button>
+    </div>
+
+    <div class="px-4 flex-1 mt-6 overflow-y-auto">
+        <div id="emptyPrompt" class="text-center py-12 text-gray-400 flex flex-col items-center justify-center">
+            <i class="fa-solid fa-clock-rotate-left text-5xl mb-2 opacity-50"></i>
+            <p id="promptText">কোনো ডাটা রেকর্ড পাওয়া যায়নি।</p>
+        </div>
+        <div id="historyList" class="space-y-3"></div>
+    </div>
+
+    <div class="fixed bottom-0 max-w-md w-full bg-white border-t flex justify-around py-3 shadow-lg z-50">
+        <button onclick="window.location.href='home.html'" class="text-gray-400 flex flex-col items-center hover:text-emerald-600"><i class="fa-solid fa-house text-xl"></i></button>
+        <button class="text-emerald-600 flex flex-col items-center"><i class="fa-solid fa-wallet text-xl"></i></button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const currentUser = localStorage.getItem('currentUser');
+        let currentActiveTab = "game";
+
+        if(!currentUser) window.location.href = 'index.html';
+
+        database.ref('users/' + currentUser).on('value', snapshot => {
+            if(snapshot.exists()) {
+                document.getElementById('displayUser').innerText = snapshot.val().username;
+                document.getElementById('displayBalance').innerText = parseFloat(snapshot.val().balance).toFixed(2);
+            }
+        });
+
+        function switchTab(type) {
+            currentActiveTab = type;
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-emerald-700', 'shadow');
+                btn.classList.add('text-gray-600');
+            });
+            const activeBtn = document.getElementById('tab-' + type);
+            activeBtn.classList.add('bg-white', 'text-emerald-700', 'shadow');
+
+            fetchHistoryLog();
+        }
+
+        function fetchHistoryLog() {
+            const listRef = currentActiveTab === "game" ? 'matches' : currentActiveTab + 'Requests';
+            database.ref(listRef).once('value', snapshot => {
+                const container = document.getElementById('historyList');
+                const emptyPrompt = document.getElementById('emptyPrompt');
+                container.innerHTML = "";
+                
+                let count = 0;
+                if(snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const data = child.val();
+                        if(data.username === currentUser || data.creator === currentUser || data.joinedUser === currentUser) {
+                            count++;
+                            let cardHtml = "";
+                            if(currentActiveTab === 'game') {
+                                cardHtml = `<div class="bg-gray-100 p-3 rounded-lg border flex justify-between">
+                                    <div><p class="font-bold">৳${data.winningPrize} Match Reward Room</p><span class="text-xs text-gray-500">Status: ${data.status}</span></div>
+                                </div>`;
+                            } else {
+                                cardHtml = `<div class="bg-gray-100 p-3 rounded-lg border flex justify-between items-center">
+                                    <div><p class="font-bold">Amount: ৳${data.amount}</p><span class="text-xs text-gray-500">Method: ${data.method || 'Nagad'} | ${data.number || ''}</span></div>
+                                    <span class="text-xs font-bold px-3 py-1 rounded-full ${data.status === 'Approved' ? 'bg-green-200 text-green-800' : 'bg-amber-200 text-amber-800'}">${data.status}</span>
+                                </div>`;
+                            }
+                            container.innerHTML += cardHtml;
+                        }
+                    });
+                }
+                
+                if(count > 0) {
+                    emptyPrompt.classList.add('hidden');
+                } else {
+                    emptyPrompt.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Init load
+        fetchHistoryLog();
+    </script>
+</body>
+</html>
