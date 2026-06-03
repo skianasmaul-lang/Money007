@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Deposit & Withdraw</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f5f5f5; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+        
+        .phone-container { 
+            background: #fcfcfc; width: 100vw; min-height: 100vh; display: flex; flex-direction: column; 
+            position: relative; padding-bottom: 100px; overflow-y: auto; overflow-x: hidden; 
+        }
+
+        .top-header { 
+            background: #4CAF50; padding: 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; 
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(76, 175, 80, 0.2); 
+            position: sticky; top: 0; z-index: 100; 
+        }
+        .profile-section { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background: #ffffff; border: 2px solid rgba(255, 255, 255, 0.6); display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-meta h3 { color: #ffffff; font-size: 16px; font-weight: 600; text-transform: capitalize; }
+        .user-meta p { color: #e8f5e9; font-size: 12px; opacity: 0.9; }
+        .balance-container { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); padding: 8px 14px 8px 18px; border-radius: 50px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 255, 255, 0.25); }
+        .balance-amount { color: #ffffff; font-size: 16px; font-weight: 700; }
+
+        .tab-control-wrapper { padding: 20px 16px 10px 16px; }
+        .tab-switcher { display: flex; background: #e0e0e0; border-radius: 50px; position: relative; padding: 4px; height: 50px; z-index: 1; }
+        .tab-btn { flex: 1; border: none; background: none; font-size: 15px; font-weight: 700; color: #555; cursor: pointer; transition: color 0.3s ease; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .tab-btn.active { color: #fff; }
+        .tab-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: #4CAF50; border-radius: 50px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3); }
+
+        .view-container { display: flex; width: 200vw; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .panel { width: 100vw; padding: 10px 16px; display: flex; flex-direction: column; gap: 16px; }
+
+        .desc-box { background: #fff; border: 1px solid #eeeeeeb3; border-radius: 18px; padding: 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); }
+        .desc-box h4 { font-size: 14px; color: #2e7d32; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .step-list { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+        .step-list li { font-size: 13px; color: #444; font-weight: 500; display: flex; align-items: flex-start; gap: 6px; line-height: 1.5; }
+        .step-list li b { color: #4CAF50; white-space: nowrap; }
+        .withdraw-notice { font-size: 13px; color: #d32f2f; font-weight: 600; line-height: 1.6; text-align: justify; }
+
+        .method-selector { display: flex; gap: 12px; margin: 5px 0; }
+        .method-card { flex: 1; border: 2px solid #e0e0e0; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.25s ease; background: #fff; height: 85px; }
+        .method-card.bkash.selected { border-color: #E2136E; background: #fff0f5; box-shadow: 0 4px 12px rgba(226, 19, 110, 0.15); }
+        .method-card.nagad.selected { border-color: #FA6423; background: #fff3e0; box-shadow: 0 4px 12px rgba(250, 100, 35, 0.15); }
+        .method-logo-text { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
+        .bkash .method-logo-text { color: #E2136E; }
+        .nagad .method-logo-text { color: #FA6423; }
+        .method-card .radio-dot { width: 14px; height: 14px; border: 2px solid #aaa; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .method-card.selected .radio-dot { border-color: inherit; }
+        .method-card.selected .radio-dot::after { content: ''; width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+
+        .number-box { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+        .num-details label { font-size: 11px; color: #666; font-weight: 600; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .num-details span { font-size: 16px; font-weight: 700; color: #222; letter-spacing: 0.5px; }
+        .copy-icon-btn { color: #4CAF50; cursor: pointer; padding: 4px; }
+        .copy-icon-btn:active { transform: scale(0.9); }
+
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 12px; color: #555; font-weight: 600; }
+        .input-wrapper { display: flex; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 4px 14px; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.01); }
+        .input-wrapper input { border: none; background: transparent; width: 100%; height: 42px; font-size: 14px; font-weight: 600; color: #333; outline: none; }
+        .input-wrapper .icon { color: #888; margin-right: 8px; font-size: 20px; }
+
+        .submit-btn { background: #4CAF50; color: #ffffff; border: none; width: 100%; height: 50px; border-radius: 50px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
+        .submit-btn:active { transform: scale(0.98); }
+
+        .popup-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 30px; }
+        .popup-overlay.active { opacity: 1; pointer-events: auto; }
+        .popup-box { background: #ffffff; width: 100%; max-width: 340px; border-radius: 24px; padding: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .popup-overlay.active .popup-box { transform: scale(1); }
+        .popup-icon { width: 60px; height: 60px; background: #e8f5e9; color: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; }
+        .popup-icon .material-icons-round { font-size: 36px; }
+        .popup-box h3 { font-size: 18px; color: #222; font-weight: 700; margin-bottom: 8px; }
+        .popup-box p { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 18px; }
+        .popup-close-btn { background: #4CAF50; color: #fff; border: none; padding: 10px 24px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; }
+
+        .bottom-navigation { position: fixed; bottom: 0; left: 0; width: 100vw; height: 75px; background: #ffffff; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; z-index: 500; border-top: 1px solid #f0f0f0; }
+        .nav-item { display: flex; justify-content: center; align-items: center; width: 60px; height: 60px; border-radius: 50%; color: #888888; cursor: pointer; }
+        .nav-item.active { color: #4CAF50; background: #e8f5e9; }
+        .nav-item .material-icons-round { font-size: 32px; }
+
+        .notification-toast { position: fixed; top: 90px; left: 20px; right: 20px; background: #323232; color: #ffffff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 500; text-align: center; z-index: 4000; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; }
+        
+        .loading-overlay { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 2000; opacity: 1; transition: opacity 0.3s ease;
+        }
+        .spinner { width: 44px; height: 44px; border: 4px solid #e8f5e9; border-top: 4px solid #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingScreen">
+        <div class="spinner"></div>
+        <div style="font-size: 14px; color: #2e7d32; font-weight:600;">Opening Wallet...</div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var loader = document.getElementById('loadingScreen');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(function() { loader.style.display = 'none'; }, 300);
+                }
+            }, 400); // 400 মিলি-সেকেন্ড পর গ্যারান্টিড সরবে
+        });
+    </script>
+
+    <div class="popup-overlay" id="successPopup">
+        <div class="popup-box">
+            <div class="popup-icon"><span class="material-icons-round">check_circle</span></div>
+            <h3 id="popupTitle">আবেদন সফল হয়েছে!</h3>
+            <p id="popupMessage">Your request is submitted successfully.</p>
+            <button class="popup-close-btn" onclick="closePopup()">ঠিক আছে</button>
+        </div>
+    </div>
+
+    <div class="phone-container">
+        <div class="notification-toast" id="toastMessage"></div>
+
+        <div class="top-header">
+            <div class="profile-section" onclick="navigateTo('profile.html')">
+                <div class="profile-avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile"></div>
+                <div class="user-meta"><h3 id="displayUsername">Loading...</h3><p>Player Account</p></div>
+            </div>
+            <div class="balance-container">
+                <span class="balance-amount" id="displayBalance">৳ 0.00</span>
+            </div>
+        </div>
+
+        <div class="tab-control-wrapper">
+            <div class="tab-switcher">
+                <button class="tab-btn active" onclick="switchView(0)"><span class="material-icons-round">south_east</span>ডিপোজিট</button>
+                <button class="tab-btn" onclick="switchView(1)"><span class="material-icons-round">north_west</span>উত্তোলন</button>
+                <div class="tab-slider" id="tabSliderNode"></div>
+            </div>
+        </div>
+
+        <div class="view-container" id="viewContainerNode">
+            
+            <div class="panel">
+                <div class="desc-box">
+                    <h4>ধাপসমূহ (Step by Step)</h4>
+                    <ul class="step-list">
+                        <li><b>স্টেপ ১:</b> আপনার বিকাশ অথবা নগদ অ্যাপটি খুলুন।</li>
+                        <li><b>স্টেপ ২:</b> "সেন্ড মানি" অপশনে ক্লিক করুন।</li>
+                        <li><b>স্টেপ ৩:</b> নিচে দেওয়া আমাদের নম্বরটি কপি করুন।</li>
+                        <li><b>স্টেপ ৪:</b> সেই নম্বরে সেন্ড মানি করুন। [মিনিমাম ২০ টাকা]</li>
+                        <li><b>স্টেপ ৫:</b> টাকা পাঠানোর পর ট্রানজেকশন আইডি (TrxID) কপি করুন।</li>
+                    </ul>
+                </div>
+
+                <div class="method-selector">
+                    <div class="method-card bkash selected" id="methodBkash" onclick="selectMethod('Bkash')">
+                        <span class="method-logo-text">বিকাশ</span>
+                        <div class="radio-dot"></div>
+                    </div>
+                    <div class="method-card nagad" id="methodNagad" onclick="selectMethod('Nagad')">
+                        <span class="method-logo-text">নগদ</span>
+                        <div class="radio-dot"></div>
+                    </div>
+                </div>
+
+                <div class="number-box">
+                    <div class="num-details">
+                        <label id="numLabel">বিকাশ পার্সোনাল নম্বর</label>
+                        <span id="targetNumber">01321755056</span>
+                    </div>
+                    <span class="material-icons-round copy-icon-btn" onclick="copyNumber()">content_copy</span>
+                </div>
+
+                <div class="input-group">
+                    <label>আপনার ফোন নম্বর</label>
+                    <div class="input-wrapper">
+                        <span class="material-icons-round icon">call</span>
+                        <input type="tel" id="depPhone" placeholder="01XXXXXXXXX">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>টাকার পরিমাণ (Amount)</label>
+                    <div class="input-wrapper">
+                        <span class="material-icons-round icon">payments</span>
+                        <input type="number" id="depAmount" placeholder="মিনিমাম ২০ টাকা">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>ট্রানজেকশন আইডি (Transaction ID)</label>
+                    <div class="input-wrapper">
+                        <span class="material-icons-round icon">vpn_key</span>
+                        <input type="text" id="depTrx" placeholder="Example: 8N349XDFG">
+                    </div>
+                </div>
+
+                <button class="submit-btn" onclick="triggerDeposit()"><span class="material-icons-round">done_all</span> ডিপোজিট রিকোয়েস্ট সাবমিট</button>
+            </div>
+
+            <div class="panel">
+                <div class="desc-box" style="border-left: 4px solid #d32f2f;">
+                    <div class="withdraw-notice">
+                        আমরা শুধু উত্তোলন করার জন্য <b>বিকাশ মেথড</b> ব্যবহার করি। সঠিক বিকাশ নম্বরটি দিন। <b>মিনিমাম ১০০ টাকা।</b> ভুল নম্বর দিলে অ্যাডমিনের কোনো দায় থাকবে না।
+                    </div>
+                </div>
+
+                <div class="number-box" style="background: #fff8f8; border-color: #ffcdd2;">
+                    <div class="num-details">
+                        <label style="color:#d32f2f">উত্তোলনের নির্দিষ্ট পরিমাণ</label>
+                        <span style="color:#d32f2f; font-size: 20px;">৳ ১০০.০০</span>
+                    </div>
+                    <span class="material-icons-round" style="color:#d32f2f; font-size:28px;">account_balance_wallet</span>
+                </div>
+
+                <div class="input-group">
+                    <label>আপনার বিকাশ নম্বরটি দিন</label>
+                    <div class="input-wrapper">
+                        <span class="material-icons-round icon" style="color:#d32f2f">account_box</span>
+                        <input type="tel" id="witPhone" placeholder="01XXXXXXXXX">
+                    </div>
+                </div>
+
+                <button class="submit-btn" style="background:#d32f2f;" onclick="triggerWithdraw()"><span class="material-icons-round">publish</span> উইথড্র রিকোয়েস্ট সাবমিট</button>
+            </div>
+        </div>
+
+        <div class="bottom-navigation">
+            <div class="nav-item" onclick="navigateTo('home.html')"><span class="material-icons-round">home</span></div>
+            <div class="nav-item active"><span class="material-icons-round">account_balance_wallet</span></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45",
+            measurementId: "G-4704LVRXSH"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        // UI logic
+        const user = localStorage.getItem("currentLoggedUser") || "asmaul00";
+        document.getElementById('displayUsername').textContent = user;
+
+        // Real-time Balance Fetch
+        const balRef = db.ref('users/' + user + '/balance');
+        balRef.on('value', (snapshot) => {
+            const bal = snapshot.val() || 0;
+            document.getElementById('displayBalance').textContent = "৳ " + parseFloat(bal).toFixed(2);
+        });
+
+        // Submit Functions
+        window.triggerDeposit = () => {
+            const phone = document.getElementById('depPhone').value;
+            const amount = document.getElementById('depAmount').value;
+            const trx = document.getElementById('depTrx').value;
+            if(!phone || !amount || !trx) return showToast("সব তথ্য পূরণ করুন");
+            
+            db.ref('deposits/').push({ user, phone, amount, trx, status: 'pending', time: Date.now() });
+            document.getElementById('successPopup').classList.add('active');
+        };
+
+        window.triggerWithdraw = () => {
+            const phone = document.getElementById('witPhone').value;
+            if(!phone) return showToast("বিকাশ নম্বর দিন");
+            
+            db.ref('withdrawals/').push({ user, phone, amount: 100, status: 'pending', time: Date.now() });
+            document.getElementById('successPopup').classList.add('active');
+        };
+
+        // Helper Functions
+        var currentSelectedMethod = "Bkash";
+        window.navigateTo = (url) => { window.location.href = url; };
+
+        window.switchView = (index) => {
+            const slider = document.getElementById('tabSliderNode');
+            const container = document.getElementById('viewContainerNode');
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            btns[index].classList.add('active');
+            slider.style.transform = index === 0 ? "translateX(0)" : "translateX(100%)";
+            container.style.transform = index === 0 ? "translateX(0)" : "translateX(-100vw)";
+        };
+
+        window.selectMethod = (method) => {
+            currentSelectedMethod = method;
+            document.getElementById('methodBkash').classList.toggle('selected', method === 'Bkash');
+            document.getElementById('methodNagad').classList.toggle('selected', method === 'Nagad');
+            document.getElementById('numLabel').textContent = method === 'Bkash' ? "বিকাশ পার্সোনাল নম্বর" : "নগদ পার্সোনাল নম্বর";
+            document.getElementById('targetNumber').textContent = method === 'Bkash' ? "01321755056" : "017XXXXXXXX";
+        };
+
+        window.copyNumbe
