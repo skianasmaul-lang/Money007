@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz Battle Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #1a1a1a; color: white; font-family: sans-serif; }
+        .game-header { background: linear-gradient(to right, #1f2937, #b91c1c); }
+        .card-bg { background-color: #2d2d2d; border: 1px solid #444; }
+        .green-btn { background-color: #15803d; }
+        .disabled-grid { pointer-events: none; opacity: 0.4; }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-6">
+
+    <div>
+        <div class="game-header p-4 shadow-lg flex justify-between items-center rounded-b-2xl">
+            <div class="text-center w-28">
+                <p id="myName" class="font-bold text-sm truncate">লোড হচ্ছে...</p>
+                <span id="myLife" class="bg-red-600 px-2 rounded text-[9px]">OFFLINE</span>
+                <p id="myTurns" class="text-[9px] mt-1 text-gray-300">চান্স: 0/10</p>
+            </div>
+            <div class="text-xl font-bold italic text-yellow-500">VS</div>
+            <div class="text-center w-28">
+                <p id="oppName" class="font-bold text-sm truncate">অপেক্ষা করুন...</p>
+                <span id="oppLife" class="bg-red-600 px-2 rounded text-[9px]">OFFLINE</span>
+                <p id="oppTurns" class="text-[9px] mt-1 text-gray-300">চান্স: 0/10</p>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <div id="statusMsg" class="text-center text-yellow-400 font-bold mb-4 text-sm">প্লেয়ারদের উপস্থিতি চেক করা হচ্ছে...</div>
+            
+            <div class="card-bg p-6 rounded-2xl text-center mb-6 min-h-[110px] flex items-center justify-center shadow-inner">
+                <h2 id="questionText" class="text-base font-medium text-gray-100">গেম শুরু হলে প্রশ্ন এখানে প্রদর্শিত হবে।</h2>
+            </div>
+
+            <div id="optionsGrid" class="grid grid-cols-2 gap-3 disabled-grid">
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+                <button class="card-bg p-3 rounded-xl text-xs text-gray-400 border border-gray-700">-</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 w-full">
+        <button id="startBtn" onclick="pressStart()" class="w-full bg-gray-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all" disabled>
+            প্লেয়ারদের জন্য অপেক্ষা করা হচ্ছে...
+        </button>
+    </div>
+
+    <div id="resultModal" class="hidden fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
+        <div class="card-bg p-6 rounded-2xl text-center w-full max-w-sm border-2 border-yellow-500 shadow-2xl animate-fade-in">
+            <h2 id="resultTitle" class="text-2xl font-bold mb-2 text-yellow-400">ম্যাচ সমাপ্ত!</h2>
+            <div id="resultDesc" class="text-sm space-y-2 my-4 text-gray-300">
+                </div>
+            <button onclick="window.location.href='home.html'" class="w-full green-btn text-white font-bold py-3 rounded-xl mt-2 shadow-md hover:bg-green-800">
+                হোমপেজে ফিরে যান
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        const currentUser = localStorage.getItem('currentUser') || "Player";
+        const matchId = localStorage.getItem('currentMatchId');
+
+        // বিশাল প্রশ্ন ব্যাংক (কখনো রিপিট হবে না)
+        const quizQuestions = [
+            { q: "বাংলাদেশের রাজধানী কোথায়?", o: ["ঢাকা", "চট্টগ্রাম", "সিলেট", "খুলনা", "রাজশাহী", "বরিশাল"], a: "ঢাকা" },
+            { q: "কোনটি একটি হাই-লেভেল প্রোগ্রামিং ভাষা?", o: ["HTML", "CSS", "Python", "JPEG", "MP4", "Assembly"], a: "Python" },
+            { q: "কম্পিউটারের প্রধান মগজ বা ব্রেন বলা হয় কোনটিকে?", o: ["RAM", "ROM", "CPU", "SSD", "UPS", "GPU"], a: "CPU" },
+            { q: "ডাব্লিউ ডাব্লিউ ডাব্লিউ (WWW) এর পূর্ণরূপ কী?", o: ["World Wide Web", "World Whole Web", "Wide World Web", "Web World Wide", "World Web Wide", "Wireless Web World"], a: "World Wide Web" },
+            { q: "নিচের কোনটি রিলেশনাল ডেটাবেস ম্যানেজমেন্ট সিস্টেম?", o: ["MySQL", "NodeJS", "React", "Python", "Bootstrap", "Tailwind"], a: "MySQL" },
+            { q: "ফেসবুকের অফিসিয়াল প্যারেন্ট কোম্পানির নাম কী?", o: ["Meta", "Alphabet", "Apple", "Microsoft", "Amazon", "Twitter"], a: "Meta" },
+            { q: "কোন ইনপুট ডিভাইসটি গেম খেলার জন্য বেশি ব্যবহৃত হয়?", o: ["Joystick", "Keyboard", "Scanner", "Printer", "Monitor", "Microphone"], a: "Joystick" },
+            { q: "ইন্টারনেটের গতি পরিমাপের একক কোনটি?", o: ["Mbps", "KHz", "GB", "Watts", "Volt", "Pixels"], a: "Mbps" },
+            { q: "অ্যান্ড্রয়েড অপারেটিং সিস্টেমের মালিক কোন প্রতিষ্ঠান?", o: ["Google", "Apple", "Samsung", "Nokia", "Microsoft", "Huawei"], a: "Google" },
+            { q: "কোনটি কোনো অপারেটিং সিস্টেম নয়?", o: ["Windows", "Linux", "MacOS", "MS Word", "Android", "Ubuntu"], a: "MS Word" },
+            { q: "RAM এর পূর্ণরূপ কী?", o: ["Random Access Memory", "Read Access Memory", "Run Auto Memory", "Rapid Access Memo", "Real Active Memory", "Random Auto Module"], a: "Random Access Memory" },
+            { q: "ইউআরএল (URL) এর সঠিক পূর্ণরূপ কোনটি?", o: ["Uniform Resource Locator", "Universal Resource Line", "Uniform Resource Link", "Unique Radio Locator", "United Resource Live", "User Resource Link"], a: "Uniform Resource Locator" },
+            { q: "কম্পিউটারের স্থায়ী স্মৃতিশক্তি বা মেমোরি কোনটি?", o: ["RAM", "ROM", "Cache", "Virtual Memory", "Hard Disk", "Pen Drive"], a: "ROM" },
+            { q: "১ মেগাবাইট (1 MB) সমান কত কিলোবাইট?", o: ["১০২৪ KB", "১০০০ KB", "৫১২ KB", "২০מח KB", "১২০০ KB", "৮00 KB"], a: "১০২৪ KB" },
+            { q: "নিচের কোনটি বিশ্বের সবচেয়ে জনপ্রিয় সার্চ ইঞ্জিন?", o: ["Google", "Bing", "Yahoo", "Baidu", "Yandex", "DuckDuckGo"], a: "Google" },
+            { q: "নিচের কোনটি একটি বিখ্যাত সাইবার সিকিউরিটি বা হ্যাকিং অ্যাটাক?", o: ["Phishing", "Phubbing", "Photoshopping", "Phoning", "Paging", "Printing"], a: "Phishing" },
+            { q: "HTTP এর পূর্ণরূপ কী?", o: ["Hypertext Transfer Protocol", "High Transfer Text Protocol", "Hyper Text Testing Process", "Hyper Text Tool Protocol", "High Tech Transfer Protocol", "Home Text Transfer Plot"], a: "Hypertext Transfer Protocol" },
+            { q: "ওয়াই-ফাই (Wi-Fi) এর পূর্ণরূপ কী?", o: ["Wireless Fidelity", "Wireless Find", "Wire Free Internet", "Wireless Fiber", "Wave Fidelity", "Wire Finder"], a: "Wireless Fidelity" },
+            { q: "পিডিএফ (PDF) এর পূর্ণরূপ কী?", o: ["Portable Document Format", "Print Document File", "Public Data Format", "Personal Document Folder", "Page Document Format", "Portable Data File"], a: "Portable Document Format" },
+            { q: "নিচের কোনটি একটি ওপেন সোর্স অপারেটিং সিস্টেম?", o: ["Linux", "Windows 11", "iOS", "MacOS", "Windows Server", "MS DOS"], a: "Linux" }
+        ];
+
+        let opponentName = "";
+        let isWalletUpdated = false;
+
+        if(currentUser) {
+            update(ref(db, 'users/' + currentUser), { currentPage: 'livegames.html' });
+            window.addEventListener('beforeunload', () => {
+                update(ref(db, 'users/' + currentUser), { currentPage: 'away' });
+            });
+        }
+
+        if(matchId) {
+            onValue(ref(db, 'matches/' + matchId), (snapshot) => {
+                const match = snapshot.val();
+                if(!match) return;
+
+                opponentName = (match.creator === currentUser) ? match.joinedUser : match.creator;
+                
+                document.getElementById('myName').innerText = currentUser;
+                document.getElementById('oppName').innerText = opponentName || "অপেক্ষা করুন...";
+
+                // প্রেজেন্স সিঙ্কিং
+                document.getElementById('myLife').className = "bg-green-600 px-2 rounded text-[9px]";
+                document.getElementById('myLife').innerText = "LIVE";
+
+                if(opponentName) {
+                    onValue(ref(db, 'users/' + opponentName), (userSnap) => {
+                        const u = userSnap.val();
+                        const oppLifeEl = document.getElementById('oppLife');
+                        const startBtnEl = document.getElementById('startBtn');
+                        
+                        if(u && u.currentPage === 'livegames.html') {
+                            oppLifeEl.className = "bg-green-600 px-2 rounded text-[9px]";
+                            oppLifeEl.innerText = "LIVE";
+
+                            if(!match.gameStarted) {
+                                document.getElementById('statusMsg').innerText = "উভয় প্লেয়ার উপস্থিত! গেম শুরু করতে পারবেন।";
+                                startBtnEl.disabled = false;
+                                startBtnEl.className = "w-full green-btn text-white font-bold py-4 rounded-xl shadow-lg cursor-pointer";
+                                startBtnEl.innerText = "গেম শুরু করুন";
+                            }
+                        } else {
+                            oppLifeEl.className = "bg-red-600 px-2 rounded text-[9px]";
+                            oppLifeEl.innerText = "OFFLINE";
+                            if(!match.gameStarted) {
+                                document.getElementById('statusMsg').innerText = "অপোনেন্ট এখনো লাইভ গেমে প্রবেশ করেনি।";
+                                startBtnEl.disabled = true;
+                                startBtnEl.className = "w-full bg-gray-600 text-white font-bold py-4 rounded-xl shadow-lg";
+                                startBtnEl.innerText = "অপেক্ষা করুন...";
+                            }
+                        }
+                    });
+                }
+
+                // গেম স্টেট হ্যান্ডলার
+                if(match.gameStarted) {
+                    document.getElementById('startBtn').style.display = 'none';
+
+                    const myKey = (match.creator === currentUser) ? 'p1' : 'p2';
+                    const oppKey = (myKey === 'p1') ? 'p2' : 'p1';
+
+                    document.getElementById('myTurns').innerText = `চান্স: ${match[myKey + 'Chances'] || 0}/10`;
+                    document.getElementById('oppTurns').innerText = `চান্স: ${match[oppKey + 'Chances'] || 0}/10`;
+
+                    if(match.turnOwner === currentUser) {
+                        document.getElementById('statusMsg').innerText = "আপনার চান্স! সঠিক উত্তরটি সিলেক্ট করুন।";
+                        document.getElementById('statusMsg').className = "text-center text-green-400 font-bold mb-4 text-sm";
+                        document.getElementById('optionsGrid').classList.remove('disabled-grid');
+                    } else {
+                        document.getElementById('statusMsg').innerText = `${opponentName} এর চান্স। অপেক্ষা করুন...`;
+                        document.getElementById('statusMsg').className = "text-center text-red-400 font-bold mb-4 text-sm";
+                        document.getElementById('optionsGrid').classList.add('disabled-grid');
+                    }
+
+                    // নন-রিপিটিং প্রশ্ন সিঙ্ক লজিক
+                    const qIdx = match.questionIndex || 0;
+                    const seq = match.questionSequence;
+                    if(seq && seq[qIdx] !== undefined) {
+                        const actualQIdx = seq[qIdx];
+                        const currentQ = quizQuestions[actualQIdx];
+                        if(currentQ) {
+                            document.getElementById('questionText').innerText = currentQ.q;
+                            renderOptions(currentQ.o, currentQ.a, myKey, qIdx, match);
+                        }
+                    }
+
+                    // গেম ওভার ট্র্রিগার
+                    if((match.p1Chances >= 10 && match.p2Chances >= 10) || match.totalTurns >= 20) {
+                        handleGameOver(match, myKey, oppKey);
+                    }
+                }
+            });
+        }
+
+        function renderOptions(options, correctAnswer, myKey, qIdx, match) {
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "card-bg p-3 rounded-xl text-xs font-medium border border-gray-700 text-left pl-4 active:scale-95 transition-all text-gray-200 hover:border-gray-500";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    submitAnswer(opt, correctAnswer, myKey, qIdx, match);
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function submitAnswer(selected, correct, myKey, qIdx, match) {
+            document.getElementById('optionsGrid').classList.add('disabled-grid');
+            const isCorrect = (selected === correct);
+            
+            const updates = {};
+            updates[`matches/${matchId}/${myKey}Chances`] = (match[myKey + 'Chances'] || 0) + 1;
+            updates[`matches/${matchId}/totalTurns`] = (match.totalTurns || 0) + 1;
+            
+            if(isCorrect) {
+                updates[`matches/${matchId}/${myKey}Score`] = (match[myKey + 'Score'] || 0) + 1;
+            } else {
+                updates[`matches/${matchId}/${myKey}Wrong`] = (match[myKey + 'Wrong'] || 0) + 1;
+            }
+
+            updates[`matches/${matchId}/questionIndex`] = qIdx + 1;
+            updates[`matches/${matchId}/turnOwner`] = opponentName;
+
+            update(ref(db), updates);
+        }
+
+        // গেম স্টার্টে একদম ইউনিক ও র‍্যান্ডম প্রশ্নের ম্যাট্রিক্স তৈরি হবে
+        window.pressStart = function() {
+            if(!opponentName) return;
+            const randFirst = Math.random() > 0.5 ? currentUser : opponentName;
+            
+            // ইউনিক ইনডেক্স অ্যারে তৈরি এবং শাফল (Shuffle)করণ
+            const totalQ = quizQuestions.length;
+            const seq = Array.from({length: totalQ}, (_, i) => i);
+            for (let i = seq.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [seq[i], seq[j]] = [seq[j], seq[i]];
+            }
+            
+            update(ref(db, 'matches/' + matchId), {
+                gameStarted: true,
+                turnOwner: randFirst,
+                questionIndex: 0,
+                questionSequence: seq, // ডাটাবেসে ইউনিক প্রশ্নের ক্রম সেভ হচ্ছে
+                totalTurns: 0,
+                p1Chances: 0,
+                p2Chances: 0,
+                p1Score: 0,
+                p2Score: 0,
+                p1Wrong: 0,
+                p2Wrong: 0,
+                prizeDistributed: false
+            });
+        }
+
+        function handleGameOver(match, myKey, oppKey) {
+            const myScore = match[myKey + 'Score'] || 0;
+            const oppScore = match[oppKey + 'Score'] || 0;
+            const myWrong = match[myKey + 'Wrong'] || 0;
+            const oppWrong = match[oppKey + 'Wrong'] || 0;
+            
+            const modal = document.getElementById('resultModal');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            
+            modal.classList.remove('hidden');
+            let winText = "";
+
+            if(myScore > oppScore) {
+                title.innerText = "🏆 আপনি জিতেছেন! 🎉";
+                title.className = "text-2xl font-bold mb-2 text-green-400";
+                
+                // ওয়ান-টাইম সিকিউর ট্রানজ্যাকশন লুপ (টাকা যোগ করার ফিক্সড মেথড)
+                if(!match.prizeDistributed && !isWalletUpdated) {
+                    isWalletUpdated = true; 
+                    update(ref(db, `matches/${matchId}`), { prizeDistributed: true });
+                    
+                    const prizeAmount = Number(match.winningPrice || match.winningPrize || 0);
+                    if(prizeAmount > 0) {
+                        const userBalanceRef = ref(db, `users/${currentUser}/balance`);
+                        runTransaction(userBalanceRef, (currentBal) => {
+                            return (Number(currentBal) || 0) + prizeAmount;
+                        });
+                        winText = `উইনিং প্রাইজ ৳${prizeAmount} টাকা সরাসরি আপনার অ্যাকাউন্টে যোগ করা হয়েছে।`;
+                    }
+                } else {
+                    const prizeAmount = Number(match.winningPrice || match.winningPrize || 0);
+                    winText = `উইনিং প্রাইজ ৳${prizeAmount} টাকা আপনার ওয়ালেটে জমা হয়েছে।`;
+                }
+            } else if(myScore < oppScore) {
+                title.innerText = "😭 আপনি হেরে গেছেন!";
+                title.className = "text-2xl font-bold mb-2 text-red-500";
+                winText = "পরবর্তী ম্যাচের জন্য প্রস্তুতি নিন।";
+            } else {
+                title.innerText = "🤝 ম্যাচ ড্র হয়েছে!";
+                title.className = "text-2xl font-bold mb-2 text-yellow-400";
+                winText = "দুজনই সমান স্কোর করেছেন।";
+            }
+
+            desc.innerHTML = `
+                <div class="bg-gray-800 p-3 rounded-xl space-y-1 text-left border border-gray-700">
+                    <p class="text-xs"><span class="text-green-400 font-bold">আপনার সঠিক উত্তর:</span> ${myScore} টি</p>
+                    <p class="text-xs"><span class="text-red-400">আপনার ভুল উত্তর:</span> ${myWrong} টি</p>
+                    <hr class="border-gray-700 my-1">
+                    <p class="text-xs"><span class="text-green-400 font-bold">অপোনেন্টের সঠিক:</span> ${oppScore} টি</p>
+                    <p class="text-xs"><span class="text-red-400">অপোনেন্টের ভুল:</span> ${oppWrong} টি</p>
+                </div>
+                <p class="text-xs mt-3 text-yellow-500 font-medium">${winText}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
