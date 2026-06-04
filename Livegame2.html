@@ -1,510 +1,319 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>High-Tech Arena - Livegame2</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
-        :root {
-            --bg-dark: #07080c;
-            --card-bg: rgba(18, 22, 35, 0.75);
-            --neon-green: #00ff66;
-            --neon-red: #ff3366;
-            --panel-white: #ffffff;
-            --border-glow: rgba(255, 255, 255, 0.05);
+        * {
+            margin: 0;
+            padding: 0;
+            box-box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: radial-gradient(circle at top, #151a30 0%, var(--bg-dark) 100%);
-            color: #fff;
-            margin: 0;
+            background-color: #0b0e14;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .phone-screen {
+            width: 360px;
+            height: 740px;
+            background: linear-gradient(180deg, #0f1322 0%, #070911 100%);
+            border-radius: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            position: relative;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-            user-select: none;
+            overflow: hidden;
         }
 
-        /* প্রিমিয়াম ভিএস হেডার প্যানেল */
-        .vs-header-panel {
+        /* Top Header */
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
-            max-width: 650px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-glow);
-            border-radius: 20px;
-            padding: 15px 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            margin-bottom: 20px;
-        }
-        .profile-side { width: 44%; display: flex; flex-direction: column; }
-        .profile-side.left { text-align: left; align-items: flex-start; }
-        .profile-side.right { text-align: right; align-items: flex-end; }
-        
-        .team-tag { font-size: 11px; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px; color: #94a3b8; }
-        
-        /* নাম এবং পাশে আইকন স্টাইল */
-        .user-meta-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-        .right .user-meta-wrapper { flex-direction: row-reverse; }
-        .username-lbl { font-size: 20px; font-weight: 700; color: #fff; }
-        .assigned-icon-hud { font-size: 22px; filter: drop-shadow(0 0 5px currentColor); }
-
-        .stats-counter-row {
-            display: flex;
-            gap: 8px;
-            font-size: 13px;
-        }
-        .right .stats-counter-row { flex-direction: row-reverse; }
-
-        .stat-pill {
-            background: rgba(255,255,255,0.04);
-            padding: 4px 10px;
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #cbd5e1;
-        }
-        .stat-pill span { font-weight: 700; color: #fff; }
-
-        .vs-center-glow {
-            width: 45px;
-            height: 45px;
-            background: #000;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 900;
-            font-size: 16px;
-            color: var(--neon-red);
-            box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* টার্ন ইন্ডিকেটর HUD */
-        .hud-turn-status {
+        .header h2 {
             font-size: 16px;
             font-weight: 600;
-            padding: 10px 24px;
-            border-radius: 30px;
-            background: rgba(255, 188, 0, 0.1);
-            border: 1px solid rgba(255, 188, 0, 0.2);
-            color: #ffbc00;
-            margin-bottom: 25px;
-            box-shadow: 0 0 20px rgba(255, 188, 0, 0.05);
+        }
+
+        /* Profiles Scoreboard */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            position: relative;
+        }
+
+        .profile-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 12px;
+            width: 42%;
             text-align: center;
         }
 
-        /* ২০টি গ্রিড সম্বলিত হাইটেক আইকন বোর্ড */
-        .matrix-grid-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            width: 100%;
-            max-width: 550px;
-            background: rgba(0,0,0,0.5);
-            padding: 15px;
+        .profile-box p {
+            font-size: 11px;
+            color: #8fa0bc;
+            margin-bottom: 4px;
+        }
+
+        .profile-box .name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .vs-badge {
+            width: 36px;
+            height: 36px;
+            background: #d91b5c;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 0 15px rgba(217, 27, 92, 0.4);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Gateway Status Loading */
+        .gateway-status {
+            background: rgba(212, 143, 56, 0.1);
+            border: 1px solid #d48f38;
+            color: #d48f38;
+            padding: 10px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 14px;
+            margin: 25px 0;
+            transition: all 0.3s ease;
+        }
+
+        .gateway-status.connected {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+
+        /* Game Arena (Black Box) */
+        .game-arena {
+            flex-grow: 1;
+            background: #04060a;
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.03);
-            margin-bottom: 30px;
-            min-height: 220px;
-        }
-        .matrix-cell {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 14px;
-            height: 65px;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.2s ease;
-        }
-        .matrix-cell i { font-size: 24px; filter: drop-shadow(0 0 4px currentColor); }
-        .matrix-cell.active-glow {
-            background: rgba(255,255,255,0.15);
-            border-color: #fff;
-            box-shadow: 0 0 25px #fff;
-            transform: scale(1.05);
+            font-size: 18px;
+            color: #4a5568;
+            position: relative;
         }
 
-        /* স্পিন বাটন জোন */
-        .engine-spin-zone { 
-            position: relative; 
-            width: 140px; 
-            height: 140px; 
-            margin-bottom: 20px; 
+        /* Spin Controls */
+        .controls {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-        }
-        .mechanical-needle {
-            font-size: 32px;
-            color: var(--neon-green);
-            position: absolute;
-            top: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            text-shadow: 0 0 10px var(--neon-green);
-        }
-
-        .quantum-spin-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid var(--neon-green);
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: #fff;
-            font-size: 22px;
-            font-weight: 900;
-            letter-spacing: 1px;
-            cursor: pointer;
-            box-shadow: 0 0 25px rgba(0, 255, 102, 0.4);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .quantum-spin-btn:not(:disabled):hover {
-            box-shadow: 0 0 40px rgba(0, 255, 102, 0.6);
-            transform: scale(1.05);
-            background: linear-gradient(135deg, #22c55e 0%, #166534 100%);
-            color: #000;
-        }
-        .quantum-spin-btn:disabled {
-            background: #1a1f2e;
-            color: #475569;
-            border-color: #334155;
-            box-shadow: none;
-            cursor: not-allowed;
-            transform: scale(0.95);
-        }
-
-        /* উইনিং রেসপন্সিভ মডাল স্ক্রিন */
-        .overlay-screen {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 6, 10, 0.96);
-            justify-content: center; align-items: center; z-index: 999;
-            cursor: pointer; /* স্ক্রিনের যেকোনো জায়গায় ক্লিক করে হোমে যাওয়ার জন্য */
-        }
-        .leaderboard-board {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 28px;
-            padding: 40px 35px;
-            width: 90%; max-width: 430px;
-            text-align: center;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.8);
-            cursor: default;
-        }
-        .leaderboard-board h2 { font-size: 34px; margin-top: 0; margin-bottom: 15px; letter-spacing: 1px; }
-        .stats-row {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 18px;
-            font-size: 16px;
-            line-height: 1.8;
-            color: #cbd5e1;
-            border: 1px solid rgba(255,255,255,0.02);
-        }
-        .btn-hub-return {
-            background: var(--panel-white);
-            color: #000;
-            font-weight: 700;
-            border: none;
-            border-radius: 12px;
-            padding: 14px 32px;
             margin-top: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            margin-bottom: 15px;
         }
-        .btn-hub-return:hover { background: var(--neon-green); transform: translateY(-2px); }
+
+        .arrow-indicator {
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 12px solid #28a745;
+            margin-bottom: 10px;
+            animation: bounce 1s infinite alternate;
+        }
+
+        .spin-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #232d42 0%, #151b29 100%);
+            border: 4px solid #323f59;
+            color: #8fa0bc;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+
+        .spin-btn:active {
+            transform: scale(0.95);
+            background: #1d2638;
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(5px); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="vs-header-panel">
-        <div class="profile-side left">
-            <div class="team-tag">আমার প্রোফাইল</div>
-            <div class="user-meta-wrapper">
-                <div class="username-lbl">আমি</div>
-                <div id="left-icon-hud" class="assigned-icon-hud"></div>
-            </div>
-            <div class="stats-counter-row">
-                <div class="stat-pill" id="left-moves">চাল: <span>0/10</span></div>
-                <div class="stat-pill" id="left-score">স্কোর: <span>0</span></div>
-            </div>
-        </div>
-        
-        <div class="vs-center-glow">VS</div>
-        
-        <div class="profile-side right">
-            <div class="team-tag">অপোনেন্ট প্রোফাইল</div>
-            <div class="user-meta-wrapper">
-                <div class="username-lbl" id="right-user-title">লোডিং...</div>
-                <div id="right-icon-hud" class="assigned-icon-hud"></div>
-            </div>
-            <div class="stats-counter-row">
-                <div class="stat-pill" id="right-moves">চাল: <span>0/10</span></div>
-                <div class="stat-pill" id="right-score">স্কোর: <span>0</span></div>
-            </div>
-        </div>
+<div class="phone-screen">
+    <div class="header">
+        <h2>High-Tech Arena - Livegame2</h2>
+        <div style="font-size: 18px; cursor: pointer;">⋮</div>
     </div>
 
-    <div class="hud-turn-status" id="turnStatus">গেটওয়ে কানেক্ট করা হচ্ছে...</div>
+    <div class="scoreboard">
+        <div class="profile-box">
+            <p>আমার প্রোফাইল</p>
+            <div class="name" id="my-name">আমি</div>
+            <div class="stats">
+                <span>চাল: <b id="my-moves">0/10</b></span>
+                <span>স্কোর: <b id="my-score">0</b></span>
+            </div>
+        </div>
 
-    <div class="matrix-grid-board" id="boardGrid"></div>
+        <div class="vs-badge">VS</div>
 
-    <div class="engine-spin-zone">
-        <div class="mechanical-needle"><i class="fa-solid fa-caret-down"></i></div>
-        <button class="quantum-spin-btn" id="spinButton" disabled>SPIN</button>
-    </div>
-
-    <div class="overlay-screen" id="winModal" onclick="window.location.href='home.html'">
-        <div class="leaderboard-board" onclick="event.stopPropagation();">
-            <h2 id="winResultTitle" onclick="window.location.href='home.html'" style="cursor:pointer;">ম্যাচ শেষ</h2>
-            <div class="stats-row" id="winDetails">প্রসেসিং...</div>
-            <button class="btn-hub-return" onclick="window.location.href='home.html'">
-                <i class="fa-solid fa-house-chimney"></i> হোমে ফিরে যান
-            </button>
+        <div class="profile-box">
+            <p>অপোনেন্ট প্রোফাইল</p>
+            <div class="name" id="opp-name">লোডিং...</div>
+            <div class="stats">
+                <span>স্কোর: <b id="opp-score">0</b></span>
+                <span>চাল: <b id="opp-moves">0/10</b></span>
+            </div>
         </div>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <div class="gateway-status" id="status-banner">
+        গেটওয়ে কানেক্ট করা হচ্ছে...
+    </div>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
-        authDomain: "index-html-75ded.firebaseapp.com",
-        databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
-        projectId: "index-html-75ded",
-        storageBucket: "index-html-75ded.firebasestorage.app",
-        messagingSenderId: "833678381856",
-        appId: "1:833678381856:web:ab7ae69f59539e79eabd45",
-        measurementId: "G-4704LVRXSH"
-    };
+    <div class="game-arena" id="arena-display">
+        কানেকশনের জন্য অপেক্ষা করুন...
+    </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    <div class="controls">
+        <div class="arrow-indicator"></div>
+        <button class="spin-btn" id="spin-button" disabled>SPIN</button>
+    </div>
+</div>
 
-    const myUsername = localStorage.getItem("username") || "Player_" + Math.floor(Math.random()*100);
-    localStorage.setItem("username", myUsername);
+<script>
+    // --- সকেট সার্ভার কনফিগারেশন ---
+    // আপনার লাইভ ব্যাকএন্ড নোড/সকেট সার্ভারের URL এখানে বসাবেন। 
+    // লোকালহোস্টে টেস্ট করার জন্য 'http://localhost:3000' দিতে পারেন।
+    const SERVER_URL = "https://your-live-game-server.com"; 
     
-    const roomId = localStorage.getItem("roomId") || "room_101";
-    const roomRef = ref(db, 'rooms/' + roomId);
-
-    let player1 = "", player2 = "";
-    let myIcon = "", oppIcon = "";
-    let isBoardGenerated = false;
-    let localTotalSpins = -1; 
-    let balanceUpdated = false;
-
-    // ২০টি ঘরে ১০টি X এবং ১০টি O আইকন মিক্স করার পিওর মেথড
-    function generateIconBoard() {
-        let arr = Array(10).fill('X').concat(Array(10).fill('O'));
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    }
-
-    onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        if(!data) return;
-
-        player1 = data.player1 || "";
-        player2 = data.player2 || "";
-
-        const bothPlayersPresent = (player1 !== "" && player2 !== "");
-
-        // ১. অপোনেন্ট কানেকশন লোডিং হ্যান্ডলার
-        if(myUsername === player1) {
-            if(player2) {
-                document.getElementById("right-user-title").innerText = "অপোনেন্ট";
-            } else {
-                document.getElementById("right-user-title").innerHTML = `লোডিং... <i class="fa-solid fa-circle-notch fa-spin"></i>`;
-            }
-        } else {
-            if(player1) {
-                document.getElementById("right-user-title").innerText = "অপোনেন্ট";
-            } else {
-                document.getElementById("right-user-title").innerHTML = `লোডিং... <i class="fa-solid fa-circle-notch fa-spin"></i>`;
-            }
-        }
-
-        // ২. র্যান্ডম আইকন এবং বোর্ড অ্যাসাইনমেন্ট (শুধু প্লেয়ার ১ একবার এক্সিকিউট করবে)
-        if(bothPlayersPresent && !data.playerIcons && myUsername === player1) {
-            const rand = Math.random() < 0.5;
-            const playerIcons = {
-                [player1]: rand ? 'X' : 'O',
-                [player2]: rand ? 'O' : 'X'
-            };
-            const initialBoard = generateIconBoard();
-            update(roomRef, { 
-                playerIcons: playerIcons, 
-                boardNames: initialBoard 
-            });
-            return;
-        }
-
-        // ৩. লোকাল আইকন রিড ও হেডার আইকন সেটআপ
-        if(data.playerIcons) {
-            myIcon = data.playerIcons[myUsername];
-            oppIcon = myIcon === 'X' ? 'O' : 'X';
-
-            const xHTML = `<i class="fa-solid fa-xmark" style="color: var(--neon-red);"></i>`;
-            const oHTML = `<i class="fa-solid fa-circle" style="color: var(--neon-green); font-size:16px;"></i>`;
-
-            document.getElementById("left-icon-hud").innerHTML = (myIcon === 'X') ? xHTML : oHTML;
-            document.getElementById("right-icon-hud").innerHTML = (oppIcon === 'X') ? xHTML : oHTML;
-        }
-
-        // ৪. বোর্ড গ্রিড রেন্ডার করা (আইকন মোডে)
-        if(data.boardNames && !isBoardGenerated) {
-            renderBoardGrid(data.boardNames);
-            isBoardGenerated = true;
-        }
-
-        // ৫. লাইভ স্কোর, চাল কাউন্টার ও টার্ন হ্যান্ডলিং
-        if(data.gameState && data.playerIcons) {
-            const state = data.gameState;
-            
-            // পিভট ভিত্তিক রিলেটিভ চাল ও স্কোর ট্র্যাকিং
-            let myScore = 0, oppScore = 0, myMoves = 0, oppMoves = 0;
-            if(myUsername === player1) {
-                myScore = state.p1Score; oppScore = state.p2Score;
-                myMoves = state.p1Moves || 0; oppMoves = state.p2Moves || 0;
-            } else {
-                myScore = state.p2Score; oppScore = state.p1Score;
-                myMoves = state.p2Moves || 0; oppMoves = state.p1Moves || 0;
-            }
-
-            document.getElementById("left-score").innerHTML = `স্কোর: <span>${myScore}</span>`;
-            document.getElementById("right-score").innerHTML = `স্কোর: <span>${oppScore}</span>`;
-            document.getElementById("left-moves").innerHTML = `চাল: <span>${myMoves}/10</span>`;
-            document.getElementById("right-moves").innerHTML = `चाल: <span>${oppMoves}/10</span>`;
-
-            // গেম অ্যাক্টিভেশন অ্যান্ড লক গেট
-            if (!bothPlayersPresent) {
-                document.getElementById("turnStatus").innerText = "অপোনেন্ট এর জন্য অপেক্ষা করা হচ্ছে...";
-                document.getElementById("turnStatus").style.color = "#ffbc00";
-                document.getElementById("spinButton").disabled = true;
-            } else if (state.totalSpins < 20) {
-                if(state.turn === myUsername) {
-                    document.getElementById("turnStatus").innerText = "আপনার পালা • স্পিন করুন!";
-                    document.getElementById("turnStatus").style.color = "var(--neon-green)";
-                    document.getElementById("spinButton").disabled = false;
-                } else {
-                    document.getElementById("turnStatus").innerText = "অপোনেন্ট এর স্পিনের জন্য অপেক্ষা করুন...";
-                    document.getElementById("turnStatus").style.color = "#ffbc00";
-                    document.getElementById("spinButton").disabled = true;
-                }
-            }
-
-            // লাইভ অ্যানিমেশন সিঙ্ক লুপ
-            if(data.lastSpinIndex !== undefined && data.animating && state.totalSpins !== localTotalSpins) {
-                localTotalSpins = state.totalSpins; 
-                runSpinAnimation(data.lastSpinIndex, data.boardNames, state.turn);
-            }
-
-            // ১০-১০ চাল (মোট ২০) শেষ হলে গেম ক্লোজার ট্র্রিগার
-            if(state.totalSpins >= 20) {
-                document.getElementById("spinButton").disabled = true;
-                document.getElementById("turnStatus").innerText = "ম্যাচ সমাপ্ত হয়েছে";
-                endGame(state.p1Score, state.p2Score);
-            }
-        }
+    const socket = io(SERVER_URL, {
+        autoConnect: true,
+        transports: ['websocket', 'polling']
     });
 
-    // বোর্ডে X এবং O এর হাই-টেক আইকন রেন্ডারিং লজিক
-    function renderBoardGrid(icons) {
-        const grid = document.getElementById("boardGrid");
-        grid.innerHTML = "";
-        icons.forEach((icon, index) => {
-            const cell = document.createElement("div");
-            cell.classList.add("matrix-cell");
-            cell.id = `cell-${index}`;
-            
-            if(icon === 'X') {
-                cell.innerHTML = `<i class="fa-solid fa-xmark" style="color: var(--neon-red);"></i>`;
-            } else {
-                cell.innerHTML = `<i class="fa-solid fa-circle" style="color: var(--neon-green); font-size:18px;"></i>`;
-            }
-            grid.appendChild(cell);
-        });
-    }
+    // DOM Elements
+    const statusBanner = document.getElementById('status-banner');
+    const oppNameDisplay = document.getElementById('opp-name');
+    const arenaDisplay = document.getElementById('arena-display');
+    const spinButton = document.getElementById('spin-button');
 
-    document.getElementById("spinButton").addEventListener("click", () => {
-        document.getElementById("spinButton").disabled = true;
-        const randomIndex = Math.floor(Math.random() * 20);
-        update(roomRef, { 
-            lastSpinIndex: randomIndex, 
-            animating: true 
-        });
+    // ১. সার্ভারের সাথে সকেট কানেক্ট হলে
+    socket.on('connect', () => {
+        console.log('Connected to server Gateway. ID:', socket.id);
+        statusBanner.innerText = "সার্ভারে কানেক্টেড! ম্যাচ খোঁজা হচ্ছে...";
+        
+        // ম্যাচমেকিং রুমে যোগ দেওয়ার জন্য রিকোয়েস্ট পাঠানো
+        socket.emit('join_arena', { username: 'আমি' });
     });
 
-    function runSpinAnimation(targetIndex, currentBoardNames, spinnerName) {
-        let currentIdx = 0;
-        let speed = 70; 
-        let cycles = 0;
+    // ২. ম্যাচমেকিং সফল হলে এবং অপোনেন্ট পাওয়া গেলে (গেটওয়ে সলভ)
+    socket.on('match_found', (data) => {
+        // data এর মধ্যে থাকবে রুম আইডি এবং অপোনেন্টের নাম
+        console.log('Match Found in Room:', data.roomId);
+        
+        // UI আপডেট: গেটওয়ে লেখা চেঞ্জ হবে এবং অপোনেন্টের নাম বসবে
+        statusBanner.innerText = "খেলা শুরু হয়েছে!";
+        statusBanner.classList.add('connected');
+        oppNameDisplay.innerText = data.opponentName || "প্লেয়ার ২";
+        arenaDisplay.innerText = "আপনার চালের জন্য স্পিন করুন";
+        
+        // স্পিন বাটন একটিভ করা
+        spinButton.disabled = false;
+        spinButton.style.color = "#28a745";
+        spinButton.style.borderColor = "#28a745";
+    });
 
-        const interval = setInterval(() => {
-            document.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('active-glow'));
-            
-            const currentCell = document.getElementById(`cell-${currentIdx}`);
-            if(currentCell) currentCell.classList.add('active-glow');
+    // ৩. স্পিন বাটনে ক্লিক লজিক
+    spinButton.addEventListener('click', () => {
+        // র্যান্ডম চাল বা পয়েন্ট জেনারেট (১ থেকে ১০)
+        const points = Math.floor(Math.random() * 10) + 1;
+        arenaDisplay.innerText = `আপনি পেয়েছেন: ${points} পয়েন্ট!`;
+        
+        // সার্ভারে স্কোর আপডেট পাঠানো
+        socket.emit('submit_score', { score: points });
+    });
 
-            if(cycles > 1 && currentIdx === targetIndex) {
-                clearInterval(interval);
-                setTimeout(() => { 
-                    processSpinResult(targetIndex, currentBoardNames, spinnerName); 
-                }, 600);
-            }
+    // ৪. রিয়েল-টাইম স্কোর আপডেট রিসিভ করা (অন্য প্লেয়ার চাল দিলে)
+    socket.on('update_scores', (scores) => {
+        document.getElementById('my-score').innerText = scores.myScore;
+        document.getElementById('my-moves').innerText = `${scores.myMoves}/10`;
+        
+        document.getElementById('opp-score').innerText = scores.oppScore;
+        document.getElementById('opp-moves').innerText = `${scores.oppMoves}/10`;
+    });
 
-            currentIdx = (currentIdx + 1) % 20;
-            if(currentIdx === 0) cycles++;
-        }, speed);
-    }
+    // ৫. কানেকশন কোনো কারণে ড্রপ করলে বা ইরর হলে
+    socket.on('connect_error', (error) => {
+        console.error('Gateway Connection Error:', error);
+        statusBanner.innerText = "গেটওয়ে কানেক্ট করা হচ্ছে...";
+        statusBanner.classList.remove('connected');
+        oppNameDisplay.innerText = "লোডিং...";
+        arenaDisplay.innerText = "কানেকশনের জন্য অপেক্ষা করুন...";
+        spinButton.disabled = true;
+    });
 
-    // আইকন-ম্যাচিং স্কোরিং মেকানিজম (যিনিই স্পিন করুক, যার আইকন পড়বে পয়েন্ট তার হবে)
-    function processSpinResult(index, currentBoardNames, spinnerName) {
-        if(myUsername !== player1) return; // রেস কন্ডিশন এড়াতে শুধু পি১ ডাটা ইনজেক্ট করবে
+    socket.on('disconnect', () => {
+        statusBanner.innerText = "কানেকশন বিচ্ছিন্ন হয়েছে!";
+        statusBanner.classList.remove('connected');
+        spinButton.disabled = true;
+    });
+</script>
 
-        update(roomRef, { animating: false });
-
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            const state = data.gameState;
-            const landedIcon = currentBoardNames[index]; // কাটাটি কোন আইকনে পড়লো ('X' নাকি 'O')
-
-            // কোন প্লেয়ার এই আইকনটির মালিক তা বের করা
-            let p1Icon = data.playerIcons[player1];
-            let p2Icon = data.playerIcons[player2];
-
-            let p1ScoreInc = (landedIcon === p1Icon) ? 1 : 0;
-            let p2ScoreInc = (landedIcon === p2Icon) ? 1 : 0;
-
-            // কে চাল চাললো তার চাল কাউন্টার বাড়ানো
-            let p1MoveInc = (spinnerName === player1) ? 1 : 0;
-            let p2MoveInc = (spinnerName === player2) ? 1 : 0;
-
-            let nextTurn = spinnerName === player1 ? player2 : player1;
-
-            update(ref(db, 'rooms/' + roomId + '/gameState'), {
-                p1Score: state.p1Score + p1ScoreInc,
-                p2Score: state.p2Score + p2ScoreInc,
-                p1Moves: (state.p1Moves || 0) + p1MoveInc,
-          
+</body>
+</html>
