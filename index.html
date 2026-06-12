@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - Premium</title>
+  <style>
+    /* প্রিমিয়াম হোয়াইট থিম ডিজাইন */
+    body { 
+      background-color: #ffffff; 
+      color: #111111; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      padding: 15px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+    }
+    
+    /* প্রিমিয়াম সার্চ বার */
+    .search-container {
+      width: 100%;
+      max-width: 450px;
+      margin-bottom: 15px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: 2px solid #00CC66;
+      border-radius: 25px;
+      outline: none;
+      box-sizing: border-box;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    .search-input:focus {
+      box-shadow: 0 4px 12px rgba(0, 204, 102, 0.2);
+    }
+
+    /* টপ ব্যানার অ্যাড স্লট */
+    .ad-slot-top { 
+      width: 100%; 
+      max-width: 450px; 
+      height: 120px; 
+      background-color: #f5f5f5; 
+      border: 1px dashed #cccccc; 
+      margin-bottom: 20px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #888888; 
+      font-size: 14px; 
+      border-radius: 8px;
+    }
+    
+    /* পোস্টের মধ্যবর্তী নেটিভ অ্যাড স্লট */
+    .ad-slot-native { 
+      width: 100%; 
+      max-width: 450px; 
+      height: 90px; 
+      background-color: #f9f9f9; 
+      border: 1px dashed #00CC66; 
+      margin: 20px 0; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #00CC66; 
+      font-size: 13px; 
+      border-radius: 8px;
+    }
+
+    /* পোস্ট ফিড কন্টেইনার */
+    #postsFeed {
+      width: 100%;
+      max-width: 450px;
+    }
+
+    /* প্রিমিয়াম পোস্ট কার্ড (ইউটিউব স্টাইল) */
+    .post-card { 
+      width: 100%; 
+      background: #ffffff; 
+      border: 1px solid #eeeeee; 
+      border-radius: 12px; 
+      overflow: hidden; 
+      box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+      margin-bottom: 10px;
+      transition: transform 0.2s ease;
+    }
+    .post-card:hover {
+      transform: translateY(-2px);
+    }
+    .post-thumb { 
+      width: 100%; 
+      aspect-ratio: 16/9; 
+      background: #eaeaea; 
+      object-fit: cover; 
+    }
+    .post-details { 
+      padding: 15px; 
+      display: flex; 
+      flex-direction: column; 
+    }
+    .post-title { 
+      font-size: 17px; 
+      margin-bottom: 15px; 
+      font-weight: 700; 
+      line-height: 1.4; 
+      color: #111111;
+    }
+    
+    /* অ্যাকশন এরিয়া ও সবুজ বাটন */
+    .action-area { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    .btn-open { 
+      background-color: #00CC66; 
+      color: #ffffff; 
+      border: none; 
+      padding: 10px 22px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      border-radius: 6px; 
+      font-size: 15px; 
+      box-shadow: 0 3px 6px rgba(0, 204, 102, 0.2);
+      transition: background 0.2s ease;
+    }
+    .btn-open:hover { 
+      background-color: #00994d; 
+    }
+    .counter { 
+      font-size: 16px; 
+      font-weight: bold; 
+      color: #00CC66; 
+      border: 2px solid #00CC66; 
+      padding: 4px 10px; 
+      border-radius: 6px; 
+      background-color: rgba(0, 204, 102, 0.05);
+    }
+
+    /* সার্চে কিছু না পাওয়া গেলে নোটিশ */
+    .no-results {
+      text-align: center;
+      color: #999;
+      margin-top: 30px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <input type="text" id="searchBar" class="search-input" placeholder="পছন্দের পোস্টটি সার্চ করুন (যেমন: এসএমএস)...">
+  </div>
+
+  <div class="ad-slot-top">
+    [ব্যানার বিজ্ঞাপন বা সোশ্যাল বার অ্যাড এর জায়গা]
+  </div>
+
+  <div id="postsFeed">
+    </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // আপনার দেওয়া ফায়ারবেস কনফিগারেশন অবিকল রাখা হয়েছে
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+      authDomain: "index-html-75ded.firebaseapp.com",
+      databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+      projectId: "index-html-75ded",
+      storageBucket: "index-html-75ded.firebasestorage.app",
+      messagingSenderId: "833678381856",
+      appId: "1:833678381856:web:ab7ae69f59539e79eabd45",
+      measurementId: "G-4704LVRXSH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    // গ্লোবাল স্টেট ও বিজ্ঞাপন লিংক সমূহ
+    let allPostsData = {}; 
+    let clickState = {}; 
+    const adLinks = [
+      "https://www.effectivecpmnetwork.com/anxhyi1zr6?key=0b605acd320b08fc5acef493fca874cf",
+      "https://www.effectivecpmnetwork.com/ehachkch?key=939d35191a845f7d758a129694267979",
+      "https://www.effectivecpmnetwork.com/if62vkdup?key=3fd00c2ccc955b529cc17b5c4ec787eb"
+    ];
+
+    // ১. অ্যানালিটিক্স / ভিজিটর কাউন্টার ট্র্যাক করা
+    const analyticsRef = ref(db, 'analytics');
+    runTransaction(analyticsRef, (currentData) => {
+      if (currentData === null) {
+        return { lifetime: 1, hourly: 1 };
+      } else {
+        currentData.lifetime = (currentData.lifetime || 0) + 1;
+        currentData.hourly = (currentData.hourly || 0) + 1;
+        return currentData;
+      }
+    });
+
+    // ২. রিয়েল-টাইমে ডাটাবেজ থেকে সমস্ত পোস্ট একসাথে তুলে আনা
+    onValue(ref(db, 'posts'), (snapshot) => {
+      const posts = snapshot.val();
+      if(posts) {
+        allPostsData = posts; // ডাটা গ্লোবালি সেভ রাখা হলো সার্চের সুবিধার্থে
+        renderPosts(allPostsData);
+      } else {
+        document.getElementById('postsFeed').innerHTML = '<div class="no-results">কোনো পোস্ট পাওয়া যায়নি!</div>';
+      }
+    });
+
+    // ৩. পোস্ট গুলোকে স্ক্রল আকারে ভিউ করানোর মেইন ফাংশন 
+    function renderPosts(postsToRender) {
+      const feedContainer = document.getElementById('postsFeed');
+      feedContainer.innerHTML = ''; // আগের লিস্ট খালি করা
+
+      const keys = Object.keys(postsToRender);
+      
+      keys.forEach((key) => {
+        const post = postsToRender[key];
+        
+        // প্রতিটি নির্দিষ্ট পোস্টের জন্য আলাদা ক্লিক কাউন্টার ইনিশিয়ালাইজেশন
+        if (clickState[key] === undefined) {
+          clickState[key] = 0;
+        }
+
+        // কার্ড তৈরি
+        const cardHTML = `
+          <div class="post-card">
+            <img class="post-thumb" src="${post.thumbnail}" alt="Thumbnail">
+            <div class="post-details">
+              <div class="post-title">${post.title}</div>
+              <div class="action-area">
+                <button class="btn-open" onclick="handleOpenClick('${key}')">ওপেন</button>
+                <div class="counter">3/<span id="clickCount-${key}">${clickState[key]}</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ad-slot-native">[সোশ্যাল বার বা নেটিভ ব্যানার অ্যাড এর স্পেস]</div>
+        `;
+        
+        feedContainer.insertAdjacentHTML('beforeend', cardHTML);
+      });
+    }
+
+    // ৪. স্মার্ট সার্চ অ্যালগরিদম (টাইপো বা আংশিক নাম মিললেও ফিল্টার হবে)
+    document.getElementById('searchBar').addEventListener('input', function(e) {
+      const searchQuery = e.target.value.toLowerCase().trim();
+      
+      if(searchQuery === "") {
+        renderPosts(allPostsData); // সার্চ খালি থাকলে সব পোস্ট দেখাবে
+        return;
+      }
+
+      const filteredPosts = {};
+      const queryWords = searchQuery.split(/\s+/); // সার্চ কুয়েরিকে শব্দে ভাগ করা
+
+      Object.keys(allPostsData).forEach(key => {
+        const title = allPostsData[key].title.toLowerCase();
+        
+        // অ্যালগরিদম চেক: সার্চ করা শব্দগুলোর কোনো একটি অংশ টাইটেলে থাকলেই ম্যাচ ধরবে
+        const isMatch = queryWords.some(word => title.includes(word));
+        
+        if(isMatch) {
+          filteredPosts[key] = allPostsData[key];
+        }
+      });
+
+      // ফিল্টার করা রেজাল্ট শো করা
+      const totalFiltered = Object.keys(filteredPosts).length;
+      if (totalFiltered > 0) {
+        renderPosts(filteredPosts);
+      } else {
+        document.getElementById('postsFeed').innerHTML = '<div class="no-results">দুঃখিত, কোনো মিল পাওয়া যায়নি!</div>';
+      }
+    });
+
+    // ৫. বিজ্ঞাপন ও লবি হাইপারলিংক হ্যান্ডেলার (ইন্ডিপেন্ডেন্ট ক্লিক ট্র্যাক)
+    window.handleOpenClick = function(postId) {
+      let currentClicks = clickState[postId];
+
+      if (currentClicks < 3) {
+        // নতুন ট্যাবে নির্দিষ্ট অ্যাড লিংক ওপেন হবে
+        window.open(adLinks[currentClicks], '_blank');
+        
+        // ক্লিক কাউন্ট ১ বাড়ানো
+        clickState[postId]++;
+        document.getElementById(`clickCount-${postId}`).innerText = clickState[postId];
+      } else {
+        // ৩ বার অ্যাড দেখা সম্পন্ন হলে উক্ত পোস্টের ID সহ Lobby.html পেজে রিডাইরেক্ট হবে
+        window.location.href = `Lobby.html?id=${postId}`;
+      }
+    }
+  </script>
+</body>
+</html>
