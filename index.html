@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home - Premium</title>
+  <title>Viral Video Zone BD - Premium</title>
   <style>
-    /* প্রিমিয়াম হোয়াইট থিম ডিজাইন */
+    /* প্রিমিয়াম ডার্ক থিম ডিজাইন */
     body { 
-      background-color: #ffffff; 
-      color: #111111; 
+      background-color: #0f0f11; 
+      color: #ffffff; 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       margin: 0; 
       padding: 15px; 
@@ -17,25 +17,41 @@
       align-items: center; 
     }
     
-    /* প্রিমিয়াম সার্চ বার */
+    /* ডার্ক সার্চ বার উইথ আইকন */
     .search-container {
+      position: relative;
       width: 100%;
       max-width: 450px;
       margin-bottom: 15px;
     }
     .search-input {
       width: 100%;
-      padding: 12px 15px;
-      font-size: 16px;
-      border: 2px solid #00CC66;
+      padding: 12px 40px 12px 15px; /* আইকনের জন্য ডানপাশে জায়গা রাখা হয়েছে */
+      font-size: 15px;
+      background-color: #1e1e24;
+      color: #ffffff;
+      border: 1px solid #333333;
       border-radius: 25px;
       outline: none;
       box-sizing: border-box;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       transition: all 0.3s ease;
     }
+    .search-input::placeholder {
+      color: #888888;
+    }
     .search-input:focus {
-      box-shadow: 0 4px 12px rgba(0, 204, 102, 0.2);
+      border-color: #8b5cf6; 
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+    }
+    .search-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: #8b5cf6; /* থিমের বেগুনি কালার */
+      pointer-events: none; /* যাতে আইকনের উপর ক্লিক করলেও টাইপ করা যায় */
     }
 
     /* টপ ব্যানার অ্যাড স্লট */
@@ -43,15 +59,15 @@
       width: 100%; 
       max-width: 450px; 
       height: 120px; 
-      background-color: #f5f5f5; 
-      border: 1px dashed #cccccc; 
+      background-color: #18181b; 
+      border: 1px dashed #3f3f46; 
       margin-bottom: 20px; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
-      color: #888888; 
+      color: #71717a; 
       font-size: 14px; 
-      border-radius: 8px;
+      border-radius: 12px;
     }
     
     /* পোস্টের মধ্যবর্তী নেটিভ অ্যাড স্লট */
@@ -59,15 +75,15 @@
       width: 100%; 
       max-width: 450px; 
       height: 90px; 
-      background-color: #f9f9f9; 
-      border: 1px dashed #00CC66; 
-      margin: 20px 0; 
+      background-color: #18181b; 
+      border: 1px dashed #8b5cf6; 
+      margin: 15px 0 25px 0; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
-      color: #00CC66; 
+      color: #8b5cf6; 
       font-size: 13px; 
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
     /* পোস্ট ফিড কন্টেইনার */
@@ -76,83 +92,147 @@
       max-width: 450px;
     }
 
-    /* প্রিমিয়াম পোস্ট কার্ড (ইউটিউব স্টাইল) */
+    /* প্রিমিয়াম ডার্ক পোস্ট কার্ড */
     .post-card { 
       width: 100%; 
-      background: #ffffff; 
-      border: 1px solid #eeeeee; 
-      border-radius: 12px; 
+      background: #18181b; 
+      border-radius: 16px; 
       overflow: hidden; 
-      box-shadow: 0 6px 15px rgba(0,0,0,0.06);
-      margin-bottom: 10px;
-      transition: transform 0.2s ease;
+      margin-bottom: 15px;
     }
-    .post-card:hover {
-      transform: translateY(-2px);
+    
+    .thumbnail-container {
+      position: relative;
     }
+    
     .post-thumb { 
       width: 100%; 
       aspect-ratio: 16/9; 
-      background: #eaeaea; 
+      background: #27272a; 
       object-fit: cover; 
+      display: block;
+      border-radius: 16px 16px 0 0;
     }
+
+    /* ডিউরেশন ব্যাজ রিমুভ করা হয়েছে */
+
     .post-details { 
-      padding: 15px; 
+      padding: 16px 10px; 
       display: flex; 
       flex-direction: column; 
     }
-    .post-title { 
-      font-size: 17px; 
-      margin-bottom: 15px; 
-      font-weight: 700; 
-      line-height: 1.4; 
-      color: #111111;
+
+    /* প্রোফাইল আইকন এবং টাইটেল এরিয়া */
+    .header-area {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
     }
     
-    /* অ্যাকশন এরিয়া ও সবুজ বাটন */
-    .action-area { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-    }
-    .btn-open { 
-      background-color: #00CC66; 
-      color: #ffffff; 
-      border: none; 
-      padding: 10px 22px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      border-radius: 6px; 
-      font-size: 15px; 
-      box-shadow: 0 3px 6px rgba(0, 204, 102, 0.2);
-      transition: background 0.2s ease;
-    }
-    .btn-open:hover { 
-      background-color: #00994d; 
-    }
-    .counter { 
-      font-size: 16px; 
-      font-weight: bold; 
-      color: #00CC66; 
-      border: 2px solid #00CC66; 
-      padding: 4px 10px; 
-      border-radius: 6px; 
-      background-color: rgba(0, 204, 102, 0.05);
+    .profile-icon {
+      width: 38px;
+      height: 38px;
+      background-color: #8b5cf6;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      flex-shrink: 0;
     }
 
-    /* সার্চে কিছু না পাওয়া গেলে নোটিশ */
+    .title-area {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .post-title { 
+      font-size: 15px; 
+      font-weight: 600; 
+      line-height: 1.4; 
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .post-meta {
+      font-size: 12px;
+      color: #a1a1aa;
+    }
+    
+    .hurry-text {
+      font-size: 13px;
+      color: #a1a1aa;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      padding-left: 50px;
+    }
+
+    /* অ্যাকশন এরিয়া ও বেগুনি বাটন */
+    .action-area { 
+      display: flex; 
+      gap: 12px;
+      align-items: center; 
+      padding-left: 50px; 
+    }
+    
+    .btn-open { 
+      flex: 1;
+      background-color: #8b5cf6; 
+      color: #ffffff; 
+      border: none; 
+      padding: 12px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      border-radius: 10px; 
+      font-size: 13px; 
+      letter-spacing: 0.5px;
+      transition: background 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn-open:hover { 
+      background-color: #7c3aed; 
+    }
+    
+    /* নতুন গোলাকার লাভ রিঅ্যাক্ট বাটন */
+    .btn-love {
+      background-color: #27272a;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%; /* পুরোপুরি গোল করা হয়েছে */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-love:hover {
+      background-color: #3f3f46;
+    }
+    
+    .btn-love svg {
+      width: 22px;
+      height: 22px;
+      fill: #ef4444; /* লাল কালারের লাভ আইকন */
+    }
+
     .no-results {
       text-align: center;
-      color: #999;
+      color: #71717a;
       margin-top: 30px;
-      font-size: 16px;
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
 
   <div class="search-container">
-    <input type="text" id="searchBar" class="search-input" placeholder="পছন্দের পোস্টটি সার্চ করুন (যেমন: এসএমএস)...">
+    <input type="text" id="searchBar" class="search-input" placeholder="পছন্দের পোস্টটি সার্চ করুন...">
+    <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
   </div>
 
   <div class="ad-slot-top">
@@ -166,7 +246,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // আপনার দেওয়া ফায়ারবেস কনফিগারেশন অবিকল রাখা হয়েছে
     const firebaseConfig = {
       apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
       authDomain: "index-html-75ded.firebaseapp.com",
@@ -181,7 +260,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     
-    // গ্লোবাল স্টেট ও বিজ্ঞাপন লিংক সমূহ
     let allPostsData = {}; 
     let clickState = {}; 
     const adLinks = [
@@ -190,7 +268,6 @@
       "https://www.effectivecpmnetwork.com/if62vkdup?key=3fd00c2ccc955b529cc17b5c4ec787eb"
     ];
 
-    // ১. অ্যানালিটিক্স / ভিজিটর কাউন্টার ট্র্যাক করা
     const analyticsRef = ref(db, 'analytics');
     runTransaction(analyticsRef, (currentData) => {
       if (currentData === null) {
@@ -202,41 +279,73 @@
       }
     });
 
-    // ২. রিয়েল-টাইমে ডাটাবেজ থেকে সমস্ত পোস্ট একসাথে তুলে আনা
+    // ২. রিয়েল-টাইমে ডাটা আপডেট (সার্চ করা অবস্থাতেও লাইভ আপডেট কাজ করবে)
     onValue(ref(db, 'posts'), (snapshot) => {
       const posts = snapshot.val();
       if(posts) {
-        allPostsData = posts; // ডাটা গ্লোবালি সেভ রাখা হলো সার্চের সুবিধার্থে
-        renderPosts(allPostsData);
+        allPostsData = posts; 
+        
+        // যদি ইউজার সার্চ করে থাকে, তবে সার্চ রেজাল্টেই আপডেট দেখাবে
+        const searchQuery = document.getElementById('searchBar').value.toLowerCase().trim();
+        if (searchQuery === "") {
+          renderPosts(allPostsData);
+        } else {
+          const filteredPosts = {};
+          const queryWords = searchQuery.split(/\s+/);
+          Object.keys(allPostsData).forEach(key => {
+            const title = allPostsData[key].title.toLowerCase();
+            if(queryWords.some(word => title.includes(word))) {
+              filteredPosts[key] = allPostsData[key];
+            }
+          });
+          renderPosts(filteredPosts);
+        }
       } else {
         document.getElementById('postsFeed').innerHTML = '<div class="no-results">কোনো পোস্ট পাওয়া যায়নি!</div>';
       }
     });
 
-    // ৩. পোস্ট গুলোকে স্ক্রল আকারে ভিউ করানোর মেইন ফাংশন 
+    // ৩. পোস্ট রেন্ডারিং ফাংশন
     function renderPosts(postsToRender) {
       const feedContainer = document.getElementById('postsFeed');
-      feedContainer.innerHTML = ''; // আগের লিস্ট খালি করা
+      feedContainer.innerHTML = ''; 
 
       const keys = Object.keys(postsToRender);
       
       keys.forEach((key) => {
         const post = postsToRender[key];
         
-        // প্রতিটি নির্দিষ্ট পোস্টের জন্য আলাদা ক্লিক কাউন্টার ইনিশিয়ালাইজেশন
         if (clickState[key] === undefined) {
           clickState[key] = 0;
         }
 
-        // কার্ড তৈরি
+        // ভিউজ ও লাভ ডাটা না থাকলে ডিফল্ট ০ দেখাবে
+        const viewsCount = post.views || 0;
+        const lovesCount = post.loves || 0;
+
         const cardHTML = `
           <div class="post-card">
-            <img class="post-thumb" src="${post.thumbnail}" alt="Thumbnail">
+            <div class="thumbnail-container">
+              <img class="post-thumb" src="${post.thumbnail}" alt="Thumbnail">
+              </div>
+            
             <div class="post-details">
-              <div class="post-title">${post.title}</div>
+              <div class="header-area">
+                <div class="profile-icon">V</div>
+                <div class="title-area">
+                  <div class="post-title">${post.title}</div>
+                  <div class="post-meta">VIDEO CALL LINKS · <span id="views-${key}">${viewsCount}</span> views · ❤️<span id="loves-${key}">${lovesCount}</span></div>
+                </div>
+              </div>
+              
+              <div class="hurry-text">তাড়াতাড়ি দেখুন 👇</div>
+              
               <div class="action-area">
-                <button class="btn-open" onclick="handleOpenClick('${key}')">ওপেন</button>
-                <div class="counter">3/<span id="clickCount-${key}">${clickState[key]}</span></div>
+                <button class="btn-open" onclick="handleOpenClick('${key}')">UNLOCK — <span id="clickCount-${key}">${clickState[key]}</span>/3 ADS</button>
+                
+                <button class="btn-love" onclick="handleLoveClick('${key}')">
+                  <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -247,22 +356,20 @@
       });
     }
 
-    // ৪. স্মার্ট সার্চ অ্যালগরিদম (টাইপো বা আংশিক নাম মিললেও ফিল্টার হবে)
+    // স্মার্ট সার্চ 
     document.getElementById('searchBar').addEventListener('input', function(e) {
       const searchQuery = e.target.value.toLowerCase().trim();
       
       if(searchQuery === "") {
-        renderPosts(allPostsData); // সার্চ খালি থাকলে সব পোস্ট দেখাবে
+        renderPosts(allPostsData); 
         return;
       }
 
       const filteredPosts = {};
-      const queryWords = searchQuery.split(/\s+/); // সার্চ কুয়েরিকে শব্দে ভাগ করা
+      const queryWords = searchQuery.split(/\s+/);
 
       Object.keys(allPostsData).forEach(key => {
         const title = allPostsData[key].title.toLowerCase();
-        
-        // অ্যালগরিদম চেক: সার্চ করা শব্দগুলোর কোনো একটি অংশ টাইটেলে থাকলেই ম্যাচ ধরবে
         const isMatch = queryWords.some(word => title.includes(word));
         
         if(isMatch) {
@@ -270,7 +377,6 @@
         }
       });
 
-      // ফিল্টার করা রেজাল্ট শো করা
       const totalFiltered = Object.keys(filteredPosts).length;
       if (totalFiltered > 0) {
         renderPosts(filteredPosts);
@@ -279,19 +385,35 @@
       }
     });
 
-    // ৫. বিজ্ঞাপন ও লবি হাইপারলিংক হ্যান্ডেলার (ইন্ডিপেন্ডেন্ট ক্লিক ট্র্যাক)
+    // ৪. লাভ রিঅ্যাক্ট ক্লিক হ্যান্ডেলার (ফায়ারবেসে লাইভ সেভ হবে)
+    window.handleLoveClick = function(postId) {
+      const loveRef = ref(db, `posts/${postId}/loves`);
+      runTransaction(loveRef, (currentLoves) => {
+        return (currentLoves || 0) + 1;
+      });
+    };
+
+    // ৫. আনলক বাটন এবং প্রথম ক্লিকে ভিউ কাউন্ট
     window.handleOpenClick = function(postId) {
       let currentClicks = clickState[postId];
 
+      // প্রথমবার ক্লিক করলেই ডাটাবেজে ভিউ কাউন্ট +১ হয়ে যাবে
+      if (currentClicks === 0) {
+        const viewRef = ref(db, `posts/${postId}/views`);
+        runTransaction(viewRef, (currentViews) => {
+          return (currentViews || 0) + 1;
+        });
+      }
+
       if (currentClicks < 3) {
-        // নতুন ট্যাবে নির্দিষ্ট অ্যাড লিংক ওপেন হবে
         window.open(adLinks[currentClicks], '_blank');
         
-        // ক্লিক কাউন্ট ১ বাড়ানো
         clickState[postId]++;
-        document.getElementById(`clickCount-${postId}`).innerText = clickState[postId];
+        const clickSpan = document.getElementById(`clickCount-${postId}`);
+        if(clickSpan) {
+            clickSpan.innerText = clickState[postId];
+        }
       } else {
-        // ৩ বার অ্যাড দেখা সম্পন্ন হলে উক্ত পোস্টের ID সহ Lobby.html পেজে রিডাইরেক্ট হবে
         window.location.href = `Lobby.html?id=${postId}`;
       }
     }
