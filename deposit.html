@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Deposit Desk</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #070a12 0%, #111428 100%); min-height: 100vh; color: #fff; padding-bottom: 90px; }
+        .app-container { width: 100%; max-width: 480px; margin: 0 auto; padding: 20px; }
+        
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+        .back-btn { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; color: #fff; text-decoration: none; }
+        .page-title { font-size: 18px; font-weight: 700; color: #fbbf24; }
+
+        .dropdown { position: relative; width: 100%; margin-bottom: 20px; }
+        .select-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 14px; border: 1px solid #334155; cursor: pointer; display: flex; justify-content: space-between; }
+        .options { position: absolute; top: 110%; left: 0; width: 100%; background: #111428; border: 1px solid #334155; border-radius: 14px; display: none; z-index: 100; overflow: hidden; }
+        .opt { padding: 15px; border-bottom: 1px solid #1e293b; cursor: pointer; }
+        .opt.disabled { opacity: 0.5; cursor: not-allowed; color: #94a3b8; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; display: block; text-transform: uppercase; }
+        .input-group input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid #334155; padding: 14px; border-radius: 12px; color: #fff; }
+        .calc-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px; border-radius: 10px; color: #34d399; font-weight: 600; margin-bottom: 15px; display: none; }
+        .submit-btn { width: 100%; padding: 16px; background: #fbbf24; border: none; border-radius: 14px; color: #000; font-weight: 700; cursor: pointer; }
+
+        /* History Styling */
+        .history-section { margin-top: 30px; }
+        .history-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f1222; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1e293b; }
+        .nav-item { color: #64748b; text-decoration: none; text-align: center; font-size: 18px; }
+        .nav-item span { display: block; font-size: 10px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="page-header">
+            <a href="wallet.html" class="back-btn">←</a>
+            <div class="page-title">Deposit Funds</div>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <div class="dropdown">
+            <div class="select-box" id="dropTrigger">Select Method (bKash) ▼</div>
+            <div class="options" id="dropOptions">
+                <div class="opt" onclick="selectMethod('bKash')">bKash (Active)</div>
+                <div class="opt disabled">PayPal (Stock Out)</div>
+                <div class="opt disabled">Binance (Stock Out)</div>
+            </div>
+        </div>
+
+        <form id="depositForm">
+            <div class="input-group">
+                <label>Amount (BDT)</label>
+                <input type="number" id="amtBDT" placeholder="0" required>
+            </div>
+            <div class="calc-box" id="calcBox">Converted: 0.00 USD</div>
+            
+            <div class="input-group">
+                <label>Sender Number</label>
+                <input type="text" id="senderPhone" placeholder="01XXXXXXXXX" required>
+            </div>
+            <div class="input-group">
+                <label>Transaction ID</label>
+                <input type="text" id="trxID" placeholder="TrxID" required>
+            </div>
+            <button type="submit" class="submit-btn">Submit Request</button>
+        </form>
+
+        <div class="history-section">
+            <h4 style="color:#64748b; margin-bottom:15px; font-size:12px; text-transform:uppercase;">Recent Transactions</h4>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <a href="home.html" class="nav-item">🏠<span>Home</span></a>
+        <a href="wallet.html" class="nav-item">💳<span>Wallet</span></a>
+        <a href="invite.html" class="nav-item">👥<span>Invite</span></a>
+        <a href="account.html" class="nav-item" style="color:#fbbf24">👤<span>Account</span></a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Dropdown
+        document.getElementById('dropTrigger').onclick = () => {
+            const opt = document.getElementById('dropOptions');
+            opt.style.display = opt.style.display === 'block' ? 'none' : 'block';
+        };
+
+        function selectMethod(m) {
+            document.getElementById('dropTrigger').innerText = "Selected: " + m;
+            document.getElementById('dropOptions').style.display = 'none';
+        }
+
+        // Calculation
+        document.getElementById('amtBDT').oninput = function() {
+            const val = parseFloat(this.value);
+            if(val > 0) {
+                const usd = (val / 125).toFixed(2);
+                document.getElementById('calcBox').style.display = 'block';
+                document.getElementById('calcBox').innerText = "Converted: " + usd + " USD";
+            } else {
+                document.getElementById('calcBox').style.display = 'none';
+            }
+        };
+
+        // Form Submit
+        document.getElementById('depositForm').onsubmit = function(e) {
+            e.preventDefault();
+            const user = firebase.auth().currentUser;
+            if(!user) { alert("Please login first!"); return; }
+
+            const bdt = parseFloat(document.getElementById('amtBDT').value);
+            const data = {
+                uid: user.uid,
+                email: user.email,
+                amount: (bdt / 125).toFixed(2),
+                bdtAmount: bdt,
+                method: "bKash",
+                number: document.getElementById('senderPhone').value,
+                trxId: document.getElementById('trxID').value,
+                status: 'pending',
+                type: 'deposit',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            const key = db.ref('requests/deposits').push().key;
+            db.ref('requests/deposits/' + key).set(data).then(() => {
+                alert("Request Sent Successfully!");
+                document.getElementById('depositForm').reset();
+                document.getElementById('calcBox').style.display = 'none';
+            });
+        };
+
+        // Fetch History
+        firebase.auth().onAuthStateChanged(user => {
+            if(user) {
+                // এখানে নির্দিষ্ট ইউজারের ডাটা ফেচ করা হচ্ছে
+                db.ref('requests/deposits').orderByChild('uid').equalTo(user.uid).on('value', snap => {
+                    const box = document.getElementById('historyList');
+                    box.innerHTML = '';
+                    snap.forEach(s => {
+                        const d = s.val();
+                        let statusColor = d.status === 'approved' ? '#22c55e' : (d.status === 'rejected' ? '#ef4444' : '#fbbf24');
+                        box.innerHTML += `
+                            <div class="history-card">
+                                <div>
+                                    <div style="font-size:13px; font-weight:600;">$${d.amount} Deposit</div>
+                                    <div style="font-size:10px; color:#64748b;">ID: ${d.trxId}</div>
+                                </div>
+                                <div class="status-badge" style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40;">
+                                    ${d.status}
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

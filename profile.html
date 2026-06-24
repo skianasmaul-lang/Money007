@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>User Profile Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #070a12 0%, #111428 100%); min-height: 100vh; color: #fff; padding-bottom: 90px; overflow-x: hidden; width: 100%; }
+        
+        /* Mobile-First Responsive Container */
+        .app-container { width: 100%; max-width: 480px; margin: 0 auto; padding: 20px 15px; position: relative; min-height: 100vh; }
+
+        /* Premium Profile Glass Card */
+        .profile-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 24px; padding: 25px 20px; text-align: center; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        
+        /* Avatar Visual Engine */
+        .avatar-glow { width: 75px; height: 75px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 0 25px rgba(251, 191, 36, 0.2); }
+        .avatar-glow svg { width: 35px; height: 35px; fill: #070a12; }
+
+        .user-email { font-size: 16px; font-weight: 600; color: #f8fafc; word-break: break-all; margin-bottom: 5px; }
+        .user-meta-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; font-weight: 500; }
+
+        /* Password Inline Editor Control */
+        .password-editor-group { text-align: left; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-top: 15px; }
+        .password-fields { flex: 1; display: flex; flex-direction: column; }
+        .password-fields label { font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+        .password-fields input { width: 100%; background: transparent; border: none; color: #fff; font-size: 14px; outline: none; font-weight: 500; letter-spacing: 0.5px; }
+        
+        .btn-save-crypto { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fbbf24; cursor: pointer; transition: 0.2s; }
+        .btn-save-crypto:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-save-crypto:active { transform: scale(0.92); background: #fbbf24; color: #070a12; }
+        .btn-save-crypto svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Navigation Node Links / Action Cards */
+        .action-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-top: 10px; }
+        
+        /* Add Money Luxury Button Hyperlink */
+        .btn-hyper-deposit { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-radius: 16px; color: #070a12; font-weight: 700; font-size: 14px; box-shadow: 0 6px 20px rgba(251,191,36,0.15); transition: 0.2s; }
+        .btn-hyper-deposit:active { transform: scale(0.98); opacity: 0.95; }
+        .btn-hyper-deposit svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* Outbound Red Logout Control */
+        .btn-action-logout { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); width: 100%; padding: 14px; border-radius: 16px; color: #ef4444; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; margin-top: 5px; }
+        .btn-action-logout:active { transform: scale(0.98); background: #ef4444; color: white; }
+        .btn-action-logout svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Bottom App Bar Navigation */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: 65px; background: rgba(7, 10, 18, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; text-decoration: none; font-size: 10px; font-weight: 500; transition: 0.2s; }
+        .nav-item.active { color: #fbbf24; }
+        .nav-item svg { width: 20px; height: 20px; margin-bottom: 4px; fill: currentColor; }
+        .nav-item:active { transform: scale(0.92); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="profile-card">
+            <div class="avatar-glow">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.67-5-3-8-3z"/>
+                </svg>
+            </div>
+            <div class="user-email" id="userEmail">Loading User Node...</div>
+            <div class="user-meta-label">Active Client Node</div>
+
+            <div class="password-editor-group">
+                <div class="password-fields">
+                    <label>Account Password</label>
+                    <input type="text" id="fPassword" placeholder="Loading password...">
+                </div>
+                <button class="btn-save-crypto" id="savePasswordBtn" title="Update Security Key">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="action-container">
+            <a href="deposit.html" class="btn-hyper-deposit">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Add Money
+            </a>
+            <button class="btn-action-logout" id="logoutBtn">
+                <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.33 2.14l-1.41 1.41c1.82 1.42 2.08 4.01.59 5.76-1.5 1.75-4.12 1.84-5.73.21-1.61-1.63-1.52-4.25.19-5.77L9.56 5.33C6.61 7.92 6.38 12.49 9.06 15.38c2.69 2.88 7.23 2.88 9.91 0 2.69-2.89 2.45-7.46-.64-10.1z"/></svg>
+                Log Out
+            </button>
+        </div>
+
+        <div class="bottom-nav">
+            <a href="home.html" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
+            </a>
+            <a href="wallet.html" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 0-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
+            </a>
+            <a href="invite.html" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Invite
+            </a>
+            <a href="profile.html" class="nav-item active">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.67-5-3-8-3z"/></svg>Account
+            </a>
+        </div>
+        
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45",
+            measurementId: "G-4704LVRXSH"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let currentUser = null;
+        let oldPasswordTrack = ""; 
+
+        const saveBtn = document.getElementById('savePasswordBtn');
+        saveBtn.addEventListener('click', executePasswordUpdate);
+        document.getElementById('logoutBtn').addEventListener('click', triggerSignOutNode);
+
+        // রিয়েল-টাইম সেশন হ্যান্ডলার
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userEmail').innerText = user.email;
+                
+                // ১. প্রথমে লোকাল স্টোরেজ থেকে পাসওয়ার্ড চেক করবে (সুপার ফাস্ট লোড হবে)
+                oldPasswordTrack = localStorage.getItem('cached_user_pass') || "";
+                if (oldPasswordTrack) {
+                    document.getElementById('fPassword').value = oldPasswordTrack;
+                }
+
+                // ২. তারপর ডাটাবেজ থেকে চেক করে আপডেট করে নিবে
+                db.ref('users/' + user.uid + '/password').once('value', function(snapshot) {
+                    if (snapshot.exists()) {
+                        oldPasswordTrack = snapshot.val();
+                        document.getElementById('fPassword').value = oldPasswordTrack;
+                        localStorage.setItem('cached_user_pass', oldPasswordTrack); // লোকাল ব্যাকআপ আপডেট
+                    } else if (!oldPasswordTrack) {
+                        document.getElementById('fPassword').placeholder = "Enter new password";
+                    }
+                });
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // পাসওয়ার্ড পরিবর্তন করার আপগ্রেডেড ফুল-প্রুফ ইঞ্জিন
+        function executePasswordUpdate() {
+            const newPassword = document.getElementById('fPassword').value.trim();
+
+            if (newPassword === "" || newPassword.length < 6) {
+                alert("দুঃখিত! সিকিউরিটির জন্য পাসওয়ার্ডটি কমপক্ষে ৬ অক্ষরের হতে হবে।");
+                return;
+            }
+
+            if (!currentUser) {
+                alert("ইউজার সেশন পাওয়া যায়নি। অনুগ্রহ করে আবার লগইন করুন।");
+                return;
+            }
+
+            saveBtn.disabled = true;
+
+            // স্মার্ট ফলব্যাক: যদি ডাটাবেজ বা লোকাল স্টোরেজে পুরাতন পাসওয়ার্ড না পাওয়া যায়
+            let currentVerifyPassword = oldPasswordTrack;
+            if (!currentVerifyPassword) {
+                currentVerifyPassword = prompt("নিরাপত্তার জন্য আপনার বর্তমান (পুরাতন) পাসওয়ার্ডটি টাইপ করুন:");
+                if (!currentVerifyPassword) {
+                    saveBtn.disabled = false;
+                    return; // ইউজার ক্যানসেল করলে অপারেশন বন্ধ হবে
+                }
+            }
+
+            // ফায়ারবেস সিকিউরিটি রি-ভেরিফিকেশন প্রোটোকল
+            const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentVerifyPassword);
+            
+            currentUser.reauthenticateWithCredential(credential).then(function() {
+                // মেইন অথেনটিকেশন লেয়ার আপডেট
+                return currentUser.updatePassword(newPassword);
+            }).then(function() {
+                // রিয়েল-টাইম ডাটাবেজ নোড আপডেট
+                return db.ref('users/' + currentUser.uid + '/password').set(newPassword);
+            }).then(function() {
+                // লোকাল ক্যাশ মেমোরি আপডেট
+                oldPasswordTrack = newPassword;
+                localStorage.setItem('cached_user_pass', newPassword);
+                saveBtn.disabled = false;
+                alert("অভিনন্দন! আপনার পাসওয়ার্ডটি ফায়ারবেস অথ এবং ডাটাবেজে সফলভাবে আপডেট করা হয়েছে। পরবর্তী বার এই নতুন পাসওয়ার্ডটি দিয়েই লগইন করতে পারবেন।");
+            }).catch(function(error) {
+                saveBtn.disabled = false;
+                
+                // যদি পুরাতন পাসওয়ার্ড ভুল হয় বা সেশন এক্সপায়ার হয়
+                if (error.code === 'auth/wrong-password') {
+                    alert("দুঃখিত, আপনার দেওয়া বর্তমান পাসওয়ার্ডটি সঠিক নয়! দয়া করে সঠিক পাসওয়ার্ড দিয়ে আবার চেষ্টা করুন।");
+                    oldPasswordTrack = ""; // ট্র্যাকার খালি করে দেওয়া হলো যাতে পরের বার প্রম্পট আসে
+                } else if (error.code === 'auth/requires-recent-login') {
+                    alert("নিরাপত্তা জনিত কারণে অ্যাকাউন্টটি একবার লগআউট করে নতুন পাসওয়ার্ড দিয়ে আবার প্রবেশ করুন।");
+                    triggerSignOutNode();
+                } else {
+                    alert("ত্রুটি: " + error.message);
+                }
+            });
+        }
+
+        // লগআউট লজিক
+        function triggerSignOutNode() {
+            localStorage.removeItem('cached_user_pass'); // সেশন ক্লিয়ার
+            auth.signOut().then(function() {
+                window.location.href = "index.html";
+            }).catch(function(err) {
+                alert("লগআউট এরর: " + err.message);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Mining Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #070a12 0%, #111428 100%); min-height: 100vh; color: #fff; padding-bottom: 90px; }
+        
+        /* Top Navigation Header - Upgraded Glow Look */
+        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 100; }
+        
+        .balance-box { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(251, 191, 36, 0.5); padding: 12px 24px; border-radius: 16px; font-weight: 700; font-size: 22px; color: #fbbf24; letter-spacing: 1.5px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(251, 191, 36, 0.15); min-width: 180px; }
+        .balance-box span { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 500; }
+        
+        .bonus-btn { position: relative; width: 48px; height: 48px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bonus-btn:hover { background: rgba(251, 191, 36, 0.1); border-color: #fbbf24; transform: scale(1.08); }
+        .bonus-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #22c55e; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 11px; color: white; font-weight: bold; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+
+        /* Welcome Message Container */
+        .welcome-container { padding: 25px 20px 5px; max-width: 600px; margin: 0 auto; text-align: left; }
+        .welcome-container h1 { font-size: 22px; font-weight: 600; color: #fff; }
+        .welcome-container p { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+        /* Main Container & Plans Layout Grid */
+        .main-container { padding: 15px 20px; max-width: 600px; margin: 0 auto; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .plan-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 22px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .plan-card:hover { border-color: rgba(251, 191, 36, 0.25); background: rgba(255,255,255,0.04); transform: translateY(-2px); }
+        
+        .plan-info h3 { font-size: 16px; font-weight: 600; color: #f8fafc; margin-bottom: 6px; }
+        .plan-info p { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+        .plan-info .price { color: #fbbf24; font-weight: 600; margin-top: 4px; font-size: 13px; background: rgba(251, 191, 36, 0.08); display: inline-block; padding: 2px 8px; border-radius: 6px; }
+        
+        .btn-action { padding: 12px 24px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; min-width: 100px; }
+        .btn-active-state { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #070a12; box-shadow: 0 4px 15px rgba(251,191,36,0.25); }
+        .btn-active-state:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(251,191,36,0.35); }
+        .btn-running-state { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); cursor: not-allowed; font-weight: 700; }
+
+        /* Bottom Fixed Navigation Bar */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: rgba(7, 10, 18, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; text-decoration: none; font-size: 11px; font-weight: 500; cursor: pointer; transition: 0.3s; }
+        .nav-item.active, .nav-item:hover { color: #fbbf24; }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 5px; fill: currentColor; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Area With Fixed Live Counter Display -->
+    <div class="top-header">
+        <div class="balance-box">
+            <div id="liveCounter">💸0.000000</div>
+            <span>Live Balance ($)</span>
+        </div>
+        <div class="bonus-btn" id="bonusContainer" onclick="location.href='bonus.html'">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <div class="bonus-badge" id="bonusTick" style="display:none;">✓</div>
+        </div>
+    </div>
+
+    <!-- User Profile Header Welcome -->
+    <div class="welcome-container">
+        <h1 id="userGreeting">Hello Miner</h1>
+        <p>Manage your account portfolio and cloud generation systems.</p>
+    </div>
+
+    <!-- Main Mining Dashboard System -->
+    <div class="main-container">
+        <div class="section-title">Available Infrastructure Plans</div>
+        <div id="plansList">
+            <!-- Dynamic Plans Injection Node -->
+        </div>
+    </div>
+
+    <!-- Bottom App Navigation Bar Area -->
+    <div class="bottom-nav">
+        <a href="home.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+        </a>
+        <a href="wallet.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            Wallet
+        </a>
+        <a href="invite.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Invite
+        </a>
+        <a href="profile.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.67-5-3-8-3z"/></svg>
+            Account
+        </a>
+    </div>
+
+    <!-- Core Engine Core Logic Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyx_79aq2E4xTjH9v8IziuYVuoZd4jXk4",
+            authDomain: "index-html-75ded.firebaseapp.com",
+            databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com",
+            projectId: "index-html-75ded",
+            storageBucket: "index-html-75ded.firebasestorage.app",
+            messagingSenderId: "833678381856",
+            appId: "1:833678381856:web:ab7ae69f59539e79eabd45",
+            measurementId: "G-4704LVRXSH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let localBalance = 0;
+        let activePlans = {};
+        let speedPerMs = 0;
+        let isInitialized = false;
+
+        const staticPlans = [
+            { id: "free", name: "Free Basic Plan", coins: 1, price: 0 },
+            { id: "plan1", name: "Premium Tier 1", coins: 50, price: 1 },
+            { id: "plan2", name: "Premium Tier 2", coins: 100, price: 2 },
+            { id: "plan3", name: "Premium Tier 3", coins: 200, price: 4 },
+            { id: "plan4", name: "Premium Tier 4", coins: 400, price: 8 },
+            { id: "plan5", name: "Premium Tier 5", coins: 800, price: 16 },
+            { id: "plan6", name: "Premium Tier 6", coins: 1600, price: 32 },
+            { id: "plan7", name: "Premium Tier 7", coins: 3200, price: 64 },
+            { id: "plan8", name: "Premium Tier 8", coins: 6400, price: 128 },
+            { id: "plan9", name: "Premium Tier 9", coins: 12800, price: 256 },
+            { id: "plan10", name: "Premium Tier 10", coins: 25600, price: 512 }
+        ];
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userGreeting').innerText = "Welcome, " + (user.email ? user.email.split('@')[0] : 'Miner');
+                initializeRealtimeListeners();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function initializeRealtimeListeners() {
+            // ১. লাইভ মেম্বার ডাটাবেজ অ্যান্ড সিকিউরিটি চেক লুপ
+            onValue(ref(db, `users/${currentUser.uid}`), async (snapshot) => {
+                let data = snapshot.val();
+                
+                // সমাধান ১: নতুন ইউজারের জন্য ডাটাবেজ নোড ক্রিয়েট করা (ইমেইল 'undefined' ফিক্স)
+                if (!data) {
+                    data = {
+                        email: currentUser.email || "Google User",
+                        balance: 0.000000,
+                        last_updated: Date.now(),
+                        createdAt: new Date().toLocaleString(),
+                        status: 'active',
+                        activePlans: {}
+                    };
+                    await update(ref(db, `users/${currentUser.uid}`), data);
+                }
+
+                // অ্যাকাউন্ট যদি অন্য ডিভাইস বা অ্যাডমিন থেকে সরাসরি ব্যান হয়
+                if (data.status === 'banned' || data.status === 'suspended') {
+                    signOut(auth).then(() => { window.location.href = "index.html"; });
+                    return;
+                }
+
+                // ইমেইল কোনো কারণে মিসিং থাকলে রি-রাইট ব্যাকআপ প্রোটেকশন
+                if (!data.email && currentUser.email) {
+                    await update(ref(db, `users/${currentUser.uid}`), { email: currentUser.email });
+                }
+
+                activePlans = data.activePlans || {};
+                calculateMiningSpeed(); // স্পীড রিকোভারি
+
+                const dbBalance = data.balance || 0;
+                const dbLastUpdated = data.last_updated || Date.now();
+
+                // আর্নিং সিঙ্ক প্রসেসর (ব্যালেন্স শো না হওয়ার প্রবলেম ফিক্স)
+                if (!isInitialized || Math.abs(dbBalance - localBalance) > 0.005) {
+                    let elapsedMs = Date.now() - dbLastUpdated;
+                    let backgroundEarned = elapsedMs * speedPerMs;
+                    localBalance = dbBalance + backgroundEarned;
+                    isInitialized = true;
+                }
+            });
+
+            // ২. বোনাস ইন্ডিকেটর টগল লিসেনার
+            onValue(ref(db, `bonus/${currentUser.uid}`), (snapshot) => {
+                const bData = snapshot.val();
+                document.getElementById('bonusTick').style.display = (bData && bData.available) ? 'flex' : 'none';
+            });
+
+            // ৩. অ্যাডমিন প্যানেল ম্যাট্রিক্স চেঞ্জার
+            onValue(ref(db, 'plans_config'), (snapshot) => {
+                const visibilityConfig = snapshot.val() || {};
+                renderPlans(visibilityConfig);
+            });
+        }
+
+        // গাণিতিক রিলেশনশিপ ইঞ্জিন: ১২০ কয়েন = ১ ডলার
+        function calculateMiningSpeed() {
+            let totalCoinsPer24H = 0;
+            staticPlans.forEach(p => {
+                if (activePlans[p.id]) {
+                    totalCoinsPer24H += p.coins;
+                }
+            });
+            let totalDollarsPer24H = totalCoinsPer24H / 120;
+            speedPerMs = totalDollarsPer24H / 86400000; // ২৪ ঘণ্টাকে মিলি-সেকেন্ডে কনভার্ট
+        }
+
+        // ইউজার ইন্টারফেস কাউন্টার আপডেট (প্রতি ১০০ মিলি-সেকেন্ডে ব্যালেন্স স্ক্রিনে রি-রেন্ডার হবে)
+        setInterval(() => {
+            if (!currentUser || !isInitialized) return;
+            localBalance += (speedPerMs * 100);
+            document.getElementById('liveCounter').innerText = "$" + localBalance.toFixed(6);
+        }, 100);
+
+        // সার্ভার-সাইড অটো ব্যালেন্স সিঙ্ক (ডাটাবেজ সেভিং লুপ ৩ সেকেন্ড পর পর)
+        setInterval(async () => {
+            if (!currentUser || !isInitialized || speedPerMs === 0) return;
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), {
+                    balance: localBalance,
+                    last_updated: Date.now()
+                });
+            } catch (err) {
+                console.error("Backplane Sync Fail: ", err);
+            }
+        }, 3000);
+
+        function renderPlans(visibilityConfig) {
+            const listContainer = document.getElementById('plansList');
+            listContainer.innerHTML = '';
+
+            staticPlans.forEach(p => {
+                // অ্যাডমিন প্যানেল থেকে কোনো প্ল্যান অফ থাকলে হাইড হবে (ফ্রী প্ল্যান বাদে)
+                if (p.id !== 'free' && visibilityConfig[p.id] === false) return;
+
+                const isRunning = activePlans[p.id] ? true : false;
+                const card = document.createElement('div');
+                card.className = 'plan-card';
+                card.innerHTML = `
+                    <div class="plan-info">
+                        <h3>${p.name}</h3>
+                        <p>Production Capacity: +${p.coins} Coins / Daily</p>
+                        <p class="price">${p.id === 'free' ? 'Free Access' : 'Price: $' + p.price}</p>
+                    </div>
+                    <button class="btn-action ${isRunning ? 'btn-running-state' : 'btn-active-state'}" 
+                            ${isRunning ? 'disabled' : ''} 
+                            data-id="${p.id}" data-price="${p.price}">
+                        ${isRunning ? 'Running' : 'Active'}
+                    </button>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            // প্ল্যানস অ্যাক্টিভেশন লুপ ভ্যালিডেশন
+            document.querySelectorAll('.btn-active-state').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const planId = e.target.getAttribute('data-id');
+                    const price = parseFloat(e.target.getAttribute('data-price'));
+
+                    if (planId !== 'free' && localBalance < price) {
+                        alert("দুঃখিত, এই প্ল্যানটি কেনার জন্য আপনার অ্যাকাউন্টে পর্যাপ্ত ডলার ব্যালেন্স নেই!");
+                        return;
+                    }
+
+                    if (planId !== 'free') {
+                        localBalance -= price;
+                    }
+                    
+                    activePlans[planId] = true;
+
+                    try {
+                        await update(ref(db, `users/${currentUser.uid}`), {
+                            balance: localBalance,
+                            last_updated: Date.now(),
+                            [`activePlans/${planId}`]: true
+                        });
+                        alert("অভিনন্দন! আপনার প্ল্যানটি সফলভাবে চালু করা হয়েছে।");
+                    } catch (err) {
+                        alert("ডাটাবেজ ত্রুটি: " + err.message);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
