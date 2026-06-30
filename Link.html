@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Links</title>
+  <style>
+    body { background: #0f0f13; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
+    .step-btn { background: #333; color: #888; padding: 15px; margin: 10px 0; width: 100%; border: none; border-radius: 8px; font-weight: bold; pointer-events: none; transition: 0.3s; }
+    .step-btn.active { background: #d6205f; color: white; pointer-events: auto; cursor: pointer; }
+    .step-btn.main { background: #4CAF50; font-size: 18px; display: none; }
+  </style>
+</head>
+<body>
+  <h2>Unlock Your Links</h2>
+  <div id="linkContainer">
+    <button id="btn1" class="step-btn active">1. Subscribe Channel (Video)</button>
+    <button id="btn2" class="step-btn">2. Subscribe Channel</button>
+    <button id="btn3" class="step-btn">3. Wait 10 Seconds</button>
+    <button id="btn4" class="step-btn main">OPEN MAIN LINK</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const app = initializeApp({ databaseURL: "https://index-html-75ded-default-rtdb.firebaseio.com" });
+    const db = getDatabase(app);
+    
+    // Get ID from URL
+    const urlParams = new URLSearchParams(window.search);
+    const postId = urlParams.get('id');
+    let postLinks = {};
+
+    if (postId) {
+      get(ref(db, 'posts/' + postId + '/links')).then((snapshot) => {
+        if (snapshot.exists()) postLinks = snapshot.val();
+      });
+    }
+
+    const b1 = document.getElementById('btn1');
+    const b2 = document.getElementById('btn2');
+    const b3 = document.getElementById('btn3');
+    const b4 = document.getElementById('btn4');
+
+    b1.addEventListener('click', () => {
+      window.open(postLinks.link1 || '#', '_blank');
+      startTimer(b2, 10, () => b2.classList.add('active'));
+    });
+
+    b2.addEventListener('click', () => {
+      window.open(postLinks.link2 || '#', '_blank');
+      startTimer(b3, 10, () => b3.classList.add('active'));
+    });
+
+    b3.addEventListener('click', () => {
+      window.open(postLinks.link3 || '#', '_blank');
+      startTimer(b3, 10, () => {
+        b4.style.display = 'block';
+        b4.classList.add('active');
+      }, "Unlocking...");
+    });
+
+    b4.addEventListener('click', () => {
+      window.open(postLinks.mainLink || '#', '_blank');
+    });
+
+    function startTimer(btnElement, seconds, callback, customText) {
+      let count = seconds;
+      btnElement.innerText = customText || `Wait ${count}s...`;
+      const interval = setInterval(() => {
+        count--;
+        btnElement.innerText = customText || `Wait ${count}s...`;
+        if (count <= 0) {
+          clearInterval(interval);
+          btnElement.innerText = btnElement.id.replace('btn', 'Step ') + " Ready!";
+          callback();
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
